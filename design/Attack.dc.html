@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      background: #EEF0F2;
+      color: #141A24;
+      font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums lining-nums;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #2B4C7E; }
+    a:hover { color: #141A24; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 1024px; box-sizing: border-box; padding: 48px 64px; display: flex; flex-direction: column; gap: 26px; background: #EEF0F2;">
+
+  <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #CBD2D9; padding-bottom: 12px;">
+    <div style="display: flex; gap: 28px; align-items: baseline;">
+      <div style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;">Ordercraft</div>
+      <div style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">One attack</div>
+    </div>
+    <div style="display: flex; gap: 24px; align-items: baseline; font-size: 12px; color: #5C6874;">
+      <div>Slot 312,884,201 · Anti-snipe launch</div>
+      <div style="color: #141A24;">triple 3 of 7</div>
+      <div style="display: flex; gap: 12px;">
+        <div style="border: 1px solid #CBD2D9; padding: 3px 12px;">Previous</div>
+        <div style="border: 1px solid #CBD2D9; padding: 3px 12px;">Next</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="display: grid; grid-template-columns: 92px 118px 150px 150px 1fr; gap: 20px; border-bottom: 1px solid #CBD2D9; padding-bottom: 7px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #5C6874;">
+      <div>Role</div>
+      <div>Position</div>
+      <div>Signer</div>
+      <div>Signature</div>
+      <div>Balance across the triple</div>
+    </div>
+    <sc-for list="{{rows}}" as="row" hint-placeholder-count="3">
+      <div style="display: grid; grid-template-columns: 92px 118px 150px 150px 1fr; gap: 20px; padding: 12px 0; border-bottom: 1px solid #CBD2D9; align-items: baseline;">
+        <div style="color: {{row.roleColor}}">{{row.role}}</div>
+        <div>{{row.position}}</div>
+        <div style="color: #5C6874;">{{row.signer}}</div>
+        <div style="color: #5C6874;">{{row.signature}}</div>
+        <div style="color: {{row.amountColor}}">{{row.amount}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; gap: 64px; align-items: flex-start;">
+
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 560px; flex-shrink: 0;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #CBD2D9; padding-bottom: 7px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #5C6874;">
+        <div>Baseline · 390–416</div>
+        <div>Under policy · 365–445</div>
+      </div>
+
+      <svg width="560" height="486" viewBox="0 0 560 486" style="display: block;">
+        <sc-for list="{{leftTicks}}" as="t" hint-placeholder-count="27">
+          <g>
+            <rect x="46" y="{{t.y}}" width="44" height="{{t.h}}" fill="{{t.fill}}"></rect>
+            <text x="38" y="{{t.textY}}" text-anchor="end" font-size="9" fill="{{t.labelFill}}" font-family="ui-sans-serif, system-ui, sans-serif">{{t.label}}</text>
+          </g>
+        </sc-for>
+
+        <sc-for list="{{rightTicks}}" as="t" hint-placeholder-count="27">
+          <g>
+            <rect x="470" y="{{t.y}}" width="44" height="{{t.h}}" fill="{{t.fill}}"></rect>
+            <text x="522" y="{{t.textY}}" font-size="9" fill="{{t.labelFill}}" font-family="ui-sans-serif, system-ui, sans-serif">{{t.label}}</text>
+          </g>
+        </sc-for>
+
+        <sc-for list="{{links}}" as="l" hint-placeholder-count="27">
+          <path d="{{l.d}}" fill="none" stroke="{{l.stroke}}" stroke-width="{{l.width}}" opacity="{{l.opacity}}"></path>
+        </sc-for>
+      </svg>
+    </div>
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 24px; padding-top: 4px;">
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">In the recorded block</div>
+        <div style="max-width: 620px;">
+          The three transactions sit adjacent, in this order, on MERIDIAN/USDC. The same signer pays for the first and the third; the middle one belongs to someone else and buys at the price the first transaction has just moved. Across the pair, that signer's balance changes by <span style="color: #C8402B;">311.75 USDC</span> after fees — a figure taken from the recorded balances, not from a re-simulation of what the victim would otherwise have paid.
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">Under this policy</div>
+        <div style="max-width: 620px;">
+          Speed bump 120 ms holds both of the attacker's transactions: they match the class <span style="border-bottom: 1px solid #CBD2D9;">Swaps against pools under 24h old</span> and arrive late in the window. The victim's transaction does not move. Resulting positions are 438 / 403 / 441 — the front-run now stands <span style="color: #2B4C7E;">after</span> the transaction it was meant to precede, and a sandwich that does not surround anything extracts nothing.
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #CBD2D9; padding-top: 18px;">
+        <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">What this does not say</div>
+        <div style="max-width: 620px; color: #5C6874;">
+          Replayed against a recorded block. Arrival time inside a block is not recorded on-chain and is modelled as arrival(i) = floor(i × 400 / N).
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const H = 486;
+    const LEFT_FROM = 390;
+    const LEFT_TO = 416;
+    const RIGHT_FROM = 365;
+    const RIGHT_TO = 445;
+    const ATTACK = { 402: 438, 403: 403, 404: 441 };
+
+    let seed = 4030402;
+    const next = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+
+    const leftY = (p) => ((p - LEFT_FROM) / (LEFT_TO - LEFT_FROM + 1)) * H;
+    const rightY = (p) => ((p - RIGHT_FROM) / (RIGHT_TO - RIGHT_FROM + 1)) * H;
+
+    const leftTicks = [];
+    const rightTicks = [];
+    const links = [];
+
+    for (let p = LEFT_FROM; p <= LEFT_TO; p++) {
+      const attack = ATTACK[p] !== undefined;
+      const target = attack ? ATTACK[p] : Math.min(RIGHT_TO, Math.max(RIGHT_FROM, p + Math.round((next() * 2 - 1) * 9)));
+      const y1 = leftY(p);
+      const y2 = rightY(target);
+
+      leftTicks.push({
+        y: y1.toFixed(2),
+        h: attack ? '4' : '2',
+        fill: attack ? '#C8402B' : '#5C6874',
+        textY: (y1 + 4).toFixed(2),
+        label: String(p),
+        labelFill: attack ? '#C8402B' : '#5C6874',
+      });
+
+      rightTicks.push({
+        y: y2.toFixed(2),
+        h: attack ? '4' : '2',
+        fill: attack ? '#C8402B' : '#5C6874',
+        textY: (y2 + 4).toFixed(2),
+        label: String(target),
+        labelFill: attack ? '#C8402B' : '#5C6874',
+      });
+
+      links.push({
+        d: 'M 90,' + y1.toFixed(2) + ' C 240,' + y1.toFixed(2) + ' 320,' + y2.toFixed(2) + ' 470,' + y2.toFixed(2),
+        stroke: attack ? '#C8402B' : '#2B4C7E',
+        width: attack ? '1.5' : '0.75',
+        opacity: attack ? '1' : '0.28',
+      });
+    }
+
+    return {
+      leftTicks,
+      rightTicks,
+      links,
+      rows: [
+        {
+          role: 'front-run',
+          position: '402 → 438',
+          signer: '7Qm4…tXo9',
+          signature: '3vBa…Ld52',
+          amount: '+ 412.08 USDC',
+          roleColor: '#C8402B',
+          amountColor: '#141A24',
+        },
+        {
+          role: 'victim',
+          position: '403 → 403',
+          signer: 'Ka91…rW7d',
+          signature: '5Nqe…Hy10',
+          amount: '− 311.75 USDC against the moved price',
+          roleColor: '#141A24',
+          amountColor: '#5C6874',
+        },
+        {
+          role: 'back-run',
+          position: '404 → 441',
+          signer: '7Qm4…tXo9',
+          signature: '9Prt…Zc44',
+          amount: '− 100.33 USDC, net 311.75 USDC after fees',
+          roleColor: '#C8402B',
+          amountColor: '#C8402B',
+        },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

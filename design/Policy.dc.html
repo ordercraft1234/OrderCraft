@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      background: #EEF0F2;
+      color: #141A24;
+      font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums lining-nums;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #2B4C7E; }
+    a:hover { color: #141A24; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 1024px; box-sizing: border-box; padding: 56px 64px; display: flex; flex-direction: column; gap: 36px; background: #EEF0F2;">
+
+  <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #CBD2D9; padding-bottom: 12px;">
+    <div style="display: flex; gap: 28px; align-items: baseline;">
+      <div style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;">Ordercraft</div>
+      <div style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">Policy</div>
+    </div>
+    <div style="font-size: 12px; color: #5C6874;">Slot 312,884,201 · 1,182 transactions · recorded</div>
+  </div>
+
+  <div style="display: flex; gap: 72px; align-items: flex-start;">
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 28px;">
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">Policy</div>
+        <div style="font-size: 12px; color: #5C6874;">from preset · Anti-snipe launch — 1 parameter differs</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: grid; grid-template-columns: 26px 200px 168px 1fr; gap: 20px; padding-bottom: 8px; border-bottom: 1px solid #CBD2D9; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5C6874;">
+          <div>#</div>
+          <div>Primitive</div>
+          <div>Parameter</div>
+          <div>Applies to</div>
+        </div>
+
+        <sc-for list="{{rows}}" as="row" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 26px 200px 168px 1fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid #CBD2D9; align-items: baseline;">
+            <div style="color: #5C6874;">{{row.n}}</div>
+            <div>{{row.name}}</div>
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <div style="display: flex; align-items: baseline; gap: 8px;">
+                <div style="min-width: 74px; border-bottom: 1px solid #141A24; padding-bottom: 3px;">{{row.value}}</div>
+                <div style="color: #5C6874; font-size: 11px;">{{row.range}}</div>
+              </div>
+              <div style="font-size: 11px; color: #5C6874;">{{row.changed}}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div>{{row.applies}}</div>
+              <div style="font-size: 11px; color: #5C6874;">{{row.description}}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: #5C6874;">
+        <div>Primitives apply in sequence. Order changes the result.</div>
+        <div>policy · 9f2c4b81…a41d · schema v1</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 12px; padding-top: 22px; border-top: 1px solid #CBD2D9;">
+        <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">Out of range</div>
+        <div style="display: grid; grid-template-columns: 26px 200px 168px 1fr; gap: 20px; align-items: baseline;">
+          <div style="color: #5C6874;">2</div>
+          <div>Batch auction</div>
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <div style="min-width: 74px; border-bottom: 1px solid #C8402B; padding-bottom: 3px;">480 ms</div>
+              <div style="color: #5C6874; font-size: 11px;">50–400 ms</div>
+            </div>
+            <div style="font-size: 11px; color: #C8402B;">outside the allowed range</div>
+          </div>
+          <div style="color: #5C6874;">Window is longer than a slot; the run would have no block left to order.</div>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 16px;">
+          <div style="border: 1px solid #CBD2D9; color: #5C6874; padding: 7px 18px;">Run</div>
+          <div style="font-size: 11px; color: #5C6874;">unavailable — Batch auction window is outside 50–400 ms</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="width: 396px; display: flex; flex-direction: column; gap: 34px;">
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874; border-bottom: 1px solid #CBD2D9; padding-bottom: 8px;">Primitives</div>
+        <sc-for list="{{primitives}}" as="p" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid #CBD2D9;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px;">
+              <div>{{p.name}}</div>
+              <div style="font-size: 11px; color: #5C6874;">{{p.range}}</div>
+            </div>
+            <div style="font-size: 11px; color: #5C6874;">{{p.description}}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874; border-bottom: 1px solid #CBD2D9; padding-bottom: 8px;">Presets</div>
+        <sc-for list="{{presets}}" as="preset" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid #CBD2D9;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px;">
+              <div>{{preset.name}}</div>
+              <div style="font-size: 11px; color: #5C6874;">{{preset.applied}}</div>
+            </div>
+            <div style="font-size: 11px; color: #5C6874;">{{preset.description}}</div>
+          </div>
+        </sc-for>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      rows: [
+        {
+          n: '1',
+          name: 'Speed bump',
+          value: '120 ms',
+          range: '0–400 ms',
+          changed: 'preset · 150 ms',
+          applies: 'Swaps against pools under 24h old',
+          description: 'Holds transactions of a chosen class for a fixed interval',
+        },
+        {
+          n: '2',
+          name: 'Batch auction',
+          value: '250 ms',
+          range: '50–400 ms',
+          changed: '',
+          applies: 'Whole block',
+          description: 'Groups transactions in a window and settles them at one price',
+        },
+        {
+          n: '3',
+          name: 'Allow / deny',
+          value: '3 denied',
+          range: 'up to 20 entries',
+          changed: '',
+          applies: 'Any transaction by listed signer',
+          description: 'Prioritises or refuses transactions by program or signer',
+        },
+      ],
+      primitives: [
+        {
+          name: 'Speed bump',
+          range: 'delay 0–400 ms',
+          description: 'Holds transactions of a chosen class for a fixed interval',
+        },
+        {
+          name: 'Batch auction',
+          range: 'window 50–400 ms',
+          description: 'Groups transactions in a window and settles them at one price',
+        },
+        {
+          name: 'Allow / deny',
+          range: 'up to 20 entries',
+          description: 'Prioritises or refuses transactions by program or signer',
+        },
+      ],
+      presets: [
+        {
+          name: 'Anti-snipe launch',
+          applied: 'applied',
+          description: 'Speed bump on young pools, then a batch window, then a deny list',
+        },
+        {
+          name: 'Quote shelter',
+          applied: '',
+          description: 'Protects listed signers from being ordered around',
+        },
+        {
+          name: 'Fair start',
+          applied: '',
+          description: 'One batch window across the whole block, nothing else',
+        },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "artboards": [
+    { "file": "Policy.dc.html", "x": 0, "y": 0, "w": 1440, "h": 1024, "title": "1 · Policy" },
+    { "file": "Main.dc.html", "x": 1560, "y": 0, "w": 1440, "h": 1024, "title": "2 · Comparison" },
+    { "file": "Attack.dc.html", "x": 3120, "y": 0, "w": 1440, "h": 1024, "title": "3 · One attack" },
+    { "file": "Report.dc.html", "x": 4680, "y": 0, "w": 1440, "h": 1024, "title": "4 · Across many blocks" }
+  ],
+  "annotations": [
+    {
+      "id": "m0-scope",
+      "x": 0,
+      "y": -190,
+      "w": 620,
+      "text": "M0 — artboards on mock data. The numbers come from docs/m0-design-brief.md and agree across artboards, but none of them is a truth about the chain: there are no real slots here.\nThere will be no Jito BAM integration in the product — this is a test bench that replays a recorded block."
+    },
+    {
+      "id": "m0-ribbon",
+      "x": 1560,
+      "y": -190,
+      "w": 560,
+      "text": "The centrepiece: 547 ribbons between two texture columns. 635 of 1,182 transactions did not move and draw nothing — that emptiness is information."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

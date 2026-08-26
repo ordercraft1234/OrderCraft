@@ -12,3 +12,7 @@ coverage/
 
 .DS_Store
 *.log
+
+# Claude Design canvas: sources are committed, the built page (~2 MB) is not
+design/*.html
+!design/*.dc.html

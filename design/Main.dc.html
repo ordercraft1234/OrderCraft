@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      background: #EEF0F2;
+      color: #141A24;
+      font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums lining-nums;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #2B4C7E; }
+    a:hover { color: #141A24; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 1024px; box-sizing: border-box; padding: 48px 64px; display: flex; flex-direction: column; gap: 28px; background: #EEF0F2;">
+
+  <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #CBD2D9; padding-bottom: 12px;">
+    <div style="display: flex; gap: 28px; align-items: baseline;">
+      <div style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;">Ordercraft</div>
+      <div style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">Comparison</div>
+    </div>
+    <div style="font-size: 12px; color: #5C6874;">Slot 312,884,201 · 1,182 transactions · recorded · Anti-snipe launch</div>
+  </div>
+
+  <div style="display: flex; gap: 72px; align-items: flex-start;">
+
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 516px; flex-shrink: 0;">
+      <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #CBD2D9; padding-bottom: 7px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #5C6874;">
+        <div>Baseline</div>
+        <div>Under policy</div>
+      </div>
+
+      <svg width="516" height="560" viewBox="0 0 516 560" style="display: block;">
+        <defs>
+          <pattern id="grain" width="4" height="2" patternUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="4" height="1" fill="#5C6874" opacity="0.42"></rect>
+          </pattern>
+        </defs>
+
+        <rect x="0" y="0" width="28" height="560" fill="url(#grain)"></rect>
+        <rect x="488" y="0" width="28" height="560" fill="url(#grain)"></rect>
+
+        <sc-for list="{{ribbons}}" as="r" hint-placeholder-count="60">
+          <path d="{{r.d}}" fill="none" stroke="#2B4C7E" stroke-width="0.75" opacity="0.18"></path>
+        </sc-for>
+
+        <sc-for list="{{stubs}}" as="s" hint-placeholder-count="8">
+          <g>
+            <path d="{{s.d}}" fill="none" stroke="#2B4C7E" stroke-width="0.75" opacity="0.4"></path>
+            <rect x="{{s.barX}}" y="{{s.barY}}" width="1" height="3" fill="#2B4C7E"></rect>
+          </g>
+        </sc-for>
+
+        <sc-for list="{{attackRibbons}}" as="a" hint-placeholder-count="21">
+          <path d="{{a.d}}" fill="none" stroke="#C8402B" stroke-width="1.5" opacity="1"></path>
+        </sc-for>
+
+        <sc-for list="{{marks}}" as="m" hint-placeholder-count="42">
+          <rect x="{{m.x}}" y="{{m.y}}" width="28" height="2" fill="#C8402B"></rect>
+        </sc-for>
+      </svg>
+    </div>
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: grid; grid-template-columns: 150px 132px 116px 1fr; gap: 18px; border-bottom: 1px solid #CBD2D9; padding-bottom: 7px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #5C6874;">
+        <div>Positions</div>
+        <div>Pool</div>
+        <div style="text-align: right;">Extracted</div>
+        <div>Under policy</div>
+      </div>
+
+      <sc-for list="{{triples}}" as="t" hint-placeholder-count="7">
+        <div style="display: grid; grid-template-columns: 150px 132px 116px 1fr; gap: 18px; padding: 13px 0; border-bottom: 1px solid #CBD2D9; align-items: baseline;">
+          <div>{{t.positions}}</div>
+          <div style="color: #5C6874;">{{t.pool}}</div>
+          <div style="text-align: right; color: #C8402B;">{{t.extracted}}</div>
+          <div>{{t.outcome}}</div>
+        </div>
+      </sc-for>
+
+      <div style="display: flex; justify-content: space-between; padding-top: 12px; font-size: 12px; color: #5C6874;">
+        <div>7 triples in baseline · 6 separated · 1 still possible</div>
+        <div>1,204.83 USDC · 12.40 SOL extracted in baseline</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 0; border-top: 1px solid #CBD2D9; border-bottom: 1px solid #CBD2D9;">
+    <sc-for list="{{figures}}" as="f" hint-placeholder-count="5">
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 5px; padding: 16px 0 16px 22px; border-left: 1px solid #CBD2D9;">
+        <div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5C6874;">{{f.label}}</div>
+        <div style="font-size: 19px;">{{f.value}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="color: #5C6874; font-size: 12px; max-width: 980px;">
+    Arrival time inside a block is not recorded on-chain. This run models it as arrival(i) = floor(i × 400 / N) — position 1,024 of 1,182 becomes 346 ms. Delay figures are a consequence of that model, not a measurement.
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1024}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const N = 1182;
+    const H = 560;
+    const COL = 28;
+    const RIGHT = 488;
+    const MOVED = 539;
+
+    let seed = 20260909;
+    const next = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+    const clamp = (i) => (i < 0 ? 0 : i > N - 1 ? N - 1 : i);
+    const y = (i) => ((i + 0.5) * H) / N;
+    const curve = (from, to) => {
+      const y1 = y(from);
+      const y2 = y(to);
+      return 'M ' + COL + ',' + y1.toFixed(2) + ' C 212,' + y1.toFixed(2) + ' 304,' + y2.toFixed(2) + ' ' + RIGHT + ',' + y2.toFixed(2);
+    };
+
+    const attackRows = [
+      { from: [141, 142, 143], to: [167, 142, 171], pool: 'MERIDIAN/USDC', extracted: '214.60 USDC', outcome: 'separated by Batch auction 250 ms' },
+      { from: [288, 289, 290], to: [311, 289, 316], pool: 'HALCYON/USDC', extracted: '96.30 USDC', outcome: 'separated by Batch auction 250 ms' },
+      { from: [402, 403, 404], to: [438, 403, 441], pool: 'MERIDIAN/USDC', extracted: '311.75 USDC', outcome: 'separated by Speed bump 120 ms' },
+      { from: [517, 518, 519], to: [552, 518, 557], pool: 'CINDER/SOL', extracted: '4.10 SOL', outcome: 'separated by Speed bump 120 ms' },
+      { from: [640, 641, 642], to: [640, 613, 642], pool: 'HALCYON/USDC', extracted: '187.44 USDC', outcome: 'separated by Allow / deny' },
+      { from: [803, 804, 805], to: [839, 804, 843], pool: 'CINDER/SOL', extracted: '8.30 SOL', outcome: 'separated by Batch auction 250 ms' },
+      { from: [1024, 1025, 1026], to: [1024, 1025, 1026], pool: 'MERIDIAN/USDC', extracted: '394.74 USDC', outcome: 'attack remains possible' },
+    ];
+
+    const taken = {};
+    const ribbons = [];
+    for (let k = 0; k < MOVED; k++) {
+      const base = Math.floor(((k + 0.5) * N) / MOVED);
+      let i = clamp(base + Math.floor((next() - 0.5) * 3));
+      while (taken[i]) i = clamp(i + 1);
+      taken[i] = true;
+      const target = clamp(i + Math.round((next() * 2 - 1) * 85));
+      ribbons.push({ d: curve(i, target) });
+    }
+
+    const stubs = [137, 264, 398, 512, 690, 845, 991, 1103].map((i) => {
+      const yi = y(i);
+      return {
+        d: 'M ' + COL + ',' + yi.toFixed(2) + ' C 180,' + yi.toFixed(2) + ' 300,' + yi.toFixed(2) + ' 468,' + yi.toFixed(2),
+        barX: 468,
+        barY: (yi - 1.5).toFixed(2),
+      };
+    });
+
+    const attackRibbons = [];
+    const marks = [];
+    for (const row of attackRows) {
+      for (let k = 0; k < 3; k++) {
+        attackRibbons.push({ d: curve(row.from[k], row.to[k]) });
+        marks.push({ x: 0, y: (y(row.from[k]) - 1).toFixed(2) });
+        marks.push({ x: RIGHT, y: (y(row.to[k]) - 1).toFixed(2) });
+      }
+    }
+
+    return {
+      ribbons,
+      stubs,
+      attackRibbons,
+      marks,
+      triples: attackRows.map((row) => ({
+        positions: row.from[0].toLocaleString('en-US') + ' / ' + row.from[1].toLocaleString('en-US') + ' / ' + row.from[2].toLocaleString('en-US'),
+        pool: row.pool,
+        extracted: row.extracted,
+        outcome: row.outcome,
+      })),
+      figures: [
+        { label: 'moved', value: '486' },
+        { label: 'delayed', value: '53' },
+        { label: 'dropped', value: '8' },
+        { label: 'reordered', value: '46.3 %' },
+        { label: 'added latency', value: 'p50 96 ms · p95 284 ms' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
