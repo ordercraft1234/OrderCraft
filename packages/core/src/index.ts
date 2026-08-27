@@ -11,3 +11,5 @@ export type {
   SlotBundle,
   TokenDelta,
 } from './slot/schema.js'
+export { normalizeBlock, rawBlockSchema } from './slot/normalize.js'
+export type { RawBlock } from './slot/normalize.js'
