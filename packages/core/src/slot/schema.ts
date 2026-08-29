@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { base58 } from '../common/scalars.js'
 
 export const SLOT_SCHEMA_VERSION = 1
 
@@ -7,8 +8,6 @@ const integerString = z
   .regex(/^-?(0|[1-9][0-9]*)$/, 'expected a decimal integer written as a string')
 
 const amount = integerString.transform((value) => BigInt(value))
-
-const base58 = z.string().min(32).max(88)
 
 const tokenDeltaSchema = z.object({
   owner: base58,
