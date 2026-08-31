@@ -4,7 +4,7 @@ import {
   type SlotBundle,
   serializeSlotBundle,
   slotBundleSchema,
-} from '../src/slot/schema.js'
+} from '../src/slot/schema.ts'
 
 const wire = {
   schemaVersion: SLOT_SCHEMA_VERSION,

@@ -4,7 +4,7 @@ import {
   SLOT_SCHEMA_VERSION,
   type SlotBundle,
   type TokenDelta,
-} from './schema.js'
+} from './schema.ts'
 
 const tokenBalanceSchema = z.object({
   accountIndex: z.number().int().nonnegative(),

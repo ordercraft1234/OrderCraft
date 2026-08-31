@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { base58 } from '../common/scalars.js'
+import { base58 } from '../common/scalars.ts'
 
 export const SLOT_SCHEMA_VERSION = 1
 

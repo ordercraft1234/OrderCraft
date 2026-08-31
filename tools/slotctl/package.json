@@ -1,0 +1,22 @@
+{
+  "name": "@ordercraft/slotctl",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "slotctl": "./src/cli.ts"
+  },
+  "scripts": {
+    "fetch": "node src/cli.ts fetch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ordercraft/core": "workspace:*",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeBlock } from '../src/slot/normalize.js'
-import { serializeSlotBundle, slotBundleSchema } from '../src/slot/schema.js'
+import { normalizeBlock } from '../src/slot/normalize.ts'
+import { serializeSlotBundle, slotBundleSchema } from '../src/slot/schema.ts'
 import block from './fixtures/block-sample.json' with { type: 'json' }
 
 const SLOT = 441394400

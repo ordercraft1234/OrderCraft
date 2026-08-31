@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { base58, unsignedIntegerString } from '../common/scalars.js'
+import { base58, unsignedIntegerString } from '../common/scalars.ts'
 
 export const POLICY_SCHEMA_VERSION = 1
 

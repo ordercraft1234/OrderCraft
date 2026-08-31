@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canonicalize, policyHash } from '../src/policy/compile.js'
+import { canonicalize, policyHash } from '../src/policy/compile.ts'
 
 describe('canonicalize', () => {
   it('ignores the order keys were written in', () => {

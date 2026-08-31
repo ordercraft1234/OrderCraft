@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PRIMITIVES, policySchema } from '../src/policy/schema.js'
+import { PRIMITIVES, policySchema } from '../src/policy/schema.ts'
 
 const SIGNER = '7QmXo9tXo94BpPDA5Q18TCXSvtwxGnXp47GVr7Mnh2Ey'
 const POOL = 'CbjY8Wohs2EnLLjSNMPkFrn9iaPvVJJtAdJiWRYeeN2x'
