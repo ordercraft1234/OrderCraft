@@ -2,14 +2,14 @@ import { readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { normalizeBlock } from '@ordercraft/core'
 import { fetchBlock } from './rpc.ts'
-import { type Candidate, findCandidates } from './scan.ts'
+import { type Candidate, findCandidates, sampleSlots } from './scan.ts'
 import { readSlot, writeSlot } from './store.ts'
 
 const CACHE_DIR = '.cache/slots'
 const FIXTURE_DIR = 'packages/fixtures/slots'
 
 const usage = `slotctl fetch <slot> [--fixture] [--out <dir>]
-slotctl scan <dir> [--window <n>] [--random <k>] [--out <file>]
+slotctl scan <dir> [--window <n>] [--random <k>] [--seed <n>] [--out <file>]
 
   fetch  Fetches one slot, normalises it and writes <slot>.json.gz.
          Default target is ${CACHE_DIR}; --fixture writes to ${FIXTURE_DIR}.
@@ -18,7 +18,8 @@ slotctl scan <dir> [--window <n>] [--random <k>] [--out <file>]
   scan   Reads every slot in <dir> and prints candidate triples for manual
          review. The filter is wider than the detector on purpose; --random
          also draws <k> slots that no filter chose, so recall can be measured
-         against something the detector did not select.`
+         against something the detector did not select. The draw is seeded, so
+         the same --seed over the same directory yields the same shortlist.`
 
 function flag(rest: string[], name: string): string | undefined {
   const at = rest.indexOf(name)
@@ -57,7 +58,13 @@ function scanCommand(directory: string, rest: string[]): number {
 
   const windowArgument = flag(rest, '--window')
   const window = windowArgument === undefined ? undefined : Number(windowArgument)
+
   const randomCount = Number(flag(rest, '--random') ?? 0)
+  const seed = Number(flag(rest, '--seed') ?? 0)
+  if (!Number.isSafeInteger(randomCount) || !Number.isSafeInteger(seed)) {
+    process.stderr.write('--random and --seed take whole numbers\n')
+    return 2
+  }
 
   const candidates: Candidate[] = []
   const scanned: number[] = []
@@ -73,9 +80,11 @@ function scanCommand(directory: string, rest: string[]): number {
   const withoutCandidates = scanned.filter(
     (slot) => !candidates.some((candidate) => candidate.slot === slot),
   )
-  const randomSlots = withoutCandidates.slice(0, randomCount)
+  const randomSlots = sampleSlots(withoutCandidates, randomCount, seed)
 
-  const shortlist = { scanned, candidates, randomSlots }
+  // The seed travels with the shortlist: labels are worth nothing if the set they
+  // describe cannot be drawn again.
+  const shortlist = { seed, scanned, candidates, randomSlots }
   const out = flag(rest, '--out')
   if (out === undefined) {
     process.stdout.write(

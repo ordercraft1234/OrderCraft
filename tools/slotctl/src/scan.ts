@@ -82,7 +82,10 @@ function between(
   )
 }
 
-function sharedSigner(left: NormalizedTransaction, right: NormalizedTransaction): string | undefined {
+function sharedSigner(
+  left: NormalizedTransaction,
+  right: NormalizedTransaction,
+): string | undefined {
   return left.signers.find((signer) => right.signers.includes(signer))
 }
 
@@ -93,12 +96,48 @@ function sharedSigner(left: NormalizedTransaction, right: NormalizedTransaction)
  */
 function nonProgramAccounts(transaction: NormalizedTransaction): string[] {
   return transaction.accounts.filter(
-    (account) =>
-      !transaction.programs.includes(account) && !transaction.signers.includes(account),
+    (account) => !transaction.programs.includes(account) && !transaction.signers.includes(account),
   )
 }
 
 function intersect(left: string[], right: string[]): string[] {
   const other = new Set(right)
   return [...new Set(left.filter((value) => other.has(value)))]
+}
+
+/**
+ * Draws `count` slots deterministically. The curated set has to be reproducible from
+ * the seed alone: a slot somebody spent two minutes labelling must still be in the
+ * sample after a re-scan, otherwise the labels drift away from the set they describe.
+ *
+ * The pool is sorted first. `readdirSync` order is filesystem-dependent, and a seed
+ * that only reproduces on the machine that drew it reproduces nothing.
+ */
+export function sampleSlots(slots: number[], count: number, seed: number): number[] {
+  const pool = [...new Set(slots)].sort(ascending)
+  const take = Math.min(Math.max(count, 0), pool.length)
+  const random = mulberry32(seed)
+
+  return pool
+    .map((slot) => ({ slot, key: random() }))
+    .sort((left, right) => left.key - right.key)
+    .slice(0, take)
+    .map(({ slot }) => slot)
+    .sort(ascending)
+}
+
+function ascending(left: number, right: number): number {
+  return left - right
+}
+
+/** mulberry32 — 32 bits of state, enough for a shortlist and short enough to read. */
+function mulberry32(seed: number): () => number {
+  let state = seed >>> 0
+
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0
+    let value = Math.imul(state ^ (state >>> 15), 1 | state)
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value
+    return ((value ^ (value >>> 14)) >>> 0) / 0x100000000
+  }
 }

@@ -1,6 +1,6 @@
 import type { NormalizedTransaction, SlotBundle } from '@ordercraft/core'
 import { describe, expect, it } from 'vitest'
-import { findCandidates } from '../src/scan.ts'
+import { findCandidates, sampleSlots } from '../src/scan.ts'
 
 const POOL = 'CbjY8Wohs2EnLLjSNMPkFrn9iaPvVJJtAdJiWRYeeN2x'
 const ATTACKER = '7QmXo9tXo94BpPDA5Q18TCXSvtwxGnXp47GVr7Mnh2Ey'
@@ -37,11 +37,7 @@ const bundle = (transactions: NormalizedTransaction[]): SlotBundle => ({
 describe('findCandidates', () => {
   it('finds a pair by one signer around a third transaction on a shared account', () => {
     const found = findCandidates(
-      bundle([
-        tx(0, ATTACKER, [POOL]),
-        tx(1, VICTIM, [POOL]),
-        tx(2, ATTACKER, [POOL]),
-      ]),
+      bundle([tx(0, ATTACKER, [POOL]), tx(1, VICTIM, [POOL]), tx(2, ATTACKER, [POOL])]),
     )
 
     expect(found).toHaveLength(1)
@@ -96,11 +92,7 @@ describe('findCandidates', () => {
 
   it('skips vote transactions, which fill the block and can extract nothing', () => {
     const found = findCandidates(
-      bundle([
-        tx(0, ATTACKER, [POOL]),
-        tx(1, STRANGER, [POOL], [VOTE]),
-        tx(2, ATTACKER, [POOL]),
-      ]),
+      bundle([tx(0, ATTACKER, [POOL]), tx(1, STRANGER, [POOL], [VOTE]), tx(2, ATTACKER, [POOL])]),
     )
 
     expect(found).toEqual([])
@@ -124,13 +116,53 @@ describe('findCandidates', () => {
     // Both outer transactions buy; nothing here is profitable. A detector would
     // reject it, the shortlist keeps it, and a person decides.
     const found = findCandidates(
-      bundle([
-        tx(0, ATTACKER, [POOL]),
-        tx(1, VICTIM, [POOL]),
-        tx(2, ATTACKER, [POOL]),
-      ]),
+      bundle([tx(0, ATTACKER, [POOL]), tx(1, VICTIM, [POOL]), tx(2, ATTACKER, [POOL])]),
     )
 
     expect(found).toHaveLength(1)
+  })
+})
+
+describe('sampleSlots', () => {
+  const slots = Array.from({ length: 40 }, (_, at) => 441394000 + at)
+
+  it('draws the same slots for the same seed', () => {
+    expect(sampleSlots(slots, 5, 7)).toEqual(sampleSlots(slots, 5, 7))
+  })
+
+  it('draws different slots for a different seed', () => {
+    expect(sampleSlots(slots, 5, 7)).not.toEqual(sampleSlots(slots, 5, 8))
+  })
+
+  it('does not depend on the order the directory was read in', () => {
+    expect(sampleSlots([...slots].reverse(), 5, 7)).toEqual(sampleSlots(slots, 5, 7))
+  })
+
+  it('draws from the whole pool, not the head of it', () => {
+    // The old --random took the first k. A sample that never reaches the tail is
+    // a sample of the filesystem, not of the slots.
+    const seen = new Set(
+      Array.from({ length: 20 }, (_, seed) => sampleSlots(slots, 5, seed)).flat(),
+    )
+    const tail = slots.slice(-10)
+
+    expect(tail.some((slot) => seen.has(slot))).toBe(true)
+  })
+
+  it('returns distinct slots in slot order', () => {
+    const drawn = sampleSlots(slots, 8, 3)
+
+    expect(new Set(drawn).size).toBe(8)
+    expect(drawn).toEqual([...drawn].sort((left, right) => left - right))
+  })
+
+  it('never draws more than the pool holds', () => {
+    expect(sampleSlots([1, 2, 3], 10, 1)).toEqual([1, 2, 3])
+    expect(sampleSlots([], 5, 1)).toEqual([])
+    expect(sampleSlots(slots, 0, 1)).toEqual([])
+  })
+
+  it('ignores duplicates in the pool', () => {
+    expect(sampleSlots([1, 1, 2, 2, 3], 3, 1)).toEqual([1, 2, 3])
   })
 })
