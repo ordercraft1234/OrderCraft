@@ -1,7 +1,7 @@
 import type { PolicyStep } from '../policy/schema.ts'
 import type { SlotBundle } from '../slot/schema.ts'
-import { type Placement, SLOT_DURATION_MS } from './placement.ts'
-import { matchesSelector } from './select.ts'
+import { type Placement, movedTo } from './placement.ts'
+import { mapMatching } from './select.ts'
 
 export type SpeedBumpStep = Extract<PolicyStep, { kind: 'speedBump' }>
 
@@ -25,24 +25,9 @@ export function speedBump(
   // `changedBy`, so the comparison screen does not credit it with moving anything.
   if (step.delayMs === 0) return [...placements]
 
-  return placements.map((placement) => {
-    const transaction = bundle.transactions[placement.index]
-    if (transaction === undefined) {
-      throw new Error(`placement ${placement.index} has no transaction in slot ${bundle.slot}`)
-    }
-
-    // Already out of the block: a refused transaction cannot be delayed, and a deferred
-    // one has nowhere further to go inside this slot.
-    if (placement.status !== 'kept') return placement
-    if (!matchesSelector(step.appliesTo, transaction)) return placement
-
-    const timeMs = placement.timeMs + step.delayMs
-
-    return {
-      ...placement,
-      timeMs,
-      status: timeMs >= SLOT_DURATION_MS ? 'deferred' : 'kept',
-      changedBy: 'speedBump',
-    }
-  })
+  // Delaying one member of a batch takes it out of that batch: it no longer settles
+  // with the others, and the model must stop claiming it does.
+  return mapMatching(bundle, placements, step.appliesTo, (placement) =>
+    movedTo(placement, placement.timeMs + step.delayMs, 'speedBump'),
+  )
 }

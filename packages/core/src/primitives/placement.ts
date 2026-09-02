@@ -31,6 +31,12 @@ export interface Placement {
   timeMs: number
   /** The last primitive that moved this transaction, for the comparison screen. */
   changedBy: PrimitiveKind | null
+  /**
+   * Settlement time of the batch this transaction belongs to, or `null` if it settles
+   * on its own. Two transactions are in the same batch exactly when this matches: at
+   * one settlement time the model has no "before" and "after" to give an attacker.
+   */
+  batch: number | null
 }
 
 /**
@@ -61,5 +67,29 @@ export function initialPlacements(bundle: SlotBundle): Placement[] {
     status: 'kept' as const,
     timeMs: arrivalMs(transaction.index, count),
     changedBy: null,
+    batch: null,
   }))
+}
+
+/**
+ * Puts a transaction at a new time and decides, on the way, whether it still makes
+ * the block. Every primitive that moves something goes through here, so the slot
+ * boundary is one rule in one place rather than a condition each of them remembers.
+ *
+ * `batch` is the settlement group the move leaves the transaction in — a time shared
+ * with everything settling together, or `null` for a move that settles nothing.
+ */
+export function movedTo(
+  placement: Placement,
+  timeMs: number,
+  by: PrimitiveKind,
+  batch: number | null = null,
+): Placement {
+  return {
+    ...placement,
+    timeMs,
+    batch,
+    status: timeMs >= SLOT_DURATION_MS ? 'deferred' : 'kept',
+    changedBy: by,
+  }
 }

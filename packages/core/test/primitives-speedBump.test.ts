@@ -102,6 +102,18 @@ describe('speedBump', () => {
     expect(twice.map((placement) => placement.timeMs)).toEqual([30, 120, 230, 320])
   })
 
+  it('takes a delayed transaction out of the batch it was settling in', () => {
+    const batched = initialPlacements(bundle).map((placement) => ({
+      ...placement,
+      batch: 200,
+      timeMs: 200,
+    }))
+    const after = run(bump(50, { match: 'signer', signers: [ATTACKER] }), batched)
+
+    // It no longer settles with the others, so the model must stop saying it does.
+    expect(after.map((placement) => placement.batch)).toEqual([null, 200, null, 200])
+  })
+
   it('does not mutate the placements it was given', () => {
     const before = initialPlacements(bundle)
     const snapshot = structuredClone(before)
@@ -127,6 +139,7 @@ describe('speedBump', () => {
       status: 'kept',
       timeMs: 0,
       changedBy: null,
+      batch: null,
     }
 
     expect(() => run(bump(50), [stray])).toThrow(/no transaction in slot/)
