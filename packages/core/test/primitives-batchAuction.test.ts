@@ -135,6 +135,7 @@ describe('batchAuction', () => {
       timeMs: 0,
       changedBy: null,
       batch: null,
+      prioritised: false,
     }
 
     expect(() => run(auction(100), [stray])).toThrow(/no transaction in slot/)

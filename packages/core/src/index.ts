@@ -3,8 +3,17 @@ export type { CanonicalValue } from './policy/compile.ts'
 export { POLICY_SCHEMA_VERSION, PRIMITIVES, policySchema, selectorSchema } from './policy/schema.ts'
 export type { Policy, PolicyStep, PrimitiveKind, Selector } from './policy/schema.ts'
 export { validatePolicy } from './policy/validate.ts'
-export { SLOT_DURATION_MS, arrivalMs, initialPlacements, movedTo } from './primitives/placement.ts'
+export {
+  SLOT_DURATION_MS,
+  arrivalMs,
+  initialPlacements,
+  movedTo,
+  refusedBy,
+  transactionFor,
+} from './primitives/placement.ts'
 export type { Placement, PlacementStatus } from './primitives/placement.ts'
+export { allowDeny } from './primitives/allowDeny.ts'
+export type { AllowDenyStep } from './primitives/allowDeny.ts'
 export { batchAuction } from './primitives/batchAuction.ts'
 export type { BatchAuctionStep } from './primitives/batchAuction.ts'
 export { mapMatching, matchesSelector } from './primitives/select.ts'

@@ -1,5 +1,5 @@
 import type { PrimitiveKind } from '../policy/schema.ts'
-import type { SlotBundle } from '../slot/schema.ts'
+import type { NormalizedTransaction, SlotBundle } from '../slot/schema.ts'
 
 /**
  * Nominal slot duration. The arrival scale is defined against it — this is a modelling
@@ -37,6 +37,12 @@ export interface Placement {
    * one settlement time the model has no "before" and "after" to give an attacker.
    */
   batch: number | null
+  /**
+   * Ahead of everything unprioritised, whatever the clock says. This is a class, not a
+   * time: `allow/deny` promises a transaction goes first, and expressing that as an
+   * earlier arrival would make it indistinguishable from one that simply came early.
+   */
+  prioritised: boolean
 }
 
 /**
@@ -68,6 +74,7 @@ export function initialPlacements(bundle: SlotBundle): Placement[] {
     timeMs: arrivalMs(transaction.index, count),
     changedBy: null,
     batch: null,
+    prioritised: false,
   }))
 }
 
@@ -92,4 +99,26 @@ export function movedTo(
     status: timeMs >= SLOT_DURATION_MS ? 'deferred' : 'kept',
     changedBy: by,
   }
+}
+
+/**
+ * The transaction a placement stands for. Placements are built from the slot, so a miss
+ * means the two came from different blocks — a programming error, not bad input.
+ */
+export function transactionFor(bundle: SlotBundle, placement: Placement): NormalizedTransaction {
+  const transaction = bundle.transactions[placement.index]
+  if (transaction === undefined) {
+    throw new Error(`placement ${placement.index} has no transaction in slot ${bundle.slot}`)
+  }
+
+  return transaction
+}
+
+/**
+ * Refuses a transaction outright. It settles with nobody, so it leaves whatever batch
+ * it was in — `dropped` is a statement about the policy, `deferred` about the clock,
+ * and nothing downstream may confuse the two.
+ */
+export function refusedBy(placement: Placement, by: PrimitiveKind): Placement {
+  return { ...placement, status: 'dropped', batch: null, changedBy: by }
 }

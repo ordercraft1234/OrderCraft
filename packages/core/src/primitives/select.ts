@@ -1,6 +1,6 @@
 import type { Selector } from '../policy/schema.ts'
 import type { NormalizedTransaction, SlotBundle } from '../slot/schema.ts'
-import type { Placement } from './placement.ts'
+import { type Placement, transactionFor } from './placement.ts'
 
 /**
  * Does this transaction belong to the class a step applies to?
@@ -48,10 +48,7 @@ export function mapMatching(
   change: (placement: Placement, transaction: NormalizedTransaction) => Placement,
 ): Placement[] {
   return placements.map((placement) => {
-    const transaction = bundle.transactions[placement.index]
-    if (transaction === undefined) {
-      throw new Error(`placement ${placement.index} has no transaction in slot ${bundle.slot}`)
-    }
+    const transaction = transactionFor(bundle, placement)
 
     // A refused transaction cannot be moved, and a deferred one has nowhere further
     // to go inside this slot.

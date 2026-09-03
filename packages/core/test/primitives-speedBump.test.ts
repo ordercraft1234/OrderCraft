@@ -140,6 +140,7 @@ describe('speedBump', () => {
       timeMs: 0,
       changedBy: null,
       batch: null,
+      prioritised: false,
     }
 
     expect(() => run(bump(50), [stray])).toThrow(/no transaction in slot/)
