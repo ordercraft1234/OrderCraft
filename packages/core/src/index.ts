@@ -1,3 +1,5 @@
+export { apply } from './order/apply.ts'
+export type { Ordering } from './order/apply.ts'
 export { canonicalize, policyHash } from './policy/compile.ts'
 export type { CanonicalValue } from './policy/compile.ts'
 export { POLICY_SCHEMA_VERSION, PRIMITIVES, policySchema, selectorSchema } from './policy/schema.ts'
