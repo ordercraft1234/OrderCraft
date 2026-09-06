@@ -1,3 +1,5 @@
+export { runMetrics } from './metrics/run.ts'
+export type { Percentiles, RunMetrics } from './metrics/run.ts'
 export { apply } from './order/apply.ts'
 export type { Ordering } from './order/apply.ts'
 export { canonicalize, policyHash } from './policy/compile.ts'
