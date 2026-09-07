@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    /* `@apply` rather than `theme()`: the palette stays the single source, and Biome
+       lints this file as ordinary CSS instead of tripping over an unknown function. */
+    @apply bg-ground text-ink;
+    /* Digits line up by place in every column, per the brief. Set once here so no
+       screen has to remember `tabular-nums` on each number it prints. */
+    font-variant-numeric: tabular-nums;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply font-sans;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
