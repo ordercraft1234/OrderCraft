@@ -4,6 +4,16 @@ import { base58, unsignedIntegerString } from '../common/scalars.ts'
 export const POLICY_SCHEMA_VERSION = 1
 
 /**
+ * A non-empty list of addresses, with the messages a screen can print as they are.
+ * Zod's defaults ("Array must contain at least 1 element(s)") read as a stack trace
+ * next to the rest of this product's language.
+ */
+const addresses = z
+  .array(base58)
+  .min(1, 'list at least one address')
+  .max(20, 'at most 20 addresses in one class')
+
+/**
  * What a step can select. Every branch is answerable from a single slot — the block
  * is all the evidence the simulator has, so a class like "pools younger than a day"
  * cannot exist here: it lives in history the slot does not carry. A user who means
@@ -11,9 +21,9 @@ export const POLICY_SCHEMA_VERSION = 1
  */
 export const selectorSchema = z.discriminatedUnion('match', [
   z.object({ match: z.literal('all') }),
-  z.object({ match: z.literal('program'), programs: z.array(base58).min(1).max(20) }),
-  z.object({ match: z.literal('signer'), signers: z.array(base58).min(1).max(20) }),
-  z.object({ match: z.literal('account'), accounts: z.array(base58).min(1).max(20) }),
+  z.object({ match: z.literal('program'), programs: addresses }),
+  z.object({ match: z.literal('signer'), signers: addresses }),
+  z.object({ match: z.literal('account'), accounts: addresses }),
   z.object({
     match: z.literal('tokenDeltaAbove'),
     mint: base58,
@@ -53,15 +63,24 @@ export const PRIMITIVES = [
 
 export type PrimitiveKind = (typeof PRIMITIVES)[number]['kind']
 
+/** A parameter in whole milliseconds; the range is printed beside the field anyway. */
+function milliseconds(min: number, max: number) {
+  return z
+    .number()
+    .int('whole milliseconds only')
+    .min(min, `no less than ${min} ms`)
+    .max(max, `no more than ${max} ms`)
+}
+
 const stepSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('speedBump'),
-    delayMs: z.number().int().min(SPEED_BUMP_MIN_MS).max(SPEED_BUMP_MAX_MS),
+    delayMs: milliseconds(SPEED_BUMP_MIN_MS, SPEED_BUMP_MAX_MS),
     appliesTo: selectorSchema,
   }),
   z.object({
     kind: z.literal('batchAuction'),
-    windowMs: z.number().int().min(BATCH_MIN_MS).max(BATCH_MAX_MS),
+    windowMs: milliseconds(BATCH_MIN_MS, BATCH_MAX_MS),
     appliesTo: selectorSchema,
   }),
   z.object({
@@ -83,7 +102,10 @@ export type PolicyStep = z.infer<typeof stepSchema>
 export const policySchema = z.object({
   schemaVersion: z.literal(POLICY_SCHEMA_VERSION),
   name: z.string().min(1).max(80),
-  steps: z.array(stepSchema).min(1).max(MAX_STEPS),
+  steps: z
+    .array(stepSchema)
+    .min(1, 'a policy needs at least one step')
+    .max(MAX_STEPS, `at most ${MAX_STEPS} steps`),
 })
 
 export type Policy = z.infer<typeof policySchema>
