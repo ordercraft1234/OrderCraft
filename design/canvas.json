@@ -19,6 +19,13 @@
       "y": -190,
       "w": 560,
       "text": "The centrepiece: 547 ribbons between two texture columns. 635 of 1,182 transactions did not move and draw nothing — that emptiness is information."
+    },
+    {
+      "id": "m0-numbers-pending",
+      "x": 3120,
+      "y": -260,
+      "w": 700,
+      "text": "T007, 2026-09-08. The class \"Swaps against pools under 24h old\" is removed: pool age cannot be derived from a slot. The demo policy now rests on \"Swaps above 5,000 USDC\" — the only expressive class that tells the attacker's legs from the victim without knowing addresses in advance.\n\nThree figures on the canvas are not yet checked against the implemented model and will be replaced by the run in T023:\n· the \"under policy\" positions (438 / 403 / 441 and the rest of the table) correspond to a shift of ~10 ms, not 120 ms: at N = 1,182 one position = 0.338 ms, so 120 ms = 355 positions;\n· deferred stands without a number — only a run gives it;\n· reordered 46.3 % is divided by recorded (1,182), whereas runMetrics divides by included."
     }
   ],
   "launch": { "view": "canvas" }

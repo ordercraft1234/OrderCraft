@@ -100,7 +100,7 @@
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5C6874;">Under this policy</div>
         <div style="max-width: 620px;">
-          Speed bump 120 ms holds both of the attacker's transactions: they match the class <span style="border-bottom: 1px solid #CBD2D9;">Swaps against pools under 24h old</span> and arrive late in the window. The victim's transaction does not move. Resulting positions are 438 / 403 / 441 — the front-run now stands <span style="color: #2B4C7E;">after</span> the transaction it was meant to precede, and a sandwich that does not surround anything extracts nothing.
+          Speed bump 120 ms holds both of the attacker's transactions: they match the class <span style="border-bottom: 1px solid #CBD2D9;">Swaps above 5,000 USDC</span>. The victim's swap is below that threshold, so it does not move. The policy does not know which signer is an attacker — size is the whole of what separates them here, and a smaller front-run would pass through untouched. Resulting positions are 438 / 403 / 441: the front-run now stands <span style="color: #2B4C7E;">after</span> the transaction it was meant to precede, and the three are no longer adjacent.
         </div>
       </div>
 
