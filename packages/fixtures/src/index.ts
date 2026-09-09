@@ -5,7 +5,7 @@ import { type SlotBundle, slotBundleSchema } from '@ordercraft/core'
  * being fetched: a demo that needs an RPC key is a demo that fails on the machine of
  * the person being shown it, and SC-009 asks a clean clone to run in ten minutes.
  */
-export const DEMO_SLOT = 445625228
+export const DEMO_SLOT = 445608326
 
 /**
  * The fixture as a URL. `new URL(..., import.meta.url)` is the expression a bundler
@@ -14,7 +14,7 @@ export const DEMO_SLOT = 445625228
  * bundler cannot follow a template literal — `demo.test.ts` checks it still agrees
  * with `DEMO_SLOT`.
  */
-export const demoSlotUrl = new URL('../slots/445625228.json.gz', import.meta.url).href
+export const demoSlotUrl = new URL('../slots/445608326.json.gz', import.meta.url).href
 
 /** First two bytes of a gzip member. */
 const GZIP_MAGIC: readonly [number, number] = [0x1f, 0x8b]
