@@ -77,6 +77,22 @@ importers:
         specifier: ^3.0.5
         version: 3.2.7(@types/node@26.5.0)(jiti@1.21.7)
 
+  packages/fixtures:
+    dependencies:
+      '@ordercraft/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^26.5.0
+        version: 26.5.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.5
+        version: 3.2.7(@types/node@26.5.0)(jiti@1.21.7)
+
   tools/slotctl:
     dependencies:
       '@ordercraft/core':
