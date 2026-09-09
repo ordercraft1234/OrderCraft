@@ -46,7 +46,9 @@ export function SelectorEditor({ value, errors, onChange }: SelectorEditorProps)
         <label className="flex flex-col gap-1">
           <span className="text-[11px] text-muted">One address per line, up to 20</span>
           <textarea
-            rows={2}
+            // Three, because the policy the app opens on lists three signers and a box
+            // that hides the last one reads as a list of two.
+            rows={3}
             value={value.addresses}
             onChange={(event) => onChange({ ...value, addresses: event.target.value })}
             className={`${fieldClass(invalid)} resize-y`}

@@ -26,6 +26,9 @@ importers:
       '@ordercraft/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@ordercraft/fixtures':
+        specifier: workspace:*
+        version: link:../../packages/fixtures
       react:
         specifier: ^18.3.1
         version: 18.3.1
