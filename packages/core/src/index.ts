@@ -1,5 +1,7 @@
 export { findSandwiches } from './detect/sandwich.ts'
 export type { Sandwich, SandwichOptions } from './detect/sandwich.ts'
+export { extractedValue } from './metrics/extracted.ts'
+export type { ExtractedValue, TokenAmount } from './metrics/extracted.ts'
 export { runMetrics } from './metrics/run.ts'
 export type { Percentiles, RunMetrics } from './metrics/run.ts'
 export { apply } from './order/apply.ts'
