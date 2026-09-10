@@ -2,6 +2,7 @@ import { type SlotBundle, apply, runMetrics, validatePolicy } from '@ordercraft/
 import { type ReactNode, useMemo } from 'react'
 import { RibbonField } from '../components/RibbonField.tsx'
 import { Screen } from '../components/Screen.tsx'
+import { TimeModelNote } from '../components/TimeModelNote.tsx'
 import { type PolicyDraft, toPolicy } from '../lib/policyDraft.ts'
 import { useDemoSlot } from '../lib/useDemoSlot.ts'
 
@@ -81,6 +82,8 @@ function Run({ bundle, parsed }: { bundle: SlotBundle; parsed: ReturnType<typeof
             value={`p50 ${metrics.addedDelayMs.p50} ms · p95 ${metrics.addedDelayMs.p95} ms · max ${metrics.addedDelayMs.max} ms`}
           />
         </div>
+
+        <TimeModelNote recorded={bundle.transactions.length} />
 
         <Note>
           Percentiles run over the {number.format(metrics.included)} transactions still in the
