@@ -10,6 +10,9 @@ export const VOTE = 'Vote111111111111111111111111111111111111111'
 export const ATTACKER = '7QmXo9tXo94BpPDA5Q18TCXSvtwxGnXp47GVr7Mnh2Ey'
 export const VICTIM = 'Ka91rW7dWD4BpPDA5Q18TCXSvtwxGnXp47GVr7Mnh2Ey'
 export const MINT = '4QXnu6ycbvJRQ1eyhF2egtwURhChYHQGpjr5P9fgpump'
+/** The side of the pair an attacker holds in its own wallet, in practice SOL. */
+export const QUOTE = 'So11111111111111111111111111111111111111112'
+export const OTHER_SIGNER = 'BvEQ8sT2ZmXo94BpPDA5Q18TCXSvtwxGnXp47GVr7Mnh'
 
 /** Digits mapped onto letters, because base58 has no `0` and signatures must parse. */
 const DIGIT_LETTERS = 'abcdefghij'

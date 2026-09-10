@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { serializeSlotBundle } from '@ordercraft/core'
+import { findSandwiches, serializeSlotBundle } from '@ordercraft/core'
 import { describe, expect, it } from 'vitest'
 import { DEMO_SLOT, decodeSlotBundle, demoSlotUrl } from '../src/index.ts'
 
@@ -48,6 +48,16 @@ describe('the demo fixture', () => {
     const decoded = await decodeSlotBundle(plain)
 
     expect(decoded).toStrictEqual(bundle)
+  })
+
+  /**
+   * The attack screen has nothing to draw without one of these, and the detector is a
+   * heuristic over a real block rather than something the fixture can promise on its
+   * own — so the two are checked against each other here, where replacing either one
+   * fails loudly.
+   */
+  it('carries a triple of the shape the detector looks for', () => {
+    expect(findSandwiches(bundle).length).toBeGreaterThan(0)
   })
 
   /**
