@@ -1,3 +1,5 @@
+export { tripleOutcome } from './detect/broken.ts'
+export type { BrokenReason, TripleOutcome } from './detect/broken.ts'
 export { findSandwiches } from './detect/sandwich.ts'
 export type { Sandwich, SandwichOptions } from './detect/sandwich.ts'
 export { extractedValue } from './metrics/extracted.ts'
