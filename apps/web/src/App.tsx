@@ -43,7 +43,7 @@ function ScreenFor({ route, draft, onDraftChange }: ScreenForProps) {
     case 'compare':
       return <Compare draft={draft} />
     case 'attack':
-      return <Attack triple={route.triple} />
+      return <Attack triple={route.triple} draft={draft} />
     case 'report':
       return <Report />
     case 'notFound':
