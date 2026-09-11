@@ -1,3 +1,5 @@
+export { LABELS_SCHEMA_VERSION, accuracyAgainst, slotLabelsSchema } from './detect/labels.ts'
+export type { Accuracy, SlotLabels } from './detect/labels.ts'
 export { tripleOutcome } from './detect/broken.ts'
 export type { BrokenReason, TripleOutcome } from './detect/broken.ts'
 export { findSandwiches } from './detect/sandwich.ts'
