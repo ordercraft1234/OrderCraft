@@ -12,7 +12,10 @@ const antiSnipe = {
   steps: [
     { kind: 'speedBump', delayMs: 120, appliesTo: { match: 'account', accounts: [POOL] } },
     { kind: 'batchAuction', windowMs: 250, appliesTo: { match: 'all' } },
-    { kind: 'allowDeny', rules: [{ effect: 'deny', match: { match: 'signer', signers: [SIGNER] } }] },
+    {
+      kind: 'allowDeny',
+      rules: [{ effect: 'deny', match: { match: 'signer', signers: [SIGNER] } }],
+    },
   ],
 }
 
@@ -35,7 +38,10 @@ describe('policySchema', () => {
 
     for (const appliesTo of selectors) {
       expect(() =>
-        policySchema.parse({ ...antiSnipe, steps: [{ kind: 'speedBump', delayMs: 10, appliesTo }] }),
+        policySchema.parse({
+          ...antiSnipe,
+          steps: [{ kind: 'speedBump', delayMs: 10, appliesTo }],
+        }),
       ).not.toThrow()
     }
   })
@@ -108,9 +114,14 @@ describe('policySchema', () => {
       match: { match: 'signer', signers: [SIGNER] },
     }))
 
-    expect(() => policySchema.parse({ ...antiSnipe, steps: [{ kind: 'allowDeny', rules }] })).toThrow()
     expect(() =>
-      policySchema.parse({ ...antiSnipe, steps: [{ kind: 'allowDeny', rules: rules.slice(0, 20) }] }),
+      policySchema.parse({ ...antiSnipe, steps: [{ kind: 'allowDeny', rules }] }),
+    ).toThrow()
+    expect(() =>
+      policySchema.parse({
+        ...antiSnipe,
+        steps: [{ kind: 'allowDeny', rules: rules.slice(0, 20) }],
+      }),
     ).not.toThrow()
   })
 

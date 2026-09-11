@@ -79,7 +79,8 @@ export function validatePolicy(policy: Policy): PolicyValidation {
 }
 
 function selectorIssues(step: Policy['steps'][number], index: number): PolicyIssue[] {
-  const selectors = step.kind === 'allowDeny' ? step.rules.map((rule) => rule.match) : [step.appliesTo]
+  const selectors =
+    step.kind === 'allowDeny' ? step.rules.map((rule) => rule.match) : [step.appliesTo]
 
   return selectors.flatMap((selector) => {
     const addresses = selectorAddresses(selector)

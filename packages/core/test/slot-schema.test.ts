@@ -54,9 +54,9 @@ describe('slotBundleSchema', () => {
     expect(bundle.slot).toBe(441394400)
     expect(bundle.transactions[0]?.fee).toBe(5000n)
     expect(bundle.transactions[0]?.computeUnits).toBe(150000n)
-    expect(bundle.transactions[0]?.lamportDelta['9wTbXo4RxHqLmYtV2pNz8CkDdFgUj1sAeQ7vMhKcRnBu']).toBe(
-      -5000n,
-    )
+    expect(
+      bundle.transactions[0]?.lamportDelta['9wTbXo4RxHqLmYtV2pNz8CkDdFgUj1sAeQ7vMhKcRnBu'],
+    ).toBe(-5000n)
     expect(bundle.transactions[0]?.tokenDelta[0]?.amount).toBe(-1250000n)
     expect(bundle.transactions[1]?.computeUnits).toBeNull()
     expect(bundle.transactions.map((t) => t.index)).toEqual([0, 1])
@@ -89,7 +89,10 @@ describe('slotBundleSchema', () => {
   it('rejects a bundle whose indexes are not the block order', () => {
     const shuffled = {
       ...wire,
-      transactions: [{ ...wire.transactions[1], index: 1 }, { ...wire.transactions[0], index: 0 }],
+      transactions: [
+        { ...wire.transactions[1], index: 1 },
+        { ...wire.transactions[0], index: 0 },
+      ],
     }
 
     expect(() => slotBundleSchema.parse(shuffled)).toThrow(/block order/)
@@ -105,7 +108,9 @@ describe('slotBundleSchema', () => {
   })
 
   it('rejects a schema version it was not written for', () => {
-    expect(() => slotBundleSchema.parse({ ...wire, schemaVersion: SLOT_SCHEMA_VERSION + 1 })).toThrow()
+    expect(() =>
+      slotBundleSchema.parse({ ...wire, schemaVersion: SLOT_SCHEMA_VERSION + 1 }),
+    ).toThrow()
   })
 
   it('accepts an empty block', () => {
