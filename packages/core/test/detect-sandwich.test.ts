@@ -1,25 +1,42 @@
 import { describe, expect, it } from 'vitest'
 import { findSandwiches } from '../src/detect/sandwich.ts'
-import { ATTACKER, MINT, OTHER_SIGNER, POOL, QUOTE, VICTIM, bundleOf, tx } from './helpers/build.ts'
+import {
+  ATTACKER,
+  MINT,
+  OTHER_POOL,
+  OTHER_SIGNER,
+  POOL,
+  QUOTE,
+  VICTIM,
+  bundleOf,
+  tx,
+} from './helpers/build.ts'
 
 /** A leg of the attacker's own trade: what its wallet gained or lost in the quote asset. */
-function leg(index: number, quote: bigint) {
+function leg(index: number, quote: bigint, pool: string = POOL) {
   return tx(index, {
     signers: [ATTACKER],
     tokenDelta: [
       { owner: ATTACKER, mint: QUOTE, amount: quote },
-      { owner: POOL, mint: QUOTE, amount: -quote },
+      { owner: pool, mint: QUOTE, amount: -quote },
     ],
   })
 }
 
-function victim(index: number, accounts: string[] = [VICTIM, POOL]) {
+/**
+ * Somebody buying the token off the pool with the quote asset — both sides of the trade,
+ * because that is what makes them a victim rather than a bystander who happened to be
+ * recorded in between.
+ */
+function victim(index: number, pool: string = POOL) {
   return tx(index, {
     signers: [VICTIM],
-    accounts,
+    accounts: [VICTIM, pool],
     tokenDelta: [
+      { owner: VICTIM, mint: QUOTE, amount: -300n },
+      { owner: pool, mint: QUOTE, amount: 300n },
       { owner: VICTIM, mint: MINT, amount: 500n },
-      { owner: POOL, mint: MINT, amount: -500n },
+      { owner: pool, mint: MINT, amount: -500n },
     ],
   })
 }
@@ -29,7 +46,7 @@ describe('findSandwiches', () => {
     const found = findSandwiches(bundleOf([leg(0, -1000n), victim(1), leg(2, 1200n)]))
 
     expect(found).toStrictEqual([
-      { front: 0, victims: [1], back: 2, signer: ATTACKER, mint: QUOTE, shared: [POOL] },
+      { front: 0, victims: [1], back: 2, signer: ATTACKER, mint: QUOTE, pool: POOL },
     ])
   })
 
@@ -80,10 +97,40 @@ describe('findSandwiches', () => {
     expect(findSandwiches(bundleOf([leg(0, -1000n), own, leg(2, 1200n)]))).toStrictEqual([])
   })
 
+  /**
+   * Selling the quote asset at one venue and buying it back at another reverses the
+   * signer's own balance exactly the way a sandwich does, so direction alone cannot tell
+   * them apart. Measured over 171 recorded slots, this shape was **9 of 18** triples the
+   * earlier rule returned, including both triples in the slot the repository ships.
+   */
+  it('rejects a round trip closed at a different pool', () => {
+    const arbitrage = [leg(0, -1000n), victim(1), leg(2, 1200n, OTHER_POOL)]
+
+    expect(findSandwiches(bundleOf(arbitrage))).toStrictEqual([])
+  })
+
   it('needs the middle transaction on the same pool', () => {
-    const elsewhere = victim(1, [VICTIM, OTHER_SIGNER])
+    const elsewhere = victim(1, OTHER_POOL)
 
     expect(findSandwiches(bundleOf([leg(0, -1000n), elsewhere, leg(2, 1200n)]))).toStrictEqual([])
+  })
+
+  /**
+   * Sharing an account is not evidence of anything: tip vaults, fee accounts and shared
+   * token accounts are named by transactions that have nothing to do with each other.
+   * This bystander lists the pool among its accounts and moves no balance through it.
+   */
+  it('ignores a bystander that only names the pool', () => {
+    const bystander = tx(1, {
+      signers: [OTHER_SIGNER],
+      accounts: [OTHER_SIGNER, POOL],
+      tokenDelta: [
+        { owner: OTHER_SIGNER, mint: MINT, amount: -700n },
+        { owner: OTHER_POOL, mint: MINT, amount: 700n },
+      ],
+    })
+
+    expect(findSandwiches(bundleOf([leg(0, -1000n), bystander, leg(2, 1200n)]))).toStrictEqual([])
   })
 
   it('does not reach past the window', () => {

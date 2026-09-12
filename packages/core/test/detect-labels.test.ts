@@ -8,7 +8,7 @@ import {
 import type { Sandwich } from '../src/detect/sandwich.ts'
 
 function sandwich(front: number, back: number): Sandwich {
-  return { front, victims: [front + 1], back, signer: 'attacker', mint: 'mint', shared: ['pool'] }
+  return { front, victims: [front + 1], back, signer: 'attacker', mint: 'mint', pool: 'pool' }
 }
 
 function labels(overrides: Partial<SlotLabels> = {}): SlotLabels {

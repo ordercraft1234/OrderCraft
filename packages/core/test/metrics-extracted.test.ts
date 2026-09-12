@@ -9,7 +9,7 @@ const sandwich: Sandwich = {
   back: 2,
   signer: ATTACKER,
   mint: QUOTE,
-  shared: [POOL],
+  pool: POOL,
 }
 
 function triple(front: Partial<Parameters<typeof tx>[1]>, back: Partial<Parameters<typeof tx>[1]>) {

@@ -8,7 +8,7 @@ const sandwich: Sandwich = {
   back: 22,
   signer: 'attacker',
   mint: 'mint',
-  shared: ['pool'],
+  pool: 'pool',
 }
 
 function placed(index: number, overrides: Partial<Placement> = {}): Placement {

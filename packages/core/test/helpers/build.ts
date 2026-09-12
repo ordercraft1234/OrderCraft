@@ -5,6 +5,8 @@ import {
 } from '../../src/slot/schema.ts'
 
 export const POOL = 'CbjY8Wohs2EnLLjSNMPkFrn9iaPvVJJtAdJiWRYeeN2x'
+/** A second venue for the same pair — what cross-pool arbitrage closes against. */
+export const OTHER_POOL = 'HxKPnR7BfVv2sLcQ4dTgWmYaJ6uEzN3XqAcSdFgHjKlM'
 export const AMM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
 export const VOTE = 'Vote111111111111111111111111111111111111111'
 export const ATTACKER = '7QmXo9tXo94BpPDA5Q18TCXSvtwxGnXp47GVr7Mnh2Ey'

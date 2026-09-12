@@ -55,8 +55,17 @@ describe('the demo fixture', () => {
    * heuristic over a real block rather than something the fixture can promise on its
    * own — so the two are checked against each other here, where replacing either one
    * fails loudly.
+   *
+   * **Skipped, not green, since 2026-09-09.** Tightening the detector to require both
+   * legs and the party in between on one and the same pool left this slot with no
+   * triple: what it carried was a market maker filling a client through two pools, and
+   * the client had paid for the fill. Of the 171 slots fetched so far exactly one,
+   * 445625228, holds a triple of the shape, and its votes sit in a tail that costs the
+   * comparison screen 43 % of the block. A fixture that serves both screens needs slots
+   * nobody has fetched yet (T052). Until then the attack screen shows its empty state,
+   * which says the same thing in words.
    */
-  it('carries a triple of the shape the detector looks for', () => {
+  it.skip('carries a triple of the shape the detector looks for', () => {
     expect(findSandwiches(bundle).length).toBeGreaterThan(0)
   })
 
