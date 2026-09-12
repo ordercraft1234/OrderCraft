@@ -1,19 +1,26 @@
-import { readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { normalizeBlock } from '@ordercraft/core'
+import { fill } from './fill.ts'
 import { fetchBlock } from './rpc.ts'
 import { type Candidate, findCandidates, sampleSlots } from './scan.ts'
-import { readSlot, writeSlot } from './store.ts'
+import { readSlot, slotPath, writeSlot } from './store.ts'
 
 const CACHE_DIR = '.cache/slots'
 const FIXTURE_DIR = 'packages/fixtures/slots'
 
 const usage = `slotctl fetch <slot> [--fixture] [--out <dir>]
+slotctl fill <from> --count <n> [--every <k>] [--pause <ms>] [--out <dir>]
 slotctl scan <dir> [--window <n>] [--random <k>] [--seed <n>] [--out <file>]
 
   fetch  Fetches one slot, normalises it and writes <slot>.json.gz.
          Default target is ${CACHE_DIR}; --fixture writes to ${FIXTURE_DIR}.
          Needs SOLANA_RPC_URL in the environment.
+
+  fill   Walks <n> slots from <from>, stepping by --every, into ${CACHE_DIR}.
+         Slots already on disk are not asked for again, so an interrupted run
+         continues where it stopped. Slots that hold no block are counted, not
+         retried. Needs SOLANA_RPC_URL. Budget roughly 420 KB per slot.
 
   scan   Reads every slot in <dir> and prints candidate triples for manual
          review. The filter is wider than the detector on purpose; --random
@@ -47,6 +54,45 @@ async function fetchCommand(slotArgument: string, rest: string[]): Promise<numbe
 
   process.stdout.write(`${path} — ${bundle.transactions.length} transactions\n`)
   return 0
+}
+
+async function fillCommand(fromArgument: string, rest: string[]): Promise<number> {
+  const from = Number(fromArgument)
+  const count = Number(flag(rest, '--count') ?? 0)
+  const every = Number(flag(rest, '--every') ?? 1)
+  const pauseMs = Number(flag(rest, '--pause') ?? 200)
+  const numbers = [from, count, every, pauseMs]
+  if (!numbers.every((value) => Number.isSafeInteger(value) && value >= 0) || count === 0) {
+    process.stderr.write('fill takes a slot, --count above zero, and whole --every/--pause\n')
+    return 2
+  }
+
+  const url = process.env.SOLANA_RPC_URL
+  if (url === undefined || url === '') {
+    process.stderr.write('SOLANA_RPC_URL is not set — there is nothing to fill from.\n')
+    return 1
+  }
+
+  const directory = flag(rest, '--out') ?? CACHE_DIR
+  const report = await fill(
+    {
+      has: (slot) => existsSync(slotPath(directory, slot)),
+      fetch: (slot) => fetchBlock(slot, { url }),
+      store: (slot, block) => {
+        writeSlot(directory, normalizeBlock(slot, block))
+      },
+      wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+      note: (line) => process.stdout.write(`${line}\n`),
+    },
+    { from, count, every, pauseMs },
+  )
+
+  process.stdout.write(
+    `${directory} — ${report.fetched.length} fetched, ${report.held.length} already held, ${report.missing.length} without a block, ${report.failed.length} failed\n`,
+  )
+  for (const { slot, reason } of report.failed) process.stdout.write(`  ${slot}: ${reason}\n`)
+
+  return report.failed.length === 0 ? 0 : 1
 }
 
 function scanCommand(directory: string, rest: string[]): number {
@@ -102,6 +148,7 @@ async function main(argv: string[]): Promise<number> {
   const [command, target, ...rest] = argv
 
   if (command === 'fetch' && target !== undefined) return fetchCommand(target, rest)
+  if (command === 'fill' && target !== undefined) return fillCommand(target, rest)
   if (command === 'scan' && target !== undefined) return scanCommand(target, rest)
 
   process.stderr.write(`${usage}\n`)
