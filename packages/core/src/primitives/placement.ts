@@ -4,6 +4,18 @@ import type { NormalizedTransaction, SlotBundle } from '../slot/schema.ts'
 /**
  * Nominal slot duration. The arrival scale is defined against it — this is a modelling
  * constant, not a measurement, and the product has to say so on the result screen.
+ *
+ * **It is the protocol's nominal figure, not the length of any block we hold.** Measured
+ * over the cached slots — 148 pairs exactly 313 apart, `blockTime` deltas 97–103 s — the
+ * chain ran at **~317 ms per slot**. The constant is deliberately left at the nominal
+ * 400 ms, because it works here as a *scale* rather than a clock: `arrivalMs` spreads
+ * transactions across whatever this number is, so shortening it rescales arrivals and
+ * every delay in the same breath. Checked rather than assumed — the demo policy on the
+ * shipped slot gives an identical `kept 1281 / dropped 101 / deferred 40` under 400 ms
+ * and under 317 ms with the delays scaled to match.
+ *
+ * What the difference does change is the *sentence on screen*, which must not be read as
+ * a claim that the block lasted 400 ms. See `TimeModelNote`.
  */
 export const SLOT_DURATION_MS = 400
 

@@ -33,7 +33,8 @@ export function TimeModelNote({ recorded }: { recorded: number }) {
       <span className="text-ink">arrival(i) = floor(i × {SLOT_DURATION_MS} / N)</span> — across{' '}
       {recorded.toLocaleString('en-US')} transactions one position is {msPerPosition(recorded)} ms,
       and the last one arrives at {arrivalMs(last, recorded)} ms. Delay figures are a consequence of
-      that model, not a measurement.
+      that model, not a measurement. The {SLOT_DURATION_MS} ms is the protocol's nominal slot, not
+      this block's measured length — the blocks sampled for this project ran nearer 317 ms.
     </p>
   )
 }
