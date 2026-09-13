@@ -1,7 +1,8 @@
-import { existsSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { normalizeBlock } from '@ordercraft/core'
 import { fill } from './fill.ts'
+import { renderCandidate } from './review.ts'
 import { fetchBlock } from './rpc.ts'
 import { type Candidate, findCandidates, sampleSlots } from './scan.ts'
 import { readSlot, slotPath, writeSlot } from './store.ts'
@@ -11,7 +12,9 @@ const FIXTURE_DIR = 'packages/fixtures/slots'
 
 const usage = `slotctl fetch <slot> [--fixture] [--out <dir>]
 slotctl fill <from> --count <n> [--every <k>] [--pause <ms>] [--out <dir>]
-slotctl scan <dir> [--window <n>] [--random <k>] [--seed <n>] [--out <file>]
+slotctl scan <dir> [--window <n>] [--random <k>] [--seed <n>]
+             [--include-failed] [--include-inert] [--out <file>]
+slotctl review <shortlist> [--index <n>] [--slots <dir>]
 
   fetch  Fetches one slot, normalises it and writes <slot>.json.gz.
          Default target is ${CACHE_DIR}; --fixture writes to ${FIXTURE_DIR}.
@@ -26,7 +29,16 @@ slotctl scan <dir> [--window <n>] [--random <k>] [--seed <n>] [--out <file>]
          review. The filter is wider than the detector on purpose; --random
          also draws <k> slots that no filter chose, so recall can be measured
          against something the detector did not select. The draw is seeded, so
-         the same --seed over the same directory yields the same shortlist.`
+         the same --seed over the same directory yields the same shortlist.
+         Two kinds of row are left out because there is nothing in them to
+         judge: triples where one of the three transactions failed, and those
+         whose outer pair moved no value to anybody. --include-failed and
+         --include-inert put them back, so both exclusions stay measurable.
+
+  review Prints one candidate from a shortlist written by scan --out, with the
+         three transactions, what each moved and the outer pair's net position
+         per mint. Evidence only — it does not run the detector, because labels
+         that agree with the detector cannot measure it.`
 
 function flag(rest: string[], name: string): string | undefined {
   const at = rest.indexOf(name)
@@ -118,7 +130,13 @@ function scanCommand(directory: string, rest: string[]): number {
   for (const file of files) {
     const bundle = readSlot(join(directory, file))
     scanned.push(bundle.slot)
-    candidates.push(...findCandidates(bundle, window === undefined ? {} : { window }))
+    candidates.push(
+      ...findCandidates(bundle, {
+        ...(window === undefined ? {} : { window }),
+        includeFailed: rest.includes('--include-failed'),
+        includeInert: rest.includes('--include-inert'),
+      }),
+    )
   }
 
   // Slots drawn without looking at the filter. Attacks the filter cannot see exist
@@ -144,12 +162,66 @@ function scanCommand(directory: string, rest: string[]): number {
   return 0
 }
 
+/**
+ * Prints one candidate, or the index of the shortlist when none is named.
+ *
+ * A shortlist runs to thousands of entries, and the reviewer works through it one row
+ * at a time over hours — so the command takes an index and prints exactly one, rather
+ * than a report that has to be scrolled to the place work stopped.
+ */
+function reviewCommand(shortlistPath: string, rest: string[]): number {
+  if (!existsSync(shortlistPath)) {
+    process.stderr.write(`no shortlist at ${shortlistPath}\n`)
+    return 1
+  }
+
+  const shortlist = JSON.parse(readFileSync(shortlistPath, 'utf8')) as {
+    seed?: number
+    candidates?: Candidate[]
+  }
+  const candidates = shortlist.candidates ?? []
+  if (candidates.length === 0) {
+    process.stderr.write(`${shortlistPath} holds no candidates\n`)
+    return 1
+  }
+
+  const directory = flag(rest, '--slots') ?? CACHE_DIR
+  const indexArgument = flag(rest, '--index')
+  if (indexArgument === undefined) {
+    process.stdout.write(
+      `${candidates.length} candidates over ${
+        new Set(candidates.map((candidate) => candidate.slot)).size
+      } slots, seed ${shortlist.seed ?? 0}\nPick one with --index 0..${candidates.length - 1}\n`,
+    )
+    return 0
+  }
+
+  const index = Number(indexArgument)
+  if (!Number.isSafeInteger(index) || index < 0 || index >= candidates.length) {
+    process.stderr.write(`--index takes 0..${candidates.length - 1}\n`)
+    return 2
+  }
+
+  const candidate = candidates[index] as Candidate
+  const path = slotPath(directory, candidate.slot)
+  if (!existsSync(path)) {
+    process.stderr.write(`slot ${candidate.slot} is not in ${directory}\n`)
+    return 1
+  }
+
+  process.stdout.write(
+    `[${index}/${candidates.length - 1}]\n${renderCandidate(readSlot(path), candidate)}`,
+  )
+  return 0
+}
+
 async function main(argv: string[]): Promise<number> {
   const [command, target, ...rest] = argv
 
   if (command === 'fetch' && target !== undefined) return fetchCommand(target, rest)
   if (command === 'fill' && target !== undefined) return fillCommand(target, rest)
   if (command === 'scan' && target !== undefined) return scanCommand(target, rest)
+  if (command === 'review' && target !== undefined) return reviewCommand(target, rest)
 
   process.stderr.write(`${usage}\n`)
   return 2

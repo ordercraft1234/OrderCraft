@@ -7,8 +7,15 @@ const ATTACKER = '7QmXo9tXo94BpPDA5Q18TCXSvtwxGnXp47GVr7Mnh2Ey'
 const VICTIM = 'Ka91rW7dWD4BpPDA5Q18TCXSvtwxGnXp47GVr7Mnh2Ey'
 const STRANGER = '9wTbXo4RxHqLmYtV2pNz8CkDdFgUj1sAeQ7vMhKcRnBu'
 const AMM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
+const DEX = 'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4'
 const VOTE = 'Vote111111111111111111111111111111111111111'
+const MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
 
+/**
+ * A transaction that traded. Movement is the default because the filter now requires
+ * it: a transaction that moved nothing is a special case a few tests are *about*, not
+ * the ordinary shape the rest of them assume.
+ */
 const tx = (
   index: number,
   signer: string,
@@ -23,6 +30,19 @@ const tx = (
   fee: 5000n,
   failed: false,
   computeUnits: 1000n,
+  lamportDelta: {},
+  tokenDelta: [{ owner: signer, mint: MINT, amount: 1n }],
+})
+
+/** The same transaction, but the block rejected it: no balance moved, nothing to judge. */
+const failed = (transaction: NormalizedTransaction): NormalizedTransaction => ({
+  ...transaction,
+  failed: true,
+})
+
+/** The same transaction, but it handed nothing to anybody. */
+const inert = (transaction: NormalizedTransaction): NormalizedTransaction => ({
+  ...transaction,
   lamportDelta: {},
   tokenDelta: [],
 })
@@ -74,6 +94,121 @@ describe('findCandidates', () => {
     expect(found).toEqual([])
   })
 
+  /**
+   * A pair that neither bought nor sold cannot have taken anything from the transaction
+   * between them. Just under half the shortlist was this: 804 of 1,617.
+   */
+  it('drops a triple whose outer pair moved no value to anybody', () => {
+    const found = findCandidates(
+      bundle([
+        inert(tx(0, ATTACKER, [POOL])),
+        tx(1, VICTIM, [POOL]),
+        inert(tx(2, ATTACKER, [POOL])),
+      ]),
+    )
+
+    expect(found).toEqual([])
+  })
+
+  /**
+   * Native SOL is absent from tokenDelta, so an SPL-only check would throw away real
+   * trades — 546 of the 1,350 cached candidates whose pair moved no token moved
+   * lamports instead.
+   */
+  it('keeps a pair that moved lamports rather than tokens', () => {
+    const paid = { ...inert(tx(0, ATTACKER, [POOL])), lamportDelta: { [POOL]: 1_000_000n } }
+    const found = findCandidates(
+      bundle([paid, tx(1, VICTIM, [POOL]), inert(tx(2, ATTACKER, [POOL]))]),
+    )
+
+    expect(found.map((c) => c.positions)).toEqual([[0, 1, 2]])
+  })
+
+  it('does not count the signer being charged a fee as having moved value', () => {
+    const charged = { ...inert(tx(0, ATTACKER, [POOL])), lamportDelta: { [ATTACKER]: -5000n } }
+    const found = findCandidates(
+      bundle([charged, tx(1, VICTIM, [POOL]), inert(tx(2, ATTACKER, [POOL]))]),
+    )
+
+    expect(found).toEqual([])
+  })
+
+  it('keeps a pair when only one leg traded', () => {
+    const found = findCandidates(
+      bundle([inert(tx(0, ATTACKER, [POOL])), tx(1, VICTIM, [POOL]), tx(2, ATTACKER, [POOL])]),
+    )
+
+    expect(found.map((c) => c.positions)).toEqual([[0, 1, 2]])
+  })
+
+  it('returns inert pairs under includeInert', () => {
+    const still = bundle([
+      inert(tx(0, ATTACKER, [POOL])),
+      tx(1, VICTIM, [POOL]),
+      inert(tx(2, ATTACKER, [POOL])),
+    ])
+
+    expect(findCandidates(still, { includeInert: true })).toHaveLength(1)
+  })
+
+  /**
+   * A sysvar is read, not invoked, so it never appears in `programs` and slipped past
+   * the program check. On the cache this was 13.7% of the shortlist: two transactions
+   * by one signer that had nothing whatever in common except the time of day.
+   */
+  it('does not count a sysvar as a shared account', () => {
+    const CLOCK = 'SysvarC1ock11111111111111111111111111111111'
+    const found = findCandidates(
+      bundle([tx(0, ATTACKER, [CLOCK]), tx(1, VICTIM, [CLOCK]), tx(2, ATTACKER, [CLOCK])]),
+    )
+
+    expect(found).toEqual([])
+  })
+
+  it('does not count the system program as a shared account', () => {
+    const SYSTEM = '11111111111111111111111111111111'
+    const found = findCandidates(
+      bundle([tx(0, ATTACKER, [SYSTEM]), tx(1, VICTIM, [SYSTEM]), tx(2, ATTACKER, [SYSTEM])]),
+    )
+
+    expect(found).toEqual([])
+  })
+
+  it('still finds a triple that shares a real account alongside a sysvar', () => {
+    const CLOCK = 'SysvarC1ock11111111111111111111111111111111'
+    const found = findCandidates(
+      bundle([
+        tx(0, ATTACKER, [POOL, CLOCK]),
+        tx(1, VICTIM, [POOL, CLOCK]),
+        tx(2, ATTACKER, [POOL, CLOCK]),
+      ]),
+    )
+
+    expect(found).toHaveLength(1)
+    expect(found[0]?.sharedAccounts).toEqual([POOL])
+  })
+
+  /**
+   * A program reached by CPI is absent from its caller's `programs` and sits in
+   * `accounts` looking like any other address. Checking only the transaction's own
+   * programs missed this, and the SPL token programs became the commonest thing
+   * candidates "had in common" — 83% of the shortlist.
+   */
+  it('does not count a program as shared merely because this transaction did not invoke it', () => {
+    const found = findCandidates(
+      bundle([
+        // These three meet only on AMM, which they reach through DEX rather than call.
+        tx(0, ATTACKER, [AMM], [DEX]),
+        tx(1, VICTIM, [AMM], [DEX]),
+        tx(2, ATTACKER, [AMM], [DEX]),
+        // Somewhere else in the slot, AMM is invoked directly — so it is a program.
+        tx(3, STRANGER, [], [AMM]),
+      ]),
+    )
+
+    expect(found).toEqual([])
+  })
+
   it('does not count a program as a shared account', () => {
     const found = findCandidates(
       bundle([tx(0, ATTACKER, []), tx(1, VICTIM, []), tx(2, ATTACKER, [])]),
@@ -88,6 +223,56 @@ describe('findCandidates', () => {
     )
 
     expect(found).toEqual([])
+  })
+
+  /**
+   * Measured over the 171 cached slots: 80.9% of what the wide filter offers touches a
+   * failed transaction, and not one of the 38,733 failed transactions there carries a
+   * tokenDelta. There is nothing in such a row to judge, so it is not a hard candidate
+   * — it is an unanswerable one, and it costs the reviewer the same two minutes.
+   */
+  it('drops a triple whose victim failed — a failed trade records nothing to have lost', () => {
+    const found = findCandidates(
+      bundle([tx(0, ATTACKER, [POOL]), failed(tx(1, VICTIM, [POOL])), tx(2, ATTACKER, [POOL])]),
+    )
+
+    expect(found).toEqual([])
+  })
+
+  it('drops a triple whose outer leg failed — the position never opened', () => {
+    const found = findCandidates(
+      bundle([failed(tx(0, ATTACKER, [POOL])), tx(1, VICTIM, [POOL]), tx(2, ATTACKER, [POOL])]),
+    )
+
+    expect(found).toEqual([])
+  })
+
+  /**
+   * The exclusion has to stay checkable. If the wide set were unreachable, "failed
+   * candidates are worthless" would be a claim in a comment rather than something a
+   * later session can re-measure.
+   */
+  it('returns them under includeFailed, so the claim stays reproducible', () => {
+    const withFailure = bundle([
+      tx(0, ATTACKER, [POOL]),
+      failed(tx(1, VICTIM, [POOL])),
+      tx(2, ATTACKER, [POOL]),
+    ])
+
+    expect(findCandidates(withFailure, { includeFailed: true })).toHaveLength(1)
+  })
+
+  it('keeps a triple when a failure sits beside it rather than in it', () => {
+    const found = findCandidates(
+      bundle([
+        tx(0, ATTACKER, [POOL]),
+        tx(1, VICTIM, [POOL]),
+        tx(2, ATTACKER, [POOL]),
+        failed(tx(3, STRANGER, [POOL])),
+      ]),
+    )
+
+    expect(found.map((c) => c.positions)).toEqual([[0, 1, 2]])
   })
 
   it('skips vote transactions, which fill the block and can extract nothing', () => {

@@ -59,8 +59,10 @@ export interface SandwichOptions {
 export function findSandwiches(bundle: SlotBundle, options: SandwichOptions = {}): Sandwich[] {
   const window = options.window ?? DEFAULT_WINDOW
   // A failed transaction moved no balance, so there is nothing for it to have taken.
-  // Up to 40 % of what a wide filter offers is a pair of failed bot attempts around
-  // somebody else's transaction.
+  // Measured on the 171 cached slots, this is most of what a wide filter offers:
+  // 80.9 % of `slotctl scan` candidates touch a failure, and not one of the 38,733
+  // failed transactions there carries a tokenDelta at all. `scan` now drops them for
+  // the same reason — such a triple is unanswerable rather than merely negative.
   const live = bundle.transactions.filter((transaction) => !transaction.failed)
 
   const found: Sandwich[] = []
