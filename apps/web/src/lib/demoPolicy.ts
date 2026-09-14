@@ -5,24 +5,29 @@ import type { PolicyDraft } from './policyDraft.ts'
  * nobody typed.
  *
  * Every constant here was **measured on the slot the repository ships**
- * (`packages/fixtures`, 445608326), not chosen for looks: the threshold picks out 57
- * transactions of 759, and the three signers are the three busiest in that block. A
- * demo that needs the visitor to invent a policy before anything appears fails SC-009,
- * and one built on invented numbers would be the one thing this product may not do.
+ * (`packages/fixtures`, 445553238), not chosen for looks: the threshold picks out 31
+ * transactions of 426 non-vote, and the three signers are the three busiest in that
+ * block. A demo that needs the visitor to invent a policy before anything appears fails
+ * SC-009, and one built on invented numbers would be the one thing this product may not do.
+ *
+ * **Re-measured 2026-09-10** when T052 replaced the fixture. The class moved from USDC to
+ * wSOL because this block is denominated differently: USDC appears in 21 of its
+ * transactions against wSOL's 147, and a threshold on the thinner of the two would select
+ * five transactions and call itself a policy.
  *
  * Replacing the fixture invalidates these numbers. `demoPolicy.test.ts` runs the
  * policy against the shipped slot and fails when the class stops selecting anything.
  */
 
-/** Six decimals, so 100 USDC is 100,000,000 base units. The slot carries no decimals. */
-const USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
-const HUNDRED_USDC = '100000000'
+/** Nine decimals, so half a wSOL is 500,000,000 base units. The slot carries no decimals. */
+const WSOL = 'So11111111111111111111111111111111111111112'
+const HALF_WSOL = '500000000'
 
-/** The three busiest signers in slot 445608326: 36, 34 and 33 transactions. */
+/** The three busiest signers in slot 445553238: 12, 10 and 10 transactions. */
 const BUSIEST = [
-  'shakRDxyKwaBbduqZTZt8Q4etTALbDLnAANStv9TLH3',
-  'capsFrvPsaCQ6y7RUk3TYkB5D1oNCNjRb4uYuB5UCsZ',
-  '77777nPhGvFUVAj6uq8MGyLneBt4SMwCScYZDzzztdsa',
+  '83TSSS7qojPowqrrvH23mCrhEJjnJG2ygaf7FEq9ZgKC',
+  'FTp1BybZ51NiZKbnZH6MsrV3tUZNauhpQMbBcqYUEr5f',
+  'AuNYDxqLav774fntdjAWNoqwNUZzojn7tgXkiNZ8yy6v',
 ]
 
 /**
@@ -42,12 +47,12 @@ export function demoDraft(): PolicyDraft {
       {
         kind: 'speedBump',
         delayMs: '120',
-        appliesTo: { match: 'tokenDeltaAbove', addresses: '', mint: USDC, amount: HUNDRED_USDC },
+        appliesTo: { match: 'tokenDeltaAbove', addresses: '', mint: WSOL, amount: HALF_WSOL },
       },
       {
         kind: 'batchAuction',
         windowMs: '250',
-        appliesTo: { match: 'tokenDeltaAbove', addresses: '', mint: USDC, amount: HUNDRED_USDC },
+        appliesTo: { match: 'tokenDeltaAbove', addresses: '', mint: WSOL, amount: HALF_WSOL },
       },
       {
         kind: 'allowDeny',

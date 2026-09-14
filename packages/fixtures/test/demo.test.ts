@@ -56,17 +56,18 @@ describe('the demo fixture', () => {
    * own — so the two are checked against each other here, where replacing either one
    * fails loudly.
    *
-   * **Skipped, not green, since 2026-09-09.** Tightening the detector to require both
-   * legs and the party in between on one and the same pool left this slot with no
-   * triple: what it carried was a market maker filling a client through two pools, and
-   * the client had paid for the fill. Of the 171 slots fetched so far exactly one,
-   * 445625228, holds a triple of the shape, and its votes sit in a tail that costs the
-   * comparison screen 43 % of the block. A fixture that serves both screens needs slots
-   * nobody has fetched yet (T052). Until then the attack screen shows its empty state,
-   * which says the same thing in words.
+   * **Skipped from 2026-09-09 to 2026-09-10, and now measured.** Tightening the detector
+   * left the old fixture with no triple at all, and the 171 slots then in hand held one
+   * candidate slot whose votes sat in a tail costing the comparison screen 43 % of the
+   * block. T052 grew the cache to 1,071 slots; 7 carry a triple and 4 of those have no
+   * tail. This slot is one of them, and the only one carrying **two**.
+   *
+   * Both are asserted, because one is the number that made this slot worth taking: a
+   * fixture that quietly fell to a single triple would still pass a `> 0` check while no
+   * longer being the slot anybody chose.
    */
-  it.skip('carries a triple of the shape the detector looks for', () => {
-    expect(findSandwiches(bundle).length).toBeGreaterThan(0)
+  it('carries the two triples the fixture was chosen for', () => {
+    expect(findSandwiches(bundle)).toHaveLength(2)
   })
 
   /**
