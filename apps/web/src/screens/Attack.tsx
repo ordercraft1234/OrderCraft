@@ -98,9 +98,9 @@ function Legs({
   value,
 }: { bundle: SlotBundle; sandwich: Sandwich; value: ExtractedValue }) {
   const legs = [
-    { role: 'front-run', index: sandwich.front },
-    ...sandwich.victims.map((index) => ({ role: 'victim', index })),
-    { role: 'back-run', index: sandwich.back },
+    { role: 'front-run', index: sandwich.front, shared: true },
+    ...sandwich.victims.map((index) => ({ role: 'victim', index, shared: false })),
+    { role: 'back-run', index: sandwich.back, shared: true },
   ]
 
   return (
@@ -117,7 +117,16 @@ function Legs({
               {leg.role}
             </span>
             <span className="tabular-nums">#{number.format(leg.index)}</span>
-            <span className="text-muted">signer {short(transaction?.signers[0])}</span>
+            {/*
+              The legs print the signer the detector matched them on, not the first one
+              the transaction lists. A Solana transaction can carry several signers, and
+              on triple 2 of the shipped slot the legs' first signers are two different
+              addresses — so the screen was showing different parties either side of the
+              victim while asserting underneath that they were the same party.
+            */}
+            <span className="text-muted">
+              signer {short(leg.shared ? sandwich.signer : transaction?.signers[0])}
+            </span>
             <span className="text-muted">sig {short(transaction?.signature)}</span>
           </div>
         )
@@ -170,8 +179,11 @@ function UnderPolicy({ outcome }: { outcome: TripleOutcome }) {
 }
 
 const REASONS: Record<NonNullable<TripleOutcome['reason']>, string> = {
+  // The consequence has to differ from `victimsLeftBlock` below, or the screen tells the
+  // same story for two mechanisms `broken.ts` keeps deliberately apart. A leg leaving
+  // ends the pair; the victims leaving leaves the pair intact with nobody in between.
   legLeftBlock:
-    'Under this policy one of the two legs is no longer in the block, so the pair no longer surrounds anything.',
+    'Under this policy one of the two legs is no longer in the block, so there is no pair left to surround anybody.',
   victimsLeftBlock:
     'Under this policy every transaction the pair was built around has left the block, so there is nothing left between the legs.',
   sameBatch:
