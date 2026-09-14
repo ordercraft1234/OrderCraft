@@ -1,6 +1,6 @@
 import type { NormalizedTransaction, SlotBundle } from '@ordercraft/core'
 import { describe, expect, it } from 'vitest'
-import { renderCandidate } from '../src/review.ts'
+import { type LegPair, groupByLegs, renderPair } from '../src/review.ts'
 import type { Candidate } from '../src/scan.ts'
 
 const POOL = 'CbjY8Wohs2EnLLjSNMPkFrn9iaPvVJJtAdJiWRYeeN2x'
@@ -41,6 +41,11 @@ const candidate: Candidate = {
   sharedAccounts: [POOL],
 }
 
+/** The pair a shortlist row of the shape above becomes. */
+const pair = groupByLegs([candidate])[0] as LegPair
+
+const render = (slot: SlotBundle): string => renderPair(slot, pair)
+
 /** A round trip: the pair buys USDC with wSOL, then sells it back for more wSOL. */
 const roundTrip = bundle([
   tx(0, ATTACKER, [
@@ -65,9 +70,9 @@ function netLine(text: string, mint: string): string {
   return lines.slice(start).find((line) => line.includes(mint)) ?? ''
 }
 
-describe('renderCandidate', () => {
+describe('renderPair', () => {
   it('puts the three transactions and their movements on one screen', () => {
-    const text = renderCandidate(roundTrip, candidate)
+    const text = render(roundTrip)
 
     expect(text).toContain('slot 445608326')
     expect(text).toContain('positions 0, 1, 2')
@@ -78,7 +83,7 @@ describe('renderCandidate', () => {
 
   /** The pair's position is the number the reviewer is actually weighing. */
   it('nets the outer pair per mint, so a round trip is visible as one line', () => {
-    const text = renderCandidate(roundTrip, candidate)
+    const text = render(roundTrip)
 
     expect(text).toContain('net   the shared signer across both legs, by mint')
     // USDC in and straight back out; wSOL is what the pair kept.
@@ -105,19 +110,19 @@ describe('renderCandidate', () => {
       ]),
     ])
 
-    expect(netLine(renderCandidate(bothSides, candidate), 'So1111…1112')).toContain('+30')
+    expect(netLine(render(bothSides), 'So1111…1112')).toContain('+30')
   })
 
-  it('marks the mint the middle transaction also moved', () => {
-    const usdcLine = netLine(renderCandidate(roundTrip, candidate), 'EPjFWd…Dt1v')
+  it('names which transaction in between also moved the mint', () => {
+    const usdcLine = netLine(render(roundTrip), 'EPjFWd…Dt1v')
 
-    expect(usdcLine).toContain('the middle moved this mint too')
+    expect(usdcLine).toContain('also moved by #1')
   })
 
-  it('does not mark a mint the middle transaction left alone', () => {
-    const wsolLine = netLine(renderCandidate(roundTrip, candidate), 'So1111…1112')
+  it('does not mark a mint nothing in between touched', () => {
+    const wsolLine = netLine(render(roundTrip), 'So1111…1112')
 
-    expect(wsolLine).not.toContain('the middle moved this mint too')
+    expect(wsolLine).not.toContain('also moved by')
   })
 
   /**
@@ -125,7 +130,7 @@ describe('renderCandidate', () => {
    * agreement instead of accuracy. Nothing here may resemble a verdict.
    */
   it('offers no opinion on whether the triple is an attack', () => {
-    const text = renderCandidate(roundTrip, candidate).toLowerCase()
+    const text = render(roundTrip).toLowerCase()
 
     for (const word of ['sandwich', 'attack', 'victim', 'detected', 'likely', 'suspicious']) {
       expect(text).not.toContain(word)
@@ -135,7 +140,7 @@ describe('renderCandidate', () => {
   it('says so when a transaction moved no tokens', () => {
     const quiet = bundle([tx(0, ATTACKER), tx(1, VICTIM), tx(2, ATTACKER)])
 
-    expect(renderCandidate(quiet, candidate)).toContain('(no token movement)')
+    expect(render(quiet)).toContain('(no token movement)')
   })
 
   it('marks a failed transaction rather than hiding it', () => {
@@ -145,13 +150,71 @@ describe('renderCandidate', () => {
       tx(2, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: -500n }]),
     ])
 
-    expect(renderCandidate(withFailure, candidate)).toContain('FAILED')
+    expect(render(withFailure)).toContain('FAILED')
   })
 
   /** A shortlist can outlive the slot files it names; that has to read as a problem. */
   it('reports a candidate whose slot no longer holds all three', () => {
     const short = bundle([tx(0, ATTACKER), tx(1, VICTIM)])
 
-    expect(renderCandidate(short, candidate)).toContain('does not hold all three')
+    expect(render(short)).toContain('does not hold all three')
+  })
+
+  /**
+   * The reason the unit is the pair. `scan` emits a row per transaction between the
+   * legs, and all of them describe one trade by one signer — reviewing them separately
+   * asks the same question twice and records one answer.
+   */
+  it('puts everything between the same legs on one screen', () => {
+    const two = groupByLegs([
+      candidate,
+      { ...candidate, positions: [0, 1, 3] },
+      { ...candidate, positions: [0, 2, 3] },
+    ])
+    const slot = bundle([
+      tx(0, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: 500n }]),
+      tx(1, VICTIM, [{ owner: VICTIM, mint: USDC, amount: -200n }]),
+      tx(2, VICTIM, [{ owner: VICTIM, mint: WSOL, amount: -9n }]),
+      tx(3, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: -500n }]),
+    ])
+
+    const text = renderPair(slot, two[1] as LegPair)
+    expect(two).toHaveLength(2)
+    expect(text.match(/mid {2}#/g)).toHaveLength(2)
+    expect(text).toContain('positions 0, 1, 2, 3')
+  })
+
+  /**
+   * With several transactions between the legs, "something in between moved this mint"
+   * is not enough — the label records which one was traded against.
+   */
+  it('tells apart which of several transactions moved the mint', () => {
+    const [only] = groupByLegs([
+      { ...candidate, positions: [0, 1, 3] },
+      { ...candidate, positions: [0, 2, 3] },
+    ])
+    const slot = bundle([
+      tx(0, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: 500n }]),
+      tx(1, VICTIM, [{ owner: VICTIM, mint: WSOL, amount: -9n }]),
+      tx(2, VICTIM, [{ owner: VICTIM, mint: USDC, amount: -200n }]),
+      tx(3, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: -500n }]),
+    ])
+
+    const usdcLine = netLine(renderPair(slot, only as LegPair), 'EPjFWd…Dt1v')
+    expect(usdcLine).toContain('also moved by #2')
+    expect(usdcLine).not.toContain('#1')
+  })
+
+  it('keeps pairs from different slots apart even at the same positions', () => {
+    const pairs = groupByLegs([candidate, { ...candidate, slot: 445553238 }])
+
+    expect(pairs).toHaveLength(2)
+  })
+
+  /** Generated input is the kind that repeats itself. */
+  it('does not print the same transaction twice when a row is repeated', () => {
+    const [only] = groupByLegs([candidate, { ...candidate }])
+
+    expect((only as LegPair).between).toHaveLength(1)
   })
 })

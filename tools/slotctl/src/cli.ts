@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { normalizeBlock } from '@ordercraft/core'
 import { fill } from './fill.ts'
-import { renderCandidate } from './review.ts'
+import { type LegPair, groupByLegs, renderPair } from './review.ts'
 import { fetchBlock } from './rpc.ts'
 import { type Candidate, findCandidates, sampleSlots } from './scan.ts'
 import { readSlot, slotPath, writeSlot } from './store.ts'
@@ -14,7 +14,7 @@ const usage = `slotctl fetch <slot> [--fixture] [--out <dir>]
 slotctl fill <from> --count <n> [--every <k>] [--pause <ms>] [--out <dir>]
 slotctl scan <dir> [--window <n>] [--random <k>] [--seed <n>]
              [--include-failed] [--include-inert] [--out <file>]
-slotctl review <shortlist> [--index <n>] [--slots <dir>]
+slotctl review <shortlist> [--index <n>] [--slot <n>] [--slots <dir>]
 
   fetch  Fetches one slot, normalises it and writes <slot>.json.gz.
          Default target is ${CACHE_DIR}; --fixture writes to ${FIXTURE_DIR}.
@@ -35,10 +35,13 @@ slotctl review <shortlist> [--index <n>] [--slots <dir>]
          whose outer pair moved no value to anybody. --include-failed and
          --include-inert put them back, so both exclusions stay measurable.
 
-  review Prints one candidate from a shortlist written by scan --out, with the
-         three transactions, what each moved and the outer pair's net position
-         per mint. Evidence only — it does not run the detector, because labels
-         that agree with the detector cannot measure it.`
+  review Prints one pair of legs from a shortlist written by scan --out, with
+         everything the shortlist found between them, what each transaction
+         moved and the pair's net position per mint. Evidence only — it does not
+         run the detector, because labels that agree with the detector cannot
+         measure it. The index counts pairs, not rows: a label is written per
+         pair, and scan emits a row per transaction in between. --slot narrows
+         the run to one slot, which is how one label file gets filled.`
 
 function flag(rest: string[], name: string): string | undefined {
   const at = rest.indexOf(name)
@@ -163,11 +166,17 @@ function scanCommand(directory: string, rest: string[]): number {
 }
 
 /**
- * Prints one candidate, or the index of the shortlist when none is named.
+ * Prints one pair of legs, or the size of the shortlist when none is named.
  *
- * A shortlist runs to thousands of entries, and the reviewer works through it one row
- * at a time over hours — so the command takes an index and prints exactly one, rather
- * than a report that has to be scrolled to the place work stopped.
+ * A shortlist runs to thousands of entries, and the reviewer works through it one at a
+ * time over hours — so the command takes an index and prints exactly one, rather than a
+ * report that has to be scrolled to the place work stopped.
+ *
+ * **The index counts pairs, not shortlist rows.** A label is written per pair of legs,
+ * so a pair with three transactions between it is one decision, not three; over the
+ * seven slots T047 labels that is 56 prompts instead of 82. `--slot` narrows the run to
+ * one slot, which is how an exhaustively labelled file gets filled without walking the
+ * whole cache.
  */
 function reviewCommand(shortlistPath: string, rest: string[]): number {
   if (!existsSync(shortlistPath)) {
@@ -179,39 +188,53 @@ function reviewCommand(shortlistPath: string, rest: string[]): number {
     seed?: number
     candidates?: Candidate[]
   }
-  const candidates = shortlist.candidates ?? []
-  if (candidates.length === 0) {
+  const all = shortlist.candidates ?? []
+  if (all.length === 0) {
     process.stderr.write(`${shortlistPath} holds no candidates\n`)
     return 1
   }
 
+  const slotArgument = flag(rest, '--slot')
+  const only = slotArgument === undefined ? undefined : Number(slotArgument)
+  if (only !== undefined && !Number.isSafeInteger(only)) {
+    process.stderr.write('--slot takes a slot number\n')
+    return 2
+  }
+
+  const candidates = only === undefined ? all : all.filter((one) => one.slot === only)
+  if (candidates.length === 0) {
+    process.stderr.write(`${shortlistPath} holds no candidates in slot ${String(only)}\n`)
+    return 1
+  }
+
+  const pairs = groupByLegs(candidates)
   const directory = flag(rest, '--slots') ?? CACHE_DIR
   const indexArgument = flag(rest, '--index')
   if (indexArgument === undefined) {
     process.stdout.write(
-      `${candidates.length} candidates over ${
-        new Set(candidates.map((candidate) => candidate.slot)).size
-      } slots, seed ${shortlist.seed ?? 0}\nPick one with --index 0..${candidates.length - 1}\n`,
+      `${pairs.length} pairs of legs over ${
+        new Set(pairs.map((pair) => pair.slot)).size
+      } slots, from ${candidates.length} shortlist rows, seed ${
+        shortlist.seed ?? 0
+      }\nPick one with --index 0..${pairs.length - 1}\n`,
     )
     return 0
   }
 
   const index = Number(indexArgument)
-  if (!Number.isSafeInteger(index) || index < 0 || index >= candidates.length) {
-    process.stderr.write(`--index takes 0..${candidates.length - 1}\n`)
+  if (!Number.isSafeInteger(index) || index < 0 || index >= pairs.length) {
+    process.stderr.write(`--index takes 0..${pairs.length - 1}\n`)
     return 2
   }
 
-  const candidate = candidates[index] as Candidate
-  const path = slotPath(directory, candidate.slot)
+  const pair = pairs[index] as LegPair
+  const path = slotPath(directory, pair.slot)
   if (!existsSync(path)) {
-    process.stderr.write(`slot ${candidate.slot} is not in ${directory}\n`)
+    process.stderr.write(`slot ${pair.slot} is not in ${directory}\n`)
     return 1
   }
 
-  process.stdout.write(
-    `[${index}/${candidates.length - 1}]\n${renderCandidate(readSlot(path), candidate)}`,
-  )
+  process.stdout.write(`[${index}/${pairs.length - 1}]\n${renderPair(readSlot(path), pair)}`)
   return 0
 }
 
