@@ -49,6 +49,24 @@ export interface Accuracy {
   checkedTriples: number
   /** Detector hits that a person rejected. */
   falsePositives: number
+  /**
+   * Detector hits a person agreed with, over every file — `sampled` ones included,
+   * because confirming a hit needs only that hit to have been looked at.
+   *
+   * With `falsePositives` this is the denominator of the false-positive rate. Dividing
+   * instead by every triple that was checked answers a different question: measured on
+   * the 1,071-slot cache the detector fires on 9 of 3,759 leg pairs, so that rate sits
+   * near zero however wrong the nine are, and the criterion passes without measuring.
+   */
+  confirmedHits: number
+  /**
+   * Detector hits inside an `exhaustive` slot that appear in neither list.
+   *
+   * Nobody judged them, so they belong to no rate — and they falsify the file's own
+   * claim that everything in the slot was looked at. The measurement is only sound
+   * while this is zero, so it is counted rather than skipped over.
+   */
+  unjudgedHits: number
 }
 
 /**
@@ -70,6 +88,8 @@ export function accuracyAgainst(labels: SlotLabels[], found: Map<number, Sandwic
     foundAttacks: 0,
     checkedTriples: 0,
     falsePositives: 0,
+    confirmedHits: 0,
+    unjudgedHits: 0,
   }
 
   for (const file of labels) {
@@ -80,10 +100,18 @@ export function accuracyAgainst(labels: SlotLabels[], found: Map<number, Sandwic
       accuracy.exhaustiveSlots += 1
       accuracy.markedAttacks += file.attacks.length
       accuracy.foundAttacks += file.attacks.filter((attack) => hits.has(legs(attack))).length
+
+      // A hit in neither list means the slot was not exhaustively checked after all —
+      // either the shortlist the reviewer worked from missed a triple the detector
+      // sees, or a row was skipped. Both make recall over this file a smaller number
+      // than it looks, so the count is kept rather than the discrepancy discarded.
+      const judged = new Set([...file.attacks, ...file.rejected].map(legs))
+      accuracy.unjudgedHits += [...hits].filter((hit) => !judged.has(hit)).length
     }
 
     accuracy.checkedTriples += file.attacks.length + file.rejected.length
     accuracy.falsePositives += file.rejected.filter((triple) => hits.has(legs(triple))).length
+    accuracy.confirmedHits += file.attacks.filter((attack) => hits.has(legs(attack))).length
   }
 
   return accuracy

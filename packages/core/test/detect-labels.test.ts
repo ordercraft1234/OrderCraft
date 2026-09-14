@@ -99,6 +99,63 @@ describe('accuracyAgainst', () => {
       foundAttacks: 0,
       checkedTriples: 0,
       falsePositives: 0,
+      confirmedHits: 0,
+      unjudgedHits: 0,
     })
+  })
+
+  /**
+   * The false-positive denominator. It counts hits a person agreed with wherever they
+   * were checked, `sampled` files included — confirming a hit needs only that hit to
+   * have been looked at, unlike recall, which needs the whole slot.
+   */
+  it('counts a confirmed hit in a sampled slot, which recall would not', () => {
+    const files = [labels({ slot: 200, coverage: 'sampled', attacks: [attack] })]
+
+    expect(accuracyAgainst(files, new Map([[200, [sandwich(10, 12)]]]))).toMatchObject({
+      confirmedHits: 1,
+      markedAttacks: 0,
+    })
+  })
+
+  /**
+   * The reason `confirmedHits` exists rather than the rate being taken over everything
+   * checked. Both files below hold one detector hit that a person rejected, and the
+   * detector is wrong about it either way; only the denominator differs.
+   */
+  it('separates being wrong about a hit from being silent about a pair', () => {
+    const quiet = Array.from({ length: 40 }, (_, index) => ({
+      front: 100 + index * 3,
+      victims: [101 + index * 3],
+      back: 102 + index * 3,
+      note: 'nobody traded against anybody',
+    }))
+    const files = [labels({ attacks: [attack], rejected: [notAnAttack, ...quiet] })]
+    const found = new Map([[100, [sandwich(10, 12), sandwich(20, 22)]]])
+
+    const accuracy = accuracyAgainst(files, found)
+    const reported = accuracy.confirmedHits + accuracy.falsePositives
+
+    expect(accuracy.falsePositives / reported).toBe(0.5)
+    expect(accuracy.falsePositives / accuracy.checkedTriples).toBeLessThan(0.025)
+  })
+
+  /**
+   * A file that says `exhaustive` while the detector fires on a triple nobody wrote
+   * down is not exhaustive, and recall read off it would be flattered by exactly the
+   * triples that were skipped.
+   */
+  it('counts a detector hit that an exhaustive file judged neither way', () => {
+    const files = [labels({ attacks: [attack] })]
+    const found = new Map([[100, [sandwich(10, 12), sandwich(30, 32)]]])
+
+    expect(accuracyAgainst(files, found).unjudgedHits).toBe(1)
+  })
+
+  it('does not hold a sampled file to having judged every hit', () => {
+    const files = [labels({ coverage: 'sampled', attacks: [attack] })]
+    const found = new Map([[100, [sandwich(10, 12), sandwich(30, 32)]]])
+
+    expect(accuracyAgainst(files, found).unjudgedHits).toBe(0)
   })
 })

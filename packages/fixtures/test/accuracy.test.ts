@@ -46,6 +46,9 @@ async function detectionsFor(labels: SlotLabels[]): Promise<Map<number, Sandwich
 const labels = labelFiles()
 const accuracy = accuracyAgainst(labels, await detectionsFor(labels))
 
+/** What the detector proposed and a person then judged, either way. */
+const reported = accuracy.confirmedHits + accuracy.falsePositives
+
 /**
  * SC-003 measured, or said out loud to be unmeasured.
  *
@@ -55,11 +58,20 @@ const accuracy = accuracyAgainst(labels, await detectionsFor(labels))
  * criterion comes to be believed without ever having been checked.
  *
  * The two figures are read off different samples on purpose, and the sample size is
- * printed beside each one. Recall comes only from slots where every candidate was
- * looked at; the five such slots are drawn from slots the wide filter found a candidate
- * in, so **the recall figure is measured on a sample the filter biased** — on 171 slots
- * the shape appears in 12.9 % of them, and five random slots would have held on average
- * half an attack between them.
+ * printed beside each one.
+ *
+ * **Both denominators are chosen so they cannot be empty by construction**, which is
+ * the trap the earlier shape of this file walked into. Measured over the 1,071-slot
+ * cache on 2026-09-10: the wide filter proposes 3,759 leg pairs over 761 slots, and the
+ * detector fires on 9 of them, in 7 slots. Five slots drawn from the 761 would have
+ * held 0.05 attacks between them, so recall had no denominator; and a false-positive
+ * rate taken over every checked triple would have read 0 of 60 — a criterion passing
+ * on a sample that contained nothing it was about.
+ *
+ * So recall is measured on slots the **detector** fired in, not merely ones the filter
+ * proposed a candidate in, and the sample is biased by that: the figure says how many
+ * of the attacks present in such a slot the detector finds, not how many attacks exist
+ * in a random block. That sentence travels with the number.
  */
 describe('SC-003 — the detector against hand-checked labels', () => {
   it('reports what it was measured on', () => {
@@ -80,12 +92,30 @@ describe('SC-003 — the detector against hand-checked labels', () => {
     ).toBeGreaterThanOrEqual(RECALL_FLOOR)
   })
 
-  it.skipIf(accuracy.checkedTriples === 0)('is wrong about at most 5 % of what it reports', () => {
-    const rate = accuracy.falsePositives / accuracy.checkedTriples
+  /**
+   * Among what the detector **reports**, not among everything that was checked. The
+   * screen shows a user the triples the detector proposed, so those are the ones that
+   * can be wrong in front of them; the pairs it stayed silent about are the other
+   * criterion's business.
+   */
+  it.skipIf(reported === 0)('is wrong about at most 5 % of what it reports', () => {
+    const rate = accuracy.falsePositives / reported
 
     expect(
       rate,
-      `${accuracy.falsePositives} false positives among ${accuracy.checkedTriples} checked triples`,
+      `${accuracy.falsePositives} false positives among ${reported} triples the detector reported, over ${accuracy.checkedTriples} checked`,
     ).toBeLessThanOrEqual(FALSE_POSITIVE_CEILING)
+  })
+
+  /**
+   * Not a rate, a precondition. An `exhaustive` file claims every candidate in its slot
+   * was looked at; a detector hit that appears in neither list contradicts that claim,
+   * and every figure above is read off those files.
+   */
+  it.skipIf(labels.length === 0)('was checked against slots that were really checked whole', () => {
+    expect(
+      accuracy.unjudgedHits,
+      `${accuracy.unjudgedHits} detector hits in exhaustively labelled slots were never judged either way`,
+    ).toBe(0)
   })
 })
