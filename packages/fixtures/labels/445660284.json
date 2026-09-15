@@ -1,0 +1,26 @@
+{
+ "schemaVersion": 1,
+ "slot": 445660284,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 487,
+   "victims": [
+    488
+   ],
+   "back": 490,
+   "note": "Same mint/pool, but signer bought then sold around a mid that also SOLD; front-running a seller with a buy is backwards, and the round trip lost ~0.05 SOL."
+  },
+  {
+   "front": 1415,
+   "victims": [
+    1418
+   ],
+   "back": 1419,
+   "note": "No shared token: legs trade 91r4HQ and CTPoyC, mid trades 5HuHfw. Each leg is a self-contained two-pool arb; net is +5023 lamports only."
+  }
+ ]
+}

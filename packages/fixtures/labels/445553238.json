@@ -1,0 +1,44 @@
+{
+ "schemaVersion": 1,
+ "slot": 445553238,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 328,
+   "victims": [
+    331
+   ],
+   "back": 332,
+   "note": "Legs are atomic stablecoin/WSOL arb cycles in mints 14Yjmx and Lyi47m; mid trades an unrelated mint (7KSgzT). Signer net is native-only -0.0027 SOL, no position."
+  },
+  {
+   "front": 339,
+   "victims": [
+    340,
+    341
+   ],
+   "back": 342,
+   "note": "Leg 339 sells 4.006B LU7K3s, leg 342 buys back only 0.76%. Mid #341 is a buyer; price ~0.0647 lamports/token in all three, so no displacement. Plain large sell."
+  },
+  {
+   "front": 394,
+   "victims": [
+    395,
+    396
+   ],
+   "back": 397,
+   "note": "Signer fills two counterparties' orders and hedges in pool 6T4WHJ, selling at 1.2239e-4 and rebuying at 1.2726e-4 - a loss. Net +0.736 SOL equals market value of the 5.74T sold."
+  },
+  {
+   "front": 816,
+   "victims": [
+    817
+   ],
+   "back": 819,
+   "note": "Both legs move the same direction (sell ~12k Es9vMF for ~115k lamports each), never opposite; mid #817 trades an unrelated mint (purpFP). Two ordinary small sells."
+  }
+ ]
+}

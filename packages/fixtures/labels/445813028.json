@@ -1,0 +1,111 @@
+{
+ "schemaVersion": 1,
+ "slot": 445813028,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 111,
+   "victims": [
+    114
+   ],
+   "back": 115,
+   "note": "Legs hold no zstM9M token at all; signer only relays equal native SOL between two other accounts, net -20000 lamports of fees."
+  },
+  {
+   "front": 125,
+   "victims": [
+    128
+   ],
+   "back": 129,
+   "note": "Both legs are pure native transfers between third parties; mid moves nothing but its own fee. No shared asset position, no direction."
+  },
+  {
+   "front": 127,
+   "victims": [
+    128
+   ],
+   "back": 129,
+   "note": "Same signer relaying SOL between unrelated accounts; mid #128 has only a fee. Nothing to trade against."
+  },
+  {
+   "front": 127,
+   "victims": [
+    128,
+    130
+   ],
+   "back": 131,
+   "note": "Legs take zero token inventory and net exactly the two fees; both mids move only their own lamports."
+  },
+  {
+   "front": 129,
+   "victims": [
+    130
+   ],
+   "back": 131,
+   "note": "Signer's net is -20000 lamports of fees with no token leg; mid #130 is fee-only. Ordinary relay traffic."
+  },
+  {
+   "front": 129,
+   "victims": [
+    130,
+    132
+   ],
+   "back": 133,
+   "note": "Mid #132 sells zstM9M for SOL, but neither leg touches that mint or takes any position - legs are equal-in/equal-out SOL transfers."
+  },
+  {
+   "front": 131,
+   "victims": [
+    132
+   ],
+   "back": 133,
+   "note": "No opposite directions: signer holds no zstM9M and its legs net only fees while mid #132 swaps that token."
+  },
+  {
+   "front": 131,
+   "victims": [
+    132,
+    134
+   ],
+   "back": 135,
+   "note": "Mids trade zstM9M and L5q6Qd; signer's legs carry neither mint, only offsetting native transfers plus fees."
+  },
+  {
+   "front": 133,
+   "victims": [
+    134
+   ],
+   "back": 135,
+   "note": "Mid #134 sells L5q6Qd for SOL; signer's legs have no token side, so there is no position bracketing it."
+  },
+  {
+   "front": 140,
+   "victims": [
+    143
+   ],
+   "back": 144,
+   "note": "Mid #143 buys HyDKNd; legs move only native SOL between third parties and net -20000 lamports of fees."
+  },
+  {
+   "front": 166,
+   "victims": [
+    167,
+    168
+   ],
+   "back": 169,
+   "note": "Signer sold R6Mgzs at 0.8501 then rebought at 0.8535 after mid #168's buy: worse price, net -307726 lamports. Losing round trip, not extraction."
+  },
+  {
+   "front": 354,
+   "victims": [
+    355,
+    356
+   ],
+   "back": 357,
+   "note": "Legs move only tiny native amounts (net -20116 lamports, fees); signer never holds qSa1dS that mid #356 swaps."
+  }
+ ]
+}

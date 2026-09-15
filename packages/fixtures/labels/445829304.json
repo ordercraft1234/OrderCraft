@@ -1,0 +1,28 @@
+{
+ "schemaVersion": 1,
+ "slot": 445829304,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 149,
+   "victims": [
+    150,
+    151,
+    152
+   ],
+   "back": 153,
+   "note": "Sell then buy-back, but at a HIGHER rate (0.00395 vs 0.00397); net -12.6M tokens for only +29k lamports, a losing round trip. #151/#152 are other mints."
+  },
+  {
+   "front": 154,
+   "victims": [
+    155
+   ],
+   "back": 156,
+   "note": "Both legs are buys of the same token (+105.5M, +93.3M) for -808k SOL net; no opposite side, just staged accumulation. Mid #155 is also a buyer."
+  }
+ ]
+}

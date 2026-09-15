@@ -1,0 +1,122 @@
+{
+ "schemaVersion": 1,
+ "slot": 445625228,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 27,
+   "victims": [
+    28
+   ],
+   "back": 30,
+   "note": "Both legs are plain SOL transfers to different addresses; signer holds no token position and shares only wrapped SOL with the mid's FiHpuV swap."
+  },
+  {
+   "front": 104,
+   "victims": [
+    105,
+    106,
+    107
+   ],
+   "back": 108,
+   "note": "Both legs BUY pgQwTL (+1.88B then +9.2M); no unwind. Effective price 0.18996 in every tx, so the mids moved nothing."
+  },
+  {
+   "front": 175,
+   "victims": [
+    176,
+    177,
+    178
+   ],
+   "back": 179,
+   "note": "Sell then rebuy, but buyback cost 0.09598/token vs 0.09560 sold; mids' sells left price flat. Round trip lost ~fee. Ordinary deep-pool round trip."
+  },
+  {
+   "front": 251,
+   "victims": [
+    252
+   ],
+   "back": 253,
+   "note": "Signer BUYS k88ss5 on both legs (+21M, +25M) around a much larger buy; no closing sale, so nothing is sandwiched."
+  },
+  {
+   "front": 256,
+   "victims": [
+    257,
+    258
+   ],
+   "back": 259,
+   "note": "Sells first then buys back after two mid BUYS - the losing direction. Net -224,660 tokens and -64,461 lamports; consistent with market making."
+  },
+  {
+   "front": 271,
+   "victims": [
+    272,
+    273
+   ],
+   "back": 274,
+   "note": "Both legs buy uvyWC1 at an unchanged 0.07212/token; mid 272 also buys, mid 273 is a different mint. No unwind."
+  },
+  {
+   "front": 564,
+   "victims": [
+    565
+   ],
+   "back": 566,
+   "note": "Both legs SELL ChWDok as counterparty to two different buyers; mid 565 trades an unrelated mint (5hhq2z). Only wrapped SOL is shared."
+  },
+  {
+   "front": 700,
+   "victims": [
+    701
+   ],
+   "back": 702,
+   "note": "Legs are 9,856 and 8,529 lamport fee-only transactions with no token movement; the mid's 7w4Ls1 swap is untouched by the signer."
+  },
+  {
+   "front": 736,
+   "victims": [
+    738,
+    739
+   ],
+   "back": 740,
+   "note": "Signer sells then buys 7whCnD, but mid 738 trades EibDPL and mid 739 moves 5,000 lamports; neither touches the asset traded."
+  },
+  {
+   "front": 738,
+   "victims": [
+    739,
+    740
+   ],
+   "back": 741,
+   "note": "Both legs SELL EibDPL to two separate buyers at similar prices; the mids move 7whCnD and dust, not EibDPL. Market making, not a sandwich."
+  },
+  {
+   "front": 740,
+   "victims": [
+    741
+   ],
+   "back": 742,
+   "note": "Legs are opposite in 7whCnD, but mid 741 trades EibDPL entirely - no stranger's trade in the sandwiched asset."
+  },
+  {
+   "front": 865,
+   "victims": [
+    867
+   ],
+   "back": 869,
+   "note": "Both legs are bare SOL transfers (85.8M and 100.5M lamports) to unrelated addresses; signer never touches the mid's YCS11P token."
+  },
+  {
+   "front": 866,
+   "victims": [
+    867
+   ],
+   "back": 869,
+   "note": "Same wallet, again two plain SOL transfers around the YCS11P swap; no token exposure and no price to take."
+  }
+ ]
+}

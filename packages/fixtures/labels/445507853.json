@@ -1,0 +1,95 @@
+{
+ "schemaVersion": 1,
+ "slot": 445507853,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 439,
+   "victims": [
+    440
+   ],
+   "back": 443,
+   "note": "Both legs sell yrxpqu tokens for SOL, same direction as mid #440. Three sellers hitting one pool, no reversal, so no sandwich."
+  },
+  {
+   "front": 766,
+   "victims": [
+    767,
+    768,
+    769
+   ],
+   "back": 770,
+   "note": "Both legs buy tzhZAX; mids trade mcW6ia and ihEhsn, different mints. Ordinary split buy of one token."
+  },
+  {
+   "front": 780,
+   "victims": [
+    781,
+    782
+   ],
+   "back": 783,
+   "note": "Legs sell then buy ihEhsn at 0.2262 then 0.2271 SOL/unit: bought back dearer, a loss. Mid #782 buys, which a pre-sell would help."
+  },
+  {
+   "front": 901,
+   "victims": [
+    902,
+    903
+   ],
+   "back": 904,
+   "note": "Each leg routes a different mint pair (FqEQQw, then 67XGj4/USDC); mids move Amogpp and HZC3sN. No shared asset."
+  },
+  {
+   "front": 959,
+   "victims": [
+    961
+   ],
+   "back": 963,
+   "note": "Both legs are fee-only native transactions with no token movement; signer takes no position in mid #961's assets."
+  },
+  {
+   "front": 1448,
+   "victims": [
+    1451
+   ],
+   "back": 1452,
+   "note": "Legs move only ~10k lamports of fees and tips, no tokens. Nothing to trade against mid #1451's 2U88fY sale."
+  },
+  {
+   "front": 1450,
+   "victims": [
+    1451
+   ],
+   "back": 1452,
+   "note": "Same fee-only legs by AjkDC1; no token leg on either side, so no position is opened or closed around #1451."
+  },
+  {
+   "front": 1450,
+   "victims": [
+    1451,
+    1453
+   ],
+   "back": 1454,
+   "note": "Both legs are bare fee payments; signer holds no 2U88fY or GuNdof and nets only -19407 lamports of cost."
+  },
+  {
+   "front": 1452,
+   "victims": [
+    1453
+   ],
+   "back": 1454,
+   "note": "Legs carry no token movement at all, just fees; mid #1453's GuNdof swap is untouched by the signer."
+  },
+  {
+   "front": 1461,
+   "victims": [
+    1462
+   ],
+   "back": 1463,
+   "note": "Legs are fee-only; mid #1462 is a token launch/mint of 3WKb96 that the signer takes no side of."
+  }
+ ]
+}

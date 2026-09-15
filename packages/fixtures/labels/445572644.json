@@ -1,0 +1,118 @@
+{
+ "schemaVersion": 1,
+ "slot": 445572644,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 412,
+   "victims": [
+    414,
+    415
+   ],
+   "back": 416,
+   "note": "Legs are a self-contained bonk/USDC arb loop plus a USDC transfer; signer nets no token at all, only -248860 lamports fee. Mids trade unrelated mints."
+  },
+  {
+   "front": 416,
+   "victims": [
+    417
+   ],
+   "back": 418,
+   "note": "Both legs are same-direction USDC transfers into 7uTT8X (102M, 100M). No opposite side, no token net, only fee in SOL."
+  },
+  {
+   "front": 541,
+   "victims": [
+    542
+   ],
+   "back": 543,
+   "note": "Mid 542 moves nothing but its own 12969-lamport fee, so there is no trade to front. Both legs are identical same-direction unwraps."
+  },
+  {
+   "front": 592,
+   "victims": [
+    593
+   ],
+   "back": 594,
+   "note": "Signer sells token in BOTH legs (-74.4B then -843B) at 3.97e-3 and 4.00e-3 SOL. Same direction, consistent price: a maker filling flow, not a sandwich."
+  },
+  {
+   "front": 592,
+   "victims": [
+    593
+   ],
+   "back": 595,
+   "note": "Buys 75B then sells 414B, both at ~4.0e-3 SOL/unit. Sizes 5.5x mismatched and price identical, so no round trip and no profit extracted."
+  },
+  {
+   "front": 592,
+   "victims": [
+    593
+   ],
+   "back": 596,
+   "note": "Sells before a buy and buys back after, at 3.97e-3 then 4.05e-3 - the losing side. Net -5.51 SOL for +1358B tokens is accumulation, not extraction."
+  },
+  {
+   "front": 594,
+   "victims": [
+    595
+   ],
+   "back": 596,
+   "note": "Sells 843B at 4.00e-3, buys 1433B back at 4.05e-3 around a buy. Wrong direction and a loss; net -2.44 SOL, +590B tokens is inventory build."
+  },
+  {
+   "front": 595,
+   "victims": [
+    596,
+    597
+   ],
+   "back": 598,
+   "note": "Both legs buy the same token (+572B, +1099B) for 6.81 SOL. Same direction on both sides means no position was closed."
+  },
+  {
+   "front": 597,
+   "victims": [
+    598,
+    599
+   ],
+   "back": 600,
+   "note": "Buys 1360B at 4.104e-3, sells 976B at 4.086e-3 - closes worse than it opened, and net keeps +384B tokens. Losing, unmatched round trip."
+  },
+  {
+   "front": 847,
+   "victims": [
+    848
+   ],
+   "back": 849,
+   "note": "Legs are two USDC/WSOL pool loops; mid 848 trades JfKcsF pump, an unrelated mint. Signer nets +65498 WSOL against -10309 lamports, just fees."
+  },
+  {
+   "front": 965,
+   "victims": [
+    966
+   ],
+   "back": 967,
+   "note": "Legs move mints 5YRcA4 and 56D576; mid trades cVrTxG. No shared asset, and the signer's SOL is flat but for the 74014-lamport fee."
+  },
+  {
+   "front": 1041,
+   "victims": [
+    1042,
+    1043
+   ],
+   "back": 1044,
+   "note": "Both legs are bare lamport transfers (8183 and 4891) with no token movement whatsoever - tip or fee payments, nothing to trade against."
+  },
+  {
+   "front": 1044,
+   "victims": [
+    1045
+   ],
+   "back": 1046,
+   "note": "All three transactions are tiny bare SOL transfers; mid 1045 sends 4046 lamports and holds no token. No market interaction on any side."
+  }
+ ]
+}
