@@ -137,10 +137,63 @@ describe('renderPair', () => {
     }
   })
 
-  it('says so when a transaction moved no tokens', () => {
+  it('says so when a transaction moved nothing at all', () => {
     const quiet = bundle([tx(0, ATTACKER), tx(1, VICTIM), tx(2, ATTACKER)])
 
-    expect(render(quiet)).toContain('(no token movement)')
+    expect(render(quiet)).toContain('(nothing moved)')
+  })
+
+  /**
+   * The defect this pins, found on 2026-09-10 when seven blind reviewers rejected all
+   * nine of the detector's triples: the screen printed `tokenDelta` and nothing else, so
+   * on a swap settling in native SOL the reviewer saw the size and never the proceeds.
+   * Every rejection argued "this round trip lost money" — about a pair that on
+   * 445553238 #394/397 ends **+736,315,196 lamports**, the very figure T026 recorded.
+   */
+  it('shows native SOL, which carries the price on most swaps', () => {
+    const nativeSide = bundle([
+      {
+        ...tx(0, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: 500n }]),
+        lamportDelta: { [ATTACKER]: -5_000_000n },
+      },
+      { ...tx(1, VICTIM, [{ owner: VICTIM, mint: USDC, amount: -200n }]) },
+      {
+        ...tx(2, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: -500n }]),
+        lamportDelta: { [ATTACKER]: 7_000_000n },
+      },
+    ])
+    const text = render(nativeSide)
+
+    expect(text).toContain('-5000000 SOL (native)')
+    expect(text).toContain('+7000000 SOL (native)')
+    // The round trip nets positive in lamports even though the token column closes flat.
+    expect(netLine(text, 'SOL (native)')).toContain('+2000000')
+  })
+
+  it('counts only the shared signer’s own lamports, not the pool’s', () => {
+    const withCounterparty = bundle([
+      {
+        ...tx(0, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: 500n }]),
+        lamportDelta: { [ATTACKER]: -5_000_000n, [POOL]: 5_000_000n },
+      },
+      tx(1, VICTIM, [{ owner: VICTIM, mint: USDC, amount: -200n }]),
+      {
+        ...tx(2, ATTACKER, [{ owner: ATTACKER, mint: USDC, amount: -500n }]),
+        lamportDelta: { [ATTACKER]: 7_000_000n, [POOL]: -7_000_000n },
+      },
+    ])
+
+    expect(netLine(render(withCounterparty), 'SOL (native)')).toContain('+2000000')
+  })
+
+  it('marks a transaction in between that moved native SOL', () => {
+    const middleMoves = bundle([
+      { ...tx(0, ATTACKER), lamportDelta: { [ATTACKER]: -5_000_000n } },
+      { ...tx(1, VICTIM), lamportDelta: { [VICTIM]: -200n } },
+      { ...tx(2, ATTACKER), lamportDelta: { [ATTACKER]: 7_000_000n } },
+    ])
+
+    expect(netLine(render(middleMoves), 'SOL (native)')).toContain('← also moved by #1')
   })
 
   it('marks a failed transaction rather than hiding it', () => {

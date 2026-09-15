@@ -106,17 +106,34 @@ export function renderPair(bundle: SlotBundle, pair: LegPair): string {
   return `${lines.join('\n')}\n`
 }
 
+/**
+ * Native SOL as a mint, so it lines up with everything else that moved.
+ *
+ * It is not an SPL token and has no mint address, but a reviewer comparing the two
+ * sides of a trade needs it in the same column as the token — on Solana one side of a
+ * swap is very often native lamports, and a ledger showing only the other side is a
+ * ledger with the price missing.
+ */
+const NATIVE = 'SOL (native)'
+
 /** One transaction as a line: who, what it did, what moved. */
 function describe(label: string, transaction: NormalizedTransaction): string {
   const head = `${label}#${String(transaction.index).padStart(4)}  ${short(
     transaction.signers[0] ?? '—',
   )}${transaction.failed ? '  FAILED' : ''}`
 
-  if (transaction.tokenDelta.length === 0) return `${head}\n        (no token movement)`
+  // Lamports first: where a swap has a native side it is the side that carries the
+  // price, and reading it after the token halves would put the answer below the fold.
+  const moves = [
+    ...Object.entries(transaction.lamportDelta).map(
+      ([owner, amount]) => `        ${signed(amount)} ${NATIVE}  → ${short(owner)}`,
+    ),
+    ...transaction.tokenDelta.map(
+      (delta) => `        ${signed(delta.amount)} ${short(delta.mint)}  → ${short(delta.owner)}`,
+    ),
+  ]
 
-  const moves = transaction.tokenDelta.map(
-    (delta) => `        ${signed(delta.amount)} ${short(delta.mint)}  → ${short(delta.owner)}`,
-  )
+  if (moves.length === 0) return `${head}\n        (nothing moved)`
   return [head, ...moves].join('\n')
 }
 
@@ -142,24 +159,28 @@ function netLines(
 ): string[] {
   const net = new Map<string, bigint>()
   for (const transaction of [front, back]) {
+    // The native side counts as a mint of its own. Leaving it out was the difference
+    // between "this round trip lost money" and "+736,315,196 lamports": on a swap that
+    // settles in SOL, the token column alone shows the size and never the proceeds.
+    const lamports = transaction.lamportDelta[signer]
+    if (lamports !== undefined) net.set(NATIVE, (net.get(NATIVE) ?? 0n) + lamports)
+
     for (const delta of transaction.tokenDelta) {
       if (delta.owner !== signer) continue
       net.set(delta.mint, (net.get(delta.mint) ?? 0n) + delta.amount)
     }
   }
 
-  if (net.size === 0) return ['net   (the pair holds no token position)']
+  if (net.size === 0) return ['net   (the pair holds no position)']
 
-  const inMiddle = new Map<string, number[]>()
-  for (const transaction of middles) {
-    for (const delta of transaction.tokenDelta) {
-      const seen = inMiddle.get(delta.mint) ?? []
-      if (!seen.includes(transaction.index)) inMiddle.set(delta.mint, [...seen, transaction.index])
-    }
-  }
+  const inMiddle = movedInBetween(middles)
 
   return [
     'net   the shared signer across both legs, by mint',
+    // The transaction fee is already inside the native figure: lamportDelta is post
+    // minus pre, and the fee leaves the account before the post balance is recorded.
+    // Saying so beats a reviewer discovering it as an unexplained few thousand.
+    '      (the native figure is post minus pre, so the fee is already inside it)',
     ...[...net.entries()]
       .sort(([leftMint], [rightMint]) => (leftMint < rightMint ? -1 : 1))
       .map(([mint, amount]) => {
@@ -175,6 +196,31 @@ function netLines(
         return `        ${signed(amount)} ${short(mint)}${mark}`
       }),
   ]
+}
+
+/**
+ * Which transactions between the legs touched which mint, native SOL included.
+ *
+ * This is what turns the `net` block from a statement about the pair into a question
+ * about the trade: a mint the pair reversed and nobody in between touched is a round
+ * trip against the pool, not against a person.
+ */
+function movedInBetween(middles: NormalizedTransaction[]): Map<string, number[]> {
+  const inMiddle = new Map<string, number[]>()
+
+  for (const transaction of middles) {
+    const mints = [
+      ...(Object.keys(transaction.lamportDelta).length > 0 ? [NATIVE] : []),
+      ...transaction.tokenDelta.map((delta) => delta.mint),
+    ]
+
+    for (const mint of mints) {
+      const seen = inMiddle.get(mint) ?? []
+      if (!seen.includes(transaction.index)) inMiddle.set(mint, [...seen, transaction.index])
+    }
+  }
+
+  return inMiddle
 }
 
 function signed(amount: bigint): string {
