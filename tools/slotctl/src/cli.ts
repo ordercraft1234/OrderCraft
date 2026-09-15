@@ -1,7 +1,8 @@
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { normalizeBlock } from '@ordercraft/core'
+import { type SlotLabels, normalizeBlock, slotLabelsSchema } from '@ordercraft/core'
 import { fill } from './fill.ts'
+import { type Verdict, progressOf, recordVerdict } from './label.ts'
 import { type LegPair, groupByLegs, renderPair } from './review.ts'
 import { fetchBlock } from './rpc.ts'
 import { type Candidate, findCandidates, sampleSlots } from './scan.ts'
@@ -9,12 +10,15 @@ import { readSlot, slotPath, writeSlot } from './store.ts'
 
 const CACHE_DIR = '.cache/slots'
 const FIXTURE_DIR = 'packages/fixtures/slots'
+const LABEL_DIR = 'packages/fixtures/labels'
 
 const usage = `slotctl fetch <slot> [--fixture] [--out <dir>]
 slotctl fill <from> --count <n> [--every <k>] [--pause <ms>] [--out <dir>]
 slotctl scan <dir> [--window <n>] [--random <k>] [--seed <n>]
              [--include-failed] [--include-inert] [--out <file>]
 slotctl review <shortlist> [--index <n>] [--slot <n>] [--slots <dir>]
+slotctl label  <shortlist> [--index <n>] [--slot <n>] [--labels <dir>]
+               (--attack | --reject) --note <text> [--victims <a,b>]
 
   fetch  Fetches one slot, normalises it and writes <slot>.json.gz.
          Default target is ${CACHE_DIR}; --fixture writes to ${FIXTURE_DIR}.
@@ -41,7 +45,16 @@ slotctl review <shortlist> [--index <n>] [--slot <n>] [--slots <dir>]
          run the detector, because labels that agree with the detector cannot
          measure it. The index counts pairs, not rows: a label is written per
          pair, and scan emits a row per transaction in between. --slot narrows
-         the run to one slot, which is how one label file gets filled.`
+         the run to one slot, which is how one label file gets filled.
+
+  label  Writes the verdict for the pair review just printed into
+         ${LABEL_DIR}/<slot>.json, indexed exactly as review
+         indexes it. Without a verdict it reports where the slot stopped and
+         which indices are still unjudged. coverage is derived, never typed:
+         a file claims exhaustive only once every pair the shortlist proposes
+         in that slot carries a verdict. Re-labelling a pair replaces its
+         verdict rather than adding a second one. Like review, it does not run
+         the detector.`
 
 function flag(rest: string[], name: string): string | undefined {
   const at = rest.indexOf(name)
@@ -178,7 +191,18 @@ function scanCommand(directory: string, rest: string[]): number {
  * one slot, which is how an exhaustively labelled file gets filled without walking the
  * whole cache.
  */
-function reviewCommand(shortlistPath: string, rest: string[]): number {
+/**
+ * The shortlist as the pairs both `review` and `label` work through.
+ *
+ * Shared on purpose rather than by coincidence: the reviewer reads a pair with one
+ * command and records the verdict with the other, typing the same `--index` into both.
+ * Were the two to group or filter rows differently, that index would name a different
+ * pair in each, and the verdict would land on something nobody looked at.
+ */
+function loadPairs(
+  shortlistPath: string,
+  rest: string[],
+): { pairs: LegPair[]; seed: number; rows: number } | number {
   if (!existsSync(shortlistPath)) {
     process.stderr.write(`no shortlist at ${shortlistPath}\n`)
     return 1
@@ -207,16 +231,23 @@ function reviewCommand(shortlistPath: string, rest: string[]): number {
     return 1
   }
 
-  const pairs = groupByLegs(candidates)
+  return { pairs: groupByLegs(candidates), seed: shortlist.seed ?? 0, rows: candidates.length }
+}
+
+function reviewCommand(shortlistPath: string, rest: string[]): number {
+  const loaded = loadPairs(shortlistPath, rest)
+  if (typeof loaded === 'number') return loaded
+
+  const { pairs, seed, rows } = loaded
   const directory = flag(rest, '--slots') ?? CACHE_DIR
   const indexArgument = flag(rest, '--index')
   if (indexArgument === undefined) {
     process.stdout.write(
       `${pairs.length} pairs of legs over ${
         new Set(pairs.map((pair) => pair.slot)).size
-      } slots, from ${candidates.length} shortlist rows, seed ${
-        shortlist.seed ?? 0
-      }\nPick one with --index 0..${pairs.length - 1}\n`,
+      } slots, from ${rows} shortlist rows, seed ${seed}\nPick one with --index 0..${
+        pairs.length - 1
+      }\n`,
     )
     return 0
   }
@@ -238,6 +269,135 @@ function reviewCommand(shortlistPath: string, rest: string[]): number {
   return 0
 }
 
+function labelPath(directory: string, slot: number): string {
+  return join(directory, `${slot}.json`)
+}
+
+function readLabels(path: string): SlotLabels | undefined {
+  return existsSync(path)
+    ? slotLabelsSchema.parse(JSON.parse(readFileSync(path, 'utf8')))
+    : undefined
+}
+
+/**
+ * `--victims 441,443`, the transactions actually traded against.
+ *
+ * `#` is accepted in front of each because that is how `review` prints them, and a
+ * reviewer copying a number off the screen should not have to strip it. Anything that
+ * is not a whole number is dropped here and then caught by `recordVerdict`, which knows
+ * which indices lie between the legs.
+ */
+function parseVictims(argument: string | undefined): number[] | undefined {
+  return argument === undefined
+    ? undefined
+    : argument
+        .split(',')
+        .map((piece) => Number(piece.trim().replace(/^#/, '')))
+        .filter((value) => Number.isSafeInteger(value))
+}
+
+/**
+ * Where each slot's review stopped, and the index to resume at.
+ *
+ * The reviewer works through 56 pairs over hours and more than one sitting, so the
+ * question "where was I?" is asked more often than any single verdict.
+ */
+function reportProgress(pairs: LegPair[], directory: string): number {
+  for (const slot of [...new Set(pairs.map((pair) => pair.slot))]) {
+    const inSlot = pairs.filter((pair) => pair.slot === slot)
+    const progress = progressOf(readLabels(labelPath(directory, slot)), inSlot)
+    // Reported as the index the reviewer would type, which is the one review prints:
+    // positions inside the slot when --slot narrowed the run, positions across the
+    // whole shortlist when it did not.
+    const next = progress.remaining.map((at) => pairs.indexOf(inSlot[at] as LegPair))
+    process.stdout.write(
+      `slot ${slot}  ${progress.done}/${progress.total} judged  ${progress.coverage}${
+        next.length === 0 ? '' : `  next --index ${next[0]}`
+      }\n`,
+    )
+  }
+
+  return 0
+}
+
+/**
+ * Records the verdict for one pair, or reports where the slot's review stopped.
+ *
+ * The protocol asks for a verdict on **every** pair — 56 over the seven slots of T047 —
+ * and the file those verdicts go into carries two claims that hand-editing gets wrong
+ * quietly. A pair written twice is counted twice by `accuracyAgainst`; a file that says
+ * `exhaustive` while pairs are missing inflates recall by exactly the rows nobody
+ * looked at, and `unjudgedHits` only catches the subset the detector also fired on. Both
+ * are settled here — the second by deriving `coverage` from the count rather than
+ * accepting it as input.
+ *
+ * What is deliberately *not* automated is the judgement. Nothing on this path imports
+ * the detector, for the reason `renderPair` does not print it: labels that agree with
+ * the detector measure the reviewer's deference, not the rule.
+ */
+function labelCommand(shortlistPath: string, rest: string[]): number {
+  const loaded = loadPairs(shortlistPath, rest)
+  if (typeof loaded === 'number') return loaded
+
+  const { pairs, seed } = loaded
+  const directory = flag(rest, '--labels') ?? LABEL_DIR
+  const indexArgument = flag(rest, '--index')
+  const attack = rest.includes('--attack')
+  const reject = rest.includes('--reject')
+
+  if (attack && reject) {
+    process.stderr.write('--attack and --reject are the two answers; pass one\n')
+    return 2
+  }
+
+  // No verdict is not an error: it is how a session that stopped somewhere in a slot
+  // finds the next index without re-reading pairs it already judged.
+  if (!attack && !reject) return reportProgress(pairs, directory)
+
+  const note = flag(rest, '--note')
+  if (note === undefined || note.trim() === '') {
+    process.stderr.write(
+      'every verdict needs --note in your own words — a label without a reason cannot be argued with later\n',
+    )
+    return 2
+  }
+
+  if (indexArgument === undefined) {
+    process.stderr.write(`--index takes 0..${pairs.length - 1}, the same index review prints\n`)
+    return 2
+  }
+
+  const index = Number(indexArgument)
+  if (!Number.isSafeInteger(index) || index < 0 || index >= pairs.length) {
+    process.stderr.write(`--index takes 0..${pairs.length - 1}\n`)
+    return 2
+  }
+
+  const victims = parseVictims(flag(rest, '--victims'))
+  const pair = pairs[index] as LegPair
+  const verdict: Verdict = attack ? 'attack' : 'reject'
+  const path = labelPath(directory, pair.slot)
+  const pairsInSlot = pairs.filter((one) => one.slot === pair.slot).length
+
+  const { labels, replaced } = recordVerdict(
+    readLabels(path),
+    pair,
+    { verdict, note, ...(victims === undefined ? {} : { victims }) },
+    { seed, pairsInSlot, checkedOn: new Date().toISOString().slice(0, 10) },
+  )
+
+  mkdirSync(directory, { recursive: true })
+  writeFileSync(path, `${JSON.stringify(slotLabelsSchema.parse(labels), null, 1)}\n`, 'utf8')
+
+  const judged = labels.attacks.length + labels.rejected.length
+  process.stdout.write(
+    `${path} — #${pair.front}/${pair.back} ${verdict === 'attack' ? 'attack' : 'rejected'}${
+      replaced ? ' (replaced)' : ''
+    }, ${judged}/${pairsInSlot} judged in slot ${pair.slot}, ${labels.coverage}\n`,
+  )
+  return 0
+}
+
 async function main(argv: string[]): Promise<number> {
   const [command, target, ...rest] = argv
 
@@ -245,6 +405,7 @@ async function main(argv: string[]): Promise<number> {
   if (command === 'fill' && target !== undefined) return fillCommand(target, rest)
   if (command === 'scan' && target !== undefined) return scanCommand(target, rest)
   if (command === 'review' && target !== undefined) return reviewCommand(target, rest)
+  if (command === 'label' && target !== undefined) return labelCommand(target, rest)
 
   process.stderr.write(`${usage}\n`)
   return 2
