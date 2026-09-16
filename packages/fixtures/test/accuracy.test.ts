@@ -63,7 +63,7 @@ const reported = accuracy.confirmedHits + accuracy.falsePositives
  * **Both denominators are chosen so they cannot be empty by construction**, which is
  * the trap the earlier shape of this file walked into. Measured over the 1,071-slot
  * cache on 2026-09-10: the wide filter proposes 3,759 leg pairs over 761 slots, and the
- * detector fires on 9 of them, in 7 slots. Five slots drawn from the 761 would have
+ * detector fired on 9 of them, in 7 slots. Five slots drawn from the 761 would have
  * held 0.05 attacks between them, so recall had no denominator; and a false-positive
  * rate taken over every checked triple would have read 0 of 60 — a criterion passing
  * on a sample that contained nothing it was about.
@@ -72,6 +72,14 @@ const reported = accuracy.confirmedHits + accuracy.falsePositives
  * proposed a candidate in, and the sample is biased by that: the figure says how many
  * of the attacks present in such a slot the detector finds, not how many attacks exist
  * in a random block. That sentence travels with the number.
+ *
+ * **And on 2026-09-10 both denominators went empty anyway, from the other end (T055).**
+ * The labelling rejected all nine triples; narrowing the rule to ask what the nine
+ * rejections named dropped all nine, and a sweep of the whole cache afterwards found no
+ * triple anywhere. So the set holds zero marked attacks *and* draws zero detector hits:
+ * recall skips for want of attacks, precision skips for want of anything reported. Both
+ * skips are the honest reading and neither is a pass — the criterion is unmeasured in
+ * both halves until T057 collects a set that does not depend on this detector agreeing.
  */
 describe('SC-003 — the detector against hand-checked labels', () => {
   it('reports what it was measured on', () => {

@@ -19,8 +19,9 @@ const pairs = groupByLegs(candidates)
 /**
  * The set T047 is labelled against, guarded where changing it is visible.
  *
- * The seven slots in `packages/fixtures/slots` are the ones the detector fires in over
- * the 1,071-slot cache — 0.65 % of it. They are in the repository rather than only in
+ * The seven slots in `packages/fixtures/slots` are the ones the detector fired in over
+ * the 1,071-slot cache — 0.65 % of it — when the set was drawn, before T055 narrowed it.
+ * They are in the repository rather than only in
  * `.cache/slots` for a reason that outlives the labelling: a label file names a slot,
  * and `accuracy.test.ts` refuses to score one whose slot is missing, so labels checked
  * against a 424 MB cache nobody else holds would be unverifiable anywhere but this
@@ -33,7 +34,7 @@ const pairs = groupByLegs(candidates)
  * later as recall over an incomplete sample.
  */
 describe('the set T047 labels', () => {
-  it('holds the seven slots the detector fires in', () => {
+  it('holds the seven slots the labelling was done on', () => {
     expect(bundles.map((bundle) => bundle.slot).sort((a, b) => a - b)).toStrictEqual([
       445507853, 445553238, 445572644, 445625228, 445660284, 445813028, 445829304,
     ])
@@ -62,10 +63,19 @@ describe('the set T047 labels', () => {
     expect(missing).toStrictEqual([])
   })
 
-  /** Nine triples over seven slots — the denominator the false-positive rate gets. */
-  it('carries the nine triples the detector found in the cache', () => {
+  /**
+   * What T055 did, pinned where the set is defined.
+   *
+   * The pool rule reported nine triples over these seven slots and the blind labelling
+   * rejected every one of them; the narrowed rule reports none. Nine was the
+   * false-positive denominator, so this file used to pin it — the number to pin now is
+   * zero, and it is not a good number: a set the detector is silent on cannot measure
+   * precision either. That is T057, and the silence is stated here so it cannot be
+   * mistaken for the labels having been satisfied.
+   */
+  it('carries none of the nine triples, all of which the labelling rejected', () => {
     const found = bundles.flatMap((bundle) => findSandwiches(bundle))
 
-    expect(found).toHaveLength(9)
+    expect(found).toStrictEqual([])
   })
 })

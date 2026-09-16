@@ -56,18 +56,30 @@ describe('the demo fixture', () => {
    * own — so the two are checked against each other here, where replacing either one
    * fails loudly.
    *
-   * **Skipped from 2026-09-09 to 2026-09-10, and now measured.** Tightening the detector
-   * left the old fixture with no triple at all, and the 171 slots then in hand held one
-   * candidate slot whose votes sat in a tail costing the comparison screen 43 % of the
-   * block. T052 grew the cache to 1,071 slots; 7 carry a triple and 4 of those have no
-   * tail. This slot is one of them, and the only one carrying **two**.
+   * **Skipped again on 2026-09-10 (T055), and no slot can satisfy it today.** The two
+   * triples this fixture was chosen for are both in the blind labelling's rejected list
+   * — one a plain large sale, one a market maker filling two orders — and the narrowed
+   * rule drops them along with the other seven it used to report. Swept over the whole
+   * 1,071-slot cache afterwards, it reports **nothing at all**, so there is no slot to
+   * swap this one for; the set has to be collected against a wider rule first (T057).
    *
-   * Both are asserted, because one is the number that made this slot worth taking: a
-   * fixture that quietly fell to a single triple would still pass a `> 0` check while no
-   * longer being the slot anybody chose.
+   * Unskipping this is the visible half of T057. Both figures are asserted, because one
+   * was the number that made this slot worth taking: a fixture that quietly fell to a
+   * single triple would still pass a `> 0` check while no longer being the slot anybody
+   * chose.
    */
-  it('carries the two triples the fixture was chosen for', () => {
+  it.skip('carries the two triples the fixture was chosen for', () => {
     expect(findSandwiches(bundle)).toHaveLength(2)
+  })
+
+  /**
+   * The state the screen is actually in, asserted rather than left to be discovered.
+   * The attack screen draws its empty state on this fixture, and that is a measured
+   * consequence of T055 and not a broken build. This test and the skip above are one
+   * pair: the day either changes, both do.
+   */
+  it('reports no triple under the narrowed rule, which is why the screen is empty', () => {
+    expect(findSandwiches(bundle)).toStrictEqual([])
   })
 
   /**

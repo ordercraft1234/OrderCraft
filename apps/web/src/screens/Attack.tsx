@@ -65,7 +65,7 @@ function Found({ bundle, policy, triple }: { bundle: SlotBundle; policy: Policy;
       <Screen title="One attack, before and after" subtitle={identity}>
         <Note>
           {found.length === 0
-            ? 'The detector marked no triple in this block. It looks for the same party either side of somebody else, on one pool, trading in opposite directions.'
+            ? 'The detector marked no triple in this block. It looks for the same party either side of somebody else, on one pool, trading in opposite directions — and before it says so it asks three more things: that the party in the middle traded the same way the first leg did, that the round trip closed at a better price than it opened, and that the two legs matched in size.'
             : `There is no triple ${triple} here. ${found.length} were marked.`}
         </Note>
         {found.length === 0 ? null : <TripleLinks count={found.length} current={triple} />}
