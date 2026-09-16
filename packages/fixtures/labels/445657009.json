@@ -1,0 +1,27 @@
+{
+ "schemaVersion": 1,
+ "slot": 445657009,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 684,
+   "victims": [
+    685,
+    687
+   ],
+   "back": 688,
+   "note": "Both legs trade E9DzKE…pump in pool DUV8Vm while #685 trades JTjC85…pump and #687 trades AFPKgD…pump — no shared market — and the pair sold 69.5T tokens for 3,866,323 lamports but rebought only 53.6T for 2,933,920, ending 15.9T tokens (~870k lamports) down for a +365,569 lamport gain."
+  },
+  {
+   "front": 891,
+   "victims": [
+    893
+   ],
+   "back": 894,
+   "note": "Each leg is a closed three-venue cycle (pumpCm to USDC at 8ekCy2, USDC to BONK at EHcege, BONK to pumpCm at Efane5) returning the exact same 983,458,198 pumpCm it spent for +4,048 and +3,701 USDC of arbitrage residue, while mid #893 trades 7UUUeZ…pump against SOL and touches none of those three mints."
+  }
+ ]
+}

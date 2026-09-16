@@ -1,0 +1,18 @@
+{
+ "schemaVersion": 1,
+ "slot": 445787362,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 1156,
+   "victims": [
+    1157
+   ],
+   "back": 1158,
+   "note": "The mid tx is a self-funded SOL/USDC arb across pools 8FnX3x and 8ekCy2 netting +13,742 lamports and never touching the legs' PCCZMK pool 4h2inb, while the legs bought 1,174,224,136,210 PCCZMK at 1,215.75 tokens/lamport and sold back only 414,469,670,928 at an essentially unchanged 1,215.65, ending 625,555,887 lamports down with the tokens still in inventory."
+  }
+ ]
+}

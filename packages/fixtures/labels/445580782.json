@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445580782,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 532,
+   "victims": [
+    533,
+    534
+   ],
+   "back": 535,
+   "note": "Both legs are a cross-pool arbitrage — 400.000000 USDC buys 3.866302940 wSOL on pool 8sKQHf at 103.4579 and the same wSOL is sold on a different pool, 8FnX3x, at 103.4599 for 400.007273 USDC (+0.0073 USDC, ~1.8 bp), with no unwind on the pool the mid traded, and the mid (#533/#534) is itself running the identical 471 USDC version of the same arb rather than being straddled."
+  }
+ ]
+}

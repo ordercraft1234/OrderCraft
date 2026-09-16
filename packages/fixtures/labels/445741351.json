@@ -1,0 +1,95 @@
+{
+ "schemaVersion": 1,
+ "slot": 445741351,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 317,
+   "victims": [
+    318,
+    319
+   ],
+   "back": 320,
+   "note": "Both legs moved zero tokens — only -11352 and -11190 lamports with a 2639-lamport Jito tip, net -22542 lamports lost — so the pair traded nothing against #319's 7275 VUq8c3 purchase."
+  },
+  {
+   "front": 398,
+   "victims": [
+    399
+   ],
+   "back": 400,
+   "note": "The legs are pure fee/tip burns (-36959 with 31959 to the Jito tip account, -37064; net -74023 lamports) with no token flow at all, while mid #399 ran its own multi-hop arb through CTgiaZ/uuxWwF that the pair never touched."
+  },
+  {
+   "front": 514,
+   "victims": [
+    516
+   ],
+   "back": 517,
+   "note": "Both legs sell USDC for WSOL in the same direction (358 USDC to 3.524828982 SOL, then 352 USDC to 3.465748184 SOL, both at 101.565 USDC/SOL), which is a doubled-down directional buy, not a front/back pair, and the mid traded an unrelated pump token for 998 lamports."
+  },
+  {
+   "front": 584,
+   "victims": [
+    586,
+    587
+   ],
+   "back": 588,
+   "note": "Both legs buy WSOL with USDC on the same pool 2Sixkj (200 USDC to 1.969129571 SOL and 500 USDC to 4.922756714 SOL, both 101.573), so there is no round trip to profit from, and #586/#587 are 5qK4ce's own cross-pool arb earning 13441 micro-USDC."
+  },
+  {
+   "front": 585,
+   "victims": [
+    587
+   ],
+   "back": 588,
+   "note": "Leg #585 sells 1.969 SOL on pool 8FnX3x but leg #588 buys 4.9228 SOL on a different pool (2Sixkj) at 2.5x the size, and mid #587 sold on the same side as #585 at 101.5729 vs the leg's 101.5734 — about 1 micro-USDC of impact on 229 USDC — so these are two halves of two separate arb cycles, not a wrap."
+  },
+  {
+   "front": 585,
+   "victims": [
+    587
+   ],
+   "back": 589,
+   "note": "All three transactions sell WSOL into pool 8FnX3x at effectively one price (101.5734, 101.5729, 101.5729), and a sandwich cannot have both legs on the same side as the victim."
+  },
+  {
+   "front": 634,
+   "victims": [
+    635,
+    636,
+    637
+   ],
+   "back": 638,
+   "note": "Neither leg is a trade: #634 and #638 hand 367.912284 and 206.739473 USDC plus 1855569-lamport rent deposits to GQhjEp, which returns 367.914408 USDC in #636, so this is a funder settling with its own arb bot at a -9432276-lamport rent/fee cost."
+  },
+  {
+   "front": 635,
+   "victims": [
+    637,
+    638
+   ],
+   "back": 639,
+   "note": "Both legs buy WSOL with USDC at the identical rate (367.912284 to 3.62216 SOL and 206.739473 to 2.035391435 SOL, both 101.5726), and mid #638 is a USDC transfer from GQhjEp's own funder rather than a market order."
+  },
+  {
+   "front": 636,
+   "victims": [
+    638
+   ],
+   "back": 639,
+   "note": "Leg #636 sells 3.62216 SOL on pool 8FnX3x while leg #639 buys only 2.035391435 SOL on pool 2Sixkj, and the mid is a bare 206739473-USDC wallet-to-wallet transfer from the funder 3rnVJz that never touched a pool, so there was nobody in between to trade against."
+  },
+  {
+   "front": 636,
+   "victims": [
+    638
+   ],
+   "back": 640,
+   "note": "Both legs sell WSOL into pool 8FnX3x (3.62216 SOL to 367.914408 USDC and 2.035391435 SOL to 206.741224 USDC, both ~101.5736) — same side twice — and the mid is again the funder's plain USDC transfer, not a swap."
+  }
+ ]
+}

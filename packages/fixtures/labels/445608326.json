@@ -1,0 +1,91 @@
+{
+ "schemaVersion": 1,
+ "slot": 445608326,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 45,
+   "victims": [
+    46
+   ],
+   "back": 47,
+   "note": "Leg #45 is a self-contained 122.295903-123.245903 USDC arb cycle through 61KTwu…pump and leg #47 is a bare 15 USDC transfer, while mid #46 only moves 50 USDC to GachaN…xJq3 with no swap at all; the pair nets -897,248 lamports."
+  },
+  {
+   "front": 45,
+   "victims": [
+    46
+   ],
+   "back": 48,
+   "note": "Same arb leg #45 paired with leg #48, a plain 4.86 USDC transfer, against a mid that is a 50 USDC wallet transfer, not a trade; net -893,248 lamports."
+  },
+  {
+   "front": 45,
+   "victims": [
+    46
+   ],
+   "back": 49,
+   "note": "Leg #49 is an 83.753424 USDC transfer between the signer's own accounts, so there is no second-side trade to close a sandwich, and the pair ends -892,059 lamports."
+  },
+  {
+   "front": 1015,
+   "victims": [
+    1017
+   ],
+   "back": 1019,
+   "note": "Both legs buy Mx5y2d…pump from pool Bba4Lr for 293,333,333 lamports each (4,279,415,522,545 then 4,226,464,338,851 tokens) with no sell, and mid #1017 trades a completely different token, qgkU23…pump."
+  },
+  {
+   "front": 1156,
+   "victims": [
+    1159
+   ],
+   "back": 1160,
+   "note": "Both legs sell USDC for WSOL in the same direction at the same 104.47 USDC/SOL (306.158543-2.930648869 and 422.513556-4.044382471), which is position building, not a round trip, and mid #1159 swaps 0.000162 SOL into cCNPb3…pump."
+  },
+  {
+   "front": 1398,
+   "victims": [
+    1399,
+    1400
+   ],
+   "back": 1401,
+   "note": "Legs #1398 and #1401 both push 532.105880 USDC out to CsWbks and get nothing back, netting -1,064.21 USDC and -9,432,276 lamports; they are the funding side of CsWbks's two-pool arbitrage, not a front/back run."
+  },
+  {
+   "front": 1399,
+   "victims": [
+    1401
+   ],
+   "back": 1402,
+   "note": "Both legs buy WSOL at Czfq3x for 532.105880 USDC each (5.093307633 and 5.093290188 WSOL) — same direction twice, no closing sale — and the mid is 3rnVJz handing over the USDC that funds them."
+  },
+  {
+   "front": 1399,
+   "victims": [
+    1401
+   ],
+   "back": 1403,
+   "note": "Buy 5.093307633 WSOL at 104.4676 then sell 5.093290188 at 104.4691 is a 0.0083 USDC cross-venue arbitrage between pools Czfq3x and 8FnX3x, and the enclosed #1401 is the capital transfer that funds it rather than a swap traded against."
+  },
+  {
+   "front": 1400,
+   "victims": [
+    1401
+   ],
+   "back": 1402,
+   "note": "The legs sell WSOL first (532.114201 USDC) and buy it back after (532.105880 USDC for 17,445 fewer lamports), ending -17,445 WSOL and -0.001 SOL, i.e. a losing round trip around a non-trading funding transfer."
+  },
+  {
+   "front": 1400,
+   "victims": [
+    1401
+   ],
+   "back": 1403,
+   "note": "Both legs sell 5.0933 WSOL for ~532.11 USDC into pool 8FnX3x in the same direction, netting -10,186,597,821 WSOL and -1,990,000 lamports, with the mid again being 3rnVJz's USDC funding transfer."
+  }
+ ]
+}

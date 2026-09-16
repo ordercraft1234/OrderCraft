@@ -1,0 +1,27 @@
+{
+ "schemaVersion": 1,
+ "slot": 445782667,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 765,
+   "victims": [
+    766,
+    768
+   ],
+   "back": 769,
+   "note": "The pair bought 17,918,638,012,178 twpJS7 for 8,806,468,004 lamports and sold 17,841,928,138,483 back for only 8,713,901,158 (2034.7 vs 2047.5 tokens/lamport, a worse exit price, ~0.055 SOL down after valuing the 76.7 bn token residual), while both mid txs traded entirely different mints (tJGrLB…pump, ApS2Ct…pump) that cannot move twpJS7's price."
+  },
+  {
+   "front": 771,
+   "victims": [
+    773
+   ],
+   "back": 775,
+   "note": "Each leg is a standalone USDC-wSOL-token-USDC arbitrage loop netting exactly +2,596 USDC, but on two unrelated mints (FJGSfN…pump in #771, 7yx1YW…pump in #775) with no shared position to squeeze, and mid #773 traded a third mint (Cin2co…pump for 27,523 lamports)."
+  }
+ ]
+}

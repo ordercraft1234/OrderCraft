@@ -1,0 +1,26 @@
+{
+ "schemaVersion": 1,
+ "slot": 445504723,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 81,
+   "victims": [
+    82
+   ],
+   "back": 83,
+   "note": "The two legs touch different mints (sell 698,818,385,923 3NUASi…pump, buy 736,426,148,821 6nsZ81…pump) and #82 trades a third mint for only 147,595 lamports, so there is no round trip and nothing was traded against."
+  },
+  {
+   "front": 834,
+   "victims": [
+    835
+   ],
+   "back": 838,
+   "note": "Both legs are dust stablecoin sells of different mints (12,100 USDT for 117,075 lamports, 12,000 USDC for 116,124 lamports) while #835 buys an unrelated token for 2,996,936,111 lamports — no shared asset and no buy/sell round trip."
+  }
+ ]
+}

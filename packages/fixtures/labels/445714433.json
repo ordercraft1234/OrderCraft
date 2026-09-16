@@ -1,0 +1,184 @@
+{
+ "schemaVersion": 1,
+ "slot": 445714433,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 482,
+   "victims": [
+    483,
+    485
+   ],
+   "back": 486,
+   "note": "Both legs are bare 10945- and 10108-lamport native transfers with no token on either side, netting -21053 lamports, while #483 sold 911278997 SRvkjH…pump — the pair never touched that asset."
+  },
+  {
+   "front": 486,
+   "victims": [
+    487,
+    488
+   ],
+   "back": 489,
+   "note": "Legs of -10108 and -12130 lamports carry no mint at all and net -22238 lamports, so nothing was positioned around #487/#488's small SOL moves."
+  },
+  {
+   "front": 495,
+   "victims": [
+    498
+   ],
+   "back": 499,
+   "note": "The pair spent 16493 and 9498 lamports acquiring nothing, netting -25991, while #498's 46096849600 3ShZ5R…pump swap involves a token the legs never hold."
+  },
+  {
+   "front": 497,
+   "victims": [
+    498
+   ],
+   "back": 499,
+   "note": "Same empty legs (-14795, -9498 lamports, net -24293) around the same #498 pump-token sale; no inventory in 3ShZ5R…pump is ever taken or released."
+  },
+  {
+   "front": 521,
+   "victims": [
+    522
+   ],
+   "back": 523,
+   "note": "Legs of -8766 and -10508 lamports hold no mint and net -19274, so #522's 2761316060 mHUgwV…pump swap is merely adjacent, not straddled."
+  },
+  {
+   "front": 521,
+   "victims": [
+    522
+   ],
+   "back": 524,
+   "note": "Identical empty pair (-8766, -11132 lamports, net -19898) around #522; a party with zero token position cannot profit from that buyer."
+  },
+  {
+   "front": 528,
+   "victims": [
+    529,
+    530,
+    531
+   ],
+   "back": 532,
+   "note": "Both legs sell GmaS8y…9sUL in the same direction (-9320734446045 then -8810235422240 for +9.73 and +9.20 SOL at a near-identical 0.001044 rate), which is a split sale, and #529/#530/#531 trade mHUgwV, 8gvTxS and 12eGMX instead."
+  },
+  {
+   "front": 532,
+   "victims": [
+    533,
+    534
+   ],
+   "back": 535,
+   "note": "Again two consecutive sells of GmaS8y…9sUL (-8810235422240 and -9513707216261, net -18323942638501) with no buy-back leg, and the mids trade Hm9iKM/pumpCm and 8gvTxS."
+  },
+  {
+   "front": 580,
+   "victims": [
+    581
+   ],
+   "back": 582,
+   "note": "Legs of -37311 and -35406 lamports carry no token and net -72717, while #581 moves 84154914144 4cBXdR…pump and USDC that the pair never holds."
+  },
+  {
+   "front": 596,
+   "victims": [
+    597,
+    598,
+    599
+   ],
+   "back": 600,
+   "note": "Both legs are pure fee-sized native spends (-8347, -7589 lamports, net -15936) with no mint acquired, so there is nothing to unwind against #597-#599."
+  },
+  {
+   "front": 799,
+   "victims": [
+    800,
+    801
+   ],
+   "back": 802,
+   "note": "The pair bought 274578301774 Cgdypx…rfq8 at 6.660e-6 SOL/unit and sold 835788294883 back at a worse 6.534e-6, and the mids #800/#801 trade oUMYX7 and C5oJWR, not Cgdypx."
+  },
+  {
+   "front": 804,
+   "victims": [
+    805
+   ],
+   "back": 806,
+   "note": "Bought 883768707450 oUMYX7 at 0.0042965 and sold 999307894120 at 0.0041993 — a losing round trip — and mid #805 trades Cgdypx…rfq8, a different mint entirely."
+  },
+  {
+   "front": 807,
+   "victims": [
+    808
+   ],
+   "back": 809,
+   "note": "The pair sold 681306550631 Cgdypx at 0.0065473 and bought back 685548972042 at a costlier 0.0065876, netting -55153169 lamports against only +4242421411 tokens, while #808 trades oUMYX7."
+  },
+  {
+   "front": 807,
+   "victims": [
+    808,
+    810
+   ],
+   "back": 811,
+   "note": "Both legs sell Cgdypx…rfq8 (681306550631 then 624149247083, net -1305455797714) with no opposing leg, and mids #808/#810 trade oUMYX7."
+  },
+  {
+   "front": 808,
+   "victims": [
+    809,
+    810,
+    811
+   ],
+   "back": 812,
+   "note": "Both legs are 8fs3cu…RF8D sells of oUMYX7 (60315691498 at 0.0041583 then 26655852777 at 0.0041688), the same direction twice, so the intervening #810 buy of 886748144711 is not straddled."
+  },
+  {
+   "front": 809,
+   "victims": [
+    810
+   ],
+   "back": 811,
+   "note": "Buy of 685548972042 Cgdypx at 0.00658760 and sale of 624149247083 at 0.00658843 is a 0.013% round trip worth ~0.0006 SOL, and mid #810 trades oUMYX7 rather than Cgdypx."
+  },
+  {
+   "front": 810,
+   "victims": [
+    811,
+    812,
+    813
+   ],
+   "back": 814,
+   "note": "B7TT2V bought oUMYX7 on both legs (886748144711 at 0.0042190, then 719924633774 at 0.0042151, net +1606672778485 tokens for -6.78 SOL) — accumulation, not a straddle."
+  },
+  {
+   "front": 812,
+   "victims": [
+    814
+   ],
+   "back": 815,
+   "note": "Both legs sell oUMYX7 (26655852777 at 0.0041688 and 436838820870 at 0.0042381, net -463494673647), the same side twice, so #814's buy was not front- and back-run."
+  },
+  {
+   "front": 813,
+   "victims": [
+    814
+   ],
+   "back": 815,
+   "note": "Two more same-direction sells of oUMYX7 (936797001567 at 0.0041991 and 436838820870 at 0.0042381, net -1373635822437 for +5.79 SOL) with no offsetting purchase around #814."
+  },
+  {
+   "front": 1061,
+   "victims": [
+    1063,
+    1064
+   ],
+   "back": 1065,
+   "note": "Legs of -27482 and -15271 lamports acquire no token and net -42753, and #1063/#1064 are themselves bare 23227- and 14000-lamport spends with nothing to extract."
+  }
+ ]
+}

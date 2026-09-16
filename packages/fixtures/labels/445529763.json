@@ -1,0 +1,34 @@
+{
+ "schemaVersion": 1,
+ "slot": 445529763,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 790,
+   "victims": [
+    791
+   ],
+   "back": 792,
+   "note": "Cross-venue arbitrage: the same 418,335,499 USDC goes out at FksffE and comes back at 8FnX3x for 4,000,212,062 lamports versus 4,000,000,000 sent (+212,062, ~0.005%), and the mid traded at a third venue (DB3sUC) at 104.579 USDC/SOL versus the leg's 104.584, i.e. no impact was imposed on it."
+  },
+  {
+   "front": 791,
+   "victims": [
+    792
+   ],
+   "back": 793,
+   "note": "Same round-trip arb shape (443,250,221 USDC out at DB3sUC, back at 8FnX3x for 4,238,451,492 vs 4,238,403,320 lamports, +48,172 gross against 13,368 in fees), and the mid buys SOL at 8FnX3x — the opposite direction, a rival on the same mispricing rather than a sandwiched order."
+  },
+  {
+   "front": 1121,
+   "victims": [
+    1124
+   ],
+   "back": 1125,
+   "note": "Two independent atomic MET/wSOL arbs across HLnpSz-CHjinD (+26,072) and HLnpSz-3AY25e (+29) with the mid #1124 moving nothing but its own 7,389-lamport fee, and the pair nets -70,569 lamports native against +26,101 wSOL."
+  }
+ ]
+}

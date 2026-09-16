@@ -1,0 +1,135 @@
+{
+ "schemaVersion": 1,
+ "slot": 445516617,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 256,
+   "victims": [
+    257,
+    258,
+    259
+   ],
+   "back": 260,
+   "note": "Legs buy 43.55T FRtxD3 for 9.974 SOL and sell 41.76T for 9.514 SOL (net -0.4607 SOL), while mids #257/#258 trade an unrelated mint mcW6ia…pump against pool Dhg2Br."
+  },
+  {
+   "front": 302,
+   "victims": [
+    303,
+    304,
+    305
+   ],
+   "back": 306,
+   "note": "Both legs are bare 53827- and 53597-lamport SOL transfers to different recipients (net -117424), with no swap and no token in common with the mids."
+  },
+  {
+   "front": 303,
+   "victims": [
+    304,
+    305,
+    306
+   ],
+   "back": 307,
+   "note": "Leg #303 sells 113,962,496 of 8DWYQA and leg #307 sells 128,497,753 of a different mint 88XAuB — two separate dust liquidations, not a buy-then-sell round trip."
+  },
+  {
+   "front": 310,
+   "victims": [
+    312
+   ],
+   "back": 313,
+   "note": "Leg #310 sells 78,635,426 of 9HryQ8 and leg #313 sells 246,842,323 of A464Ye, different mints, while mid #312 only moves 3930 lamports and holds no position."
+  },
+  {
+   "front": 312,
+   "victims": [
+    313,
+    314,
+    315
+   ],
+   "back": 316,
+   "note": "Both legs of AjkDC1 are fee-only/transfer transactions (-11700 and -9034 lamports, net -20734) that buy and sell nothing."
+  },
+  {
+   "front": 313,
+   "victims": [
+    314,
+    315,
+    316
+   ],
+   "back": 317,
+   "note": "Leg #313 sells A464Ye and leg #317 sells 800,502,317 of HiVzpY for 63052 lamports — different assets, so no position was opened and closed around the mids."
+  },
+  {
+   "front": 329,
+   "victims": [
+    330,
+    331
+   ],
+   "back": 332,
+   "note": "Leg #329 sells 359,807,961 of 83HmHb for 14739 lamports and leg #332 sells 400,251,104 of 4Hefy2 for 161103, unrelated mints and unrelated to mid #330's 5oB6xe or #331's mcW6ia."
+  },
+  {
+   "front": 381,
+   "victims": [
+    383
+   ],
+   "back": 385,
+   "note": "Both legs are identical 0.02 SOL transfers (-20005000/+20000000) to two different addresses, a payout batch with no price exposure to mid #383's MQAuNM trade."
+  },
+  {
+   "front": 382,
+   "victims": [
+    383
+   ],
+   "back": 385,
+   "note": "Same disperser pattern: 20,000,000 lamports to 3kn29r then 20,000,000 to GFz9QL, net -40010000 SOL and no swap of any kind."
+  },
+  {
+   "front": 385,
+   "victims": [
+    386
+   ],
+   "back": 387,
+   "note": "Legs move 0.02 SOL to GFz9QL and C6XqG1 while mid #386 swaps 18.17T of 8XBLvr for 82,769,989 lamports — the pair never touches that mint."
+  },
+  {
+   "front": 385,
+   "victims": [
+    386
+   ],
+   "back": 388,
+   "note": "Legs are plain 20,000,000-lamport transfers to GFz9QL and 8i7vPr, holding no 8XBLvr inventory to profit from mid #386's sale."
+  },
+  {
+   "front": 385,
+   "victims": [
+    386
+   ],
+   "back": 389,
+   "note": "Third pairing of the same transfer stream (GFz9QL, DiNWsh) around mid #386; net -40010000 SOL is pure fees, not extracted value."
+  },
+  {
+   "front": 392,
+   "victims": [
+    394,
+    395
+   ],
+   "back": 396,
+   "note": "Legs send 20,000,000 lamports each to EWGizs and 9B1LDa, no token leg at all, while mid #395 sells 60.28B of 8H5yfL for 226,702,507 lamports."
+  },
+  {
+   "front": 393,
+   "victims": [
+    394,
+    395
+   ],
+   "back": 396,
+   "note": "Legs transfer 0.02 SOL to CbSdgw and 9B1LDa with zero token flow, so nothing was positioned ahead of or behind mid #395's 8H5yfL sale."
+  }
+ ]
+}

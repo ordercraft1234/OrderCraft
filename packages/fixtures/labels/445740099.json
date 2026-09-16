@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445740099,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 727,
+   "victims": [
+    728,
+    729
+   ],
+   "back": 730,
+   "note": "Both signers ran independent cross-venue arbs — leg bought 4.686187864 SOL at pool DB3sUC and sold it at 8FnX3x for +5,197 micro-USDC gross (net ~+$0.004 after 13,368 lamports fees), while mid bought at AvGeFw and sold at 8FnX3x for +11,065 micro-USDC of its own — the leg never traded ahead of mid on any shared pool and both sold SOL in the same direction."
+  }
+ ]
+}

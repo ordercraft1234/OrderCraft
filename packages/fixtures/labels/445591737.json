@@ -1,0 +1,64 @@
+{
+ "schemaVersion": 1,
+ "slot": 445591737,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 726,
+   "victims": [
+    727
+   ],
+   "back": 729,
+   "note": "The pair bought 4,031,136,907,971 of 799u1a at 2.4241e-3 lamports/token and unwound 4,010,635,632,824 at a lower 2.4085e-3, finishing 112,230,534 lamports down against ~20.5B leftover tokens (~49.7M lamports) — a ~0.06 SOL round-trip loss, so nothing was extracted from #727."
+  },
+  {
+   "front": 740,
+   "victims": [
+    741,
+    742
+   ],
+   "back": 743,
+   "note": "Both legs sell 799u1a in the same direction (4,132,452,854,911 for 9,953,368,355 lamports, then 3,979,816,290,795 for 9,591,092,978, both ~2.409e-3), which is a market maker filling two client buys, not a buy-then-sell sandwich."
+  },
+  {
+   "front": 1193,
+   "victims": [
+    1195,
+    1196
+   ],
+   "back": 1197,
+   "note": "Legs buy 36 xcMvw5…pump for 255 lamports and 61 momcG3…pump for 252 lamports — two different mints, neither sold back — while the mids traded DpNn2r…7KtY and CmDyxQ…pump, so there is no shared asset and no round trip, only -10,515 lamports of fees."
+  },
+  {
+   "front": 1194,
+   "victims": [
+    1195,
+    1196
+   ],
+   "back": 1197,
+   "note": "Legs buy 691 SWoKju…pump (246 lamports) and 61 momcG3…pump (252 lamports), different mints held not sold, against mids trading DpNn2r…7KtY and CmDyxQ…pump; the signer's only net change is -10,506 lamports of fees."
+  },
+  {
+   "front": 1194,
+   "victims": [
+    1195,
+    1196
+   ],
+   "back": 1198,
+   "note": "Legs buy 691 SWoKju…pump (246 lamports) and 2,646 FoaKMe…pump (241 lamports) and keep both, sharing no mint with mids #1195/#1196, so the -10,495 lamport net is pure fee, not extracted profit."
+  },
+  {
+   "front": 1198,
+   "victims": [
+    1199,
+    1200,
+    1201
+   ],
+   "back": 1202,
+   "note": "Legs buy 2,646 FoaKMe…pump (241 lamports) and 144 Ci5aVF…pump (250 lamports) in unrelated mints, and the three mids (#1199-#1201) each moved only 5,075 lamports with zero token flow, so there was no trade to front-run."
+  }
+ ]
+}

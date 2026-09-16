@@ -1,0 +1,51 @@
+{
+ "schemaVersion": 1,
+ "slot": 445722258,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 928,
+   "victims": [
+    929,
+    931
+   ],
+   "back": 932,
+   "note": "Both legs move only lamports (-29850/-16804 plus 14222 and 7889 to tip accounts) and never touch mint 8gvTxS…Pxhm that mid #929 traded, ending -46654 lamports down."
+  },
+  {
+   "front": 952,
+   "victims": [
+    954
+   ],
+   "back": 955,
+   "note": "Leg #952 completes its whole 3.853673085 WSOL to 389.928821 USDC to 3.853673085 WSOL loop inside one transaction for +12191 USDC units, and mid #954 moved no token at all, so this is single-tx cross-pool arbitrage, not a bracket."
+  },
+  {
+   "front": 952,
+   "victims": [
+    954
+   ],
+   "back": 956,
+   "note": "Same atomic arb pattern in leg #956 (3.618709865 WSOL out and back, +11448 USDC units) with mid #954 again containing nothing but a 18955-lamport fee and a 13919-lamport tip."
+  },
+  {
+   "front": 960,
+   "victims": [
+    963
+   ],
+   "back": 964,
+   "note": "Both legs buy SOL in the same direction (12000 USDT to 118591 lamports at 101.19, then 12100 to 119569 at 101.20) on pool B6LL9a while mid #963 sold SOL on 8ekCy2 — no round trip, no reversal, no price improvement between legs."
+  },
+  {
+   "front": 963,
+   "victims": [
+    966
+   ],
+   "back": 967,
+   "note": "Sold 2.376767779 SOL at 101.184 on 8ekCy2 but repurchased only 1.658166775 SOL at 101.180 on the different pool 8FnX3x, a 0.004% gap worth ~0.01 USDC against a 14511-lamport fee, and mid #966 was itself a profitable arb (+3524 USDC units) on a venue the legs pushed the wrong way."
+  }
+ ]
+}

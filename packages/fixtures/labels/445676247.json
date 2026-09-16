@@ -1,0 +1,85 @@
+{
+ "schemaVersion": 1,
+ "slot": 445676247,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 164,
+   "victims": [
+    165
+   ],
+   "back": 167,
+   "note": "Both legs are buys of different mints (2,565,635,668 Uqi3QG for 145,125,399 lamports, then 22,419,254 D7g8Pa for 1,619,753 lamports) with no sell-back, while mid #165 traded 9LAcK5/J3NKxx — no shared position and no round trip."
+  },
+  {
+   "front": 479,
+   "victims": [
+    482
+   ],
+   "back": 483,
+   "note": "Leg #479 sells 338,585,672,908 DTXnLU for 9,325,221 lamports and leg #483 buys 550,343,431,025 7cWEJY for 4,376,911 lamports — different mints from each other and from mid #482's SsRmMF, with the signer's net being only the -143,806 lamport fee."
+  },
+  {
+   "front": 480,
+   "victims": [
+    482
+   ],
+   "back": 483,
+   "note": "Leg #480 sells 1,630,512,612,008 GvPdxD for 25,059,756 lamports while leg #483 buys 7cWEJY, so nothing is opened and closed; mid #482 traded 85,693 SsRmMF, a third mint entirely."
+  },
+  {
+   "front": 481,
+   "victims": [
+    482
+   ],
+   "back": 483,
+   "note": "Leg #481 buys 952,728,718,379 5LtUD5 for 243,133,580 lamports and leg #483 buys 7cWEJY — two buys of unrelated mints around mid #482's SsRmMF trade, with the signer only out the 143,806 lamport fee."
+  },
+  {
+   "front": 481,
+   "victims": [
+    482,
+    484
+   ],
+   "back": 485,
+   "note": "Leg #481 buys 5LtUD5 for 243,133,580 lamports and leg #485 buys 11,319,735,963,316 HzLYNF for 2,047,278 USDC — different mints, different quote assets, and neither matches mid #482 (SsRmMF) or mid #484 (CiiEm6)."
+  },
+  {
+   "front": 483,
+   "victims": [
+    484
+   ],
+   "back": 485,
+   "note": "Leg #483 sells 550,343,431,025 7cWEJY for 4,376,911 lamports and leg #485 buys HzLYNF with 2,047,278 USDC, while mid #484 swapped 364,058,193 CiiEm6 for 219,896 lamports — three unrelated mints."
+  },
+  {
+   "front": 483,
+   "victims": [
+    484,
+    486
+   ],
+   "back": 487,
+   "note": "Leg #483 (7cWEJY for SOL) and leg #487 (1,222,857,170,424 4XJkVA for 2,717,459 USDC) share no mint with each other or with mids #484 (CiiEm6) and #486 (4,599,096,226,739 5i1fsX for 370,897,942 lamports)."
+  },
+  {
+   "front": 485,
+   "victims": [
+    486
+   ],
+   "back": 487,
+   "note": "Leg #485 buys HzLYNF and leg #487 sells 4XJkVA, both against USDC but in different tokens, while mid #486 sold 4,599,096,226,739 5i1fsX for 370,897,942 lamports — no common position, signer nets only the 143,806 lamport fee."
+  },
+  {
+   "front": 590,
+   "victims": [
+    591,
+    592
+   ],
+   "back": 594,
+   "note": "The 8gvTxS round trip sold 67,490,147,517,161 tokens at 1.2809e-4 lamports each and repurchased 70,184,734,718,981 at the higher 1.2890e-4, ending ~56M lamports down, and the two mids (#591, #592) moved only 6,197 and 6,936 lamports of fees with no token trade to exploit."
+  }
+ ]
+}

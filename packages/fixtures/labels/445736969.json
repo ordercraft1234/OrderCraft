@@ -1,0 +1,26 @@
+{
+ "schemaVersion": 1,
+ "slot": 445736969,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 130,
+   "victims": [
+    133
+   ],
+   "back": 134,
+   "note": "Nothing is traded in any of the three transactions — the legs move only 5,001 and 6,050 lamports of fee/tip and the net is -11,051 lamports, with no token mint present to buy low and sell high."
+  },
+  {
+   "front": 232,
+   "victims": [
+    233
+   ],
+   "back": 234,
+   "note": "The legs swap mint 12eGMX…wzLb while the mid swaps a different mint 5oPBkB…dChy, and the legs' own round trip is a partial net sell (25.52e12 tokens out at 5.883e-4 lamports each, only 7.98e12 bought back at a worse 5.886e-4) that shares nothing with the mid but tip and fee accounts."
+  }
+ ]
+}

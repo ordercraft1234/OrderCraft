@@ -1,0 +1,42 @@
+{
+ "schemaVersion": 1,
+ "slot": 445706295,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 521,
+   "victims": [
+    522
+   ],
+   "back": 525,
+   "note": "Both legs buy jXpfLJ at effectively the same price (387,430 lamports for 8,654,600 vs 186,015 for 4,155,270, i.e. 0.04476 vs 0.04477 lamports/token) with no sell to close, while #522 swaps an unrelated mint 8JustW…9CNW."
+  },
+  {
+   "front": 952,
+   "victims": [
+    953
+   ],
+   "back": 956,
+   "note": "Both legs are pure SOL transfers with zero token movement (-12,725 and -12,677 lamports, netting -25,402), so the signer never took a position against #953's FUKVnL/XsoCS1 swap."
+  },
+  {
+   "front": 1154,
+   "victims": [
+    1156
+   ],
+   "back": 1157,
+   "note": "The signer sold 838.29B oUMYX7 for 4.637B lamports in pool 12Rzw9 and bought back only 44.55B for 244.7M lamports from a different pool B7TT2V — a 5% partial, net -793.7B tokens directional sell — while #1156 traded the unrelated mint EEgpre…Pfd2."
+  },
+  {
+   "front": 1187,
+   "victims": [
+    1188
+   ],
+   "back": 1189,
+   "note": "Neither leg contains a swap; both are bare SOL debits (-31,364 and -23,359 lamports, net -54,723) surrounding a 23,254-lamport fee-only transaction, so there was no trade to front-run or back-run."
+  }
+ ]
+}
