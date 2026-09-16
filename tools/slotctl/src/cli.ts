@@ -6,6 +6,7 @@ import { type Verdict, progressOf, recordVerdict } from './label.ts'
 import { type LegPair, groupByLegs, renderPair } from './review.ts'
 import { fetchBlock } from './rpc.ts'
 import { type Candidate, findCandidates, sampleSlots } from './scan.ts'
+import { renderHit, screenSlot, summarize } from './screen.ts'
 import { readSlot, slotPath, writeSlot } from './store.ts'
 
 const CACHE_DIR = '.cache/slots'
@@ -19,6 +20,7 @@ slotctl scan <dir> [--window <n>] [--random <k>] [--seed <n>]
 slotctl review <shortlist> [--index <n>] [--slot <n>] [--slots <dir>]
 slotctl label  <shortlist> [--index <n>] [--slot <n>] [--labels <dir>]
                (--attack | --reject) --note <text> [--victims <a,b>]
+slotctl screen <shortlist> [--slots <dir>] [--labels <dir>]
 
   fetch  Fetches one slot, normalises it and writes <slot>.json.gz.
          Default target is ${CACHE_DIR}; --fixture writes to ${FIXTURE_DIR}.
@@ -398,6 +400,58 @@ function labelCommand(shortlistPath: string, rest: string[]): number {
   return 0
 }
 
+/**
+ * Prints the slots the wider screen chose, with what it found in each.
+ *
+ * Slots already carrying labels are marked rather than hidden: three of the seven the
+ * previous set labelled turn up here too, and their verdicts still stand — a label
+ * describes a block, not a rule.
+ */
+function screenCommand(shortlistPath: string, rest: string[]): number {
+  const loaded = loadPairs(shortlistPath, rest)
+  if (typeof loaded === 'number') return loaded
+
+  const { pairs } = loaded
+  const directory = flag(rest, '--slots') ?? CACHE_DIR
+  const labelDirectory = flag(rest, '--labels') ?? LABEL_DIR
+  const labelled = new Set(
+    existsSync(labelDirectory)
+      ? readdirSync(labelDirectory)
+          .filter((name) => name.endsWith('.json'))
+          .map((name) => Number(name.replace('.json', '')))
+      : [],
+  )
+
+  const screened = []
+  for (const slot of [...new Set(pairs.map((pair) => pair.slot))].sort(
+    (left, right) => left - right,
+  )) {
+    const path = slotPath(directory, slot)
+    if (!existsSync(path)) {
+      process.stderr.write(`slot ${slot} is not in ${directory}
+`)
+      return 1
+    }
+
+    const result = screenSlot(readSlot(path), pairs)
+    screened.push(result)
+    if (result.hits.length === 0) continue
+
+    process.stdout.write(
+      `slot ${slot}  ${result.pairs} pairs${labelled.has(slot) ? '  (already labelled)' : ''}
+`,
+    )
+    for (const hit of result.hits)
+      process.stdout.write(`${renderHit(hit)}
+`)
+  }
+
+  process.stdout.write(`
+${summarize(screened, labelled)}
+`)
+  return 0
+}
+
 async function main(argv: string[]): Promise<number> {
   const [command, target, ...rest] = argv
 
@@ -406,6 +460,7 @@ async function main(argv: string[]): Promise<number> {
   if (command === 'scan' && target !== undefined) return scanCommand(target, rest)
   if (command === 'review' && target !== undefined) return reviewCommand(target, rest)
   if (command === 'label' && target !== undefined) return labelCommand(target, rest)
+  if (command === 'screen' && target !== undefined) return screenCommand(target, rest)
 
   process.stderr.write(`${usage}\n`)
   return 2
