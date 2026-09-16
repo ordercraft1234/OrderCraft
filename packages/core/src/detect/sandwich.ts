@@ -3,6 +3,19 @@ import type { NormalizedTransaction, SlotBundle } from '../slot/schema.ts'
 /** How far apart the outer legs may sit before this stops being one bundle. */
 const DEFAULT_WINDOW = 4
 
+/**
+ * How closely the two legs must match in size before the position counts as closed,
+ * as a percentage of the larger one.
+ *
+ * A party that opened with four billion tokens and bought back thirty million did not
+ * close anything — it sold, and the small second leg is noise beside the first. The
+ * figure is read off the nine triples the blind labelling judged (T047): their leg
+ * ratios are 0.008, 0.718, 0.739, 0.870, 0.892, 0.915, 0.924, 0.936, 0.985, and the
+ * widest gap in that list is 0.739 to 0.870. Eighty per cent sits in that gap with room
+ * either side, and rejects exactly the three the labels called an unmatched round trip.
+ */
+const LEG_MATCH_PERCENT = 80n
+
 export interface Sandwich {
   /** Position in the recorded block of the first leg. */
   front: number
@@ -52,9 +65,23 @@ export interface SandwichOptions {
  * identified by reversal alone — but paired with a signer that reversed too, and with a
  * third party trading it in between, the shape is no longer arbitrage.
  *
- * **This is a heuristic and it is not a verdict.** It says a triple has the shape. Whether
- * value was taken is `metrics/extracted.ts`, and whether the shape is really an attack is
- * settled against hand-checked labels (FR-028), never against this function's own output.
+ * **Three questions the shape alone does not answer** (T055). Blind labelling of 56 leg
+ * pairs judged all nine triples the pool rule reported to be something else, and the nine
+ * rejections came down to three things the rule never asked:
+ *
+ * - **which way the party in the middle traded.** Buying in front of a seller is backwards:
+ *   the seller's price move runs against the exit, and the round trip loses by construction.
+ *   A sandwich front-runs a trade in the *same* direction as its own opening leg.
+ * - **whether the round trip made money at all.** Closing worse than it opened satisfied
+ *   every structural test the rule had. Price is read at the pool, per leg, and compared —
+ *   see `closedBetter` for why the signer's own wallet is the wrong place to read it.
+ * - **whether the position was closed.** Opening with four billion tokens and buying back
+ *   0.76 % of them is a sale, not a round trip.
+ *
+ * **This is a heuristic and it is not a verdict.** It says a triple has the shape and that
+ * the shape could have paid. Whether value was taken is `metrics/extracted.ts`, and whether
+ * it is really an attack is settled against hand-checked labels (FR-028), never against
+ * this function's own output.
  */
 export function findSandwiches(bundle: SlotBundle, options: SandwichOptions = {}): Sandwich[] {
   const window = options.window ?? DEFAULT_WINDOW
@@ -117,6 +144,11 @@ interface RoundTrip {
  *
  * When several assets qualify, the one the first leg moved most — a bot paying a tip in
  * SOL and trading in USDC reverses both, and the trade is the larger of the two.
+ *
+ * Three of the checks below reject rather than rank, and each one names a different way a
+ * reversal is not an attack: legs that do not match in size never closed a position, a
+ * close at a worse price than the open never paid for one, and a party in the middle
+ * trading the other way was not being front-run.
  */
 function roundTrip(
   live: NormalizedTransaction[],
@@ -130,12 +162,9 @@ function roundTrip(
   const options: Option[] = []
   for (const [mint, opened] of opening) {
     const closed = closing.get(mint) ?? 0n
-    if (opened === 0n || closed === 0n || opened > 0n === closed > 0n) continue
+    if (!closesTheOpening(opened, closed)) continue
 
-    for (const pool of counterparties(front, back, signer, mint, opened, closed)) {
-      const victims = between(live, front, back, mint, pool)
-      if (victims.length > 0) options.push({ mint, pool, victims, size: absolute(opened) })
-    }
+    options.push(...through(live, front, back, signer, mint, opened, closed))
   }
 
   const best = options.sort(byTrade)[0]
@@ -143,8 +172,124 @@ function roundTrip(
   return best === undefined ? null : { mint: best.mint, pool: best.pool, victims: best.victims }
 }
 
+/** Reversed, and the second leg is the size of the first: one trade in two halves. */
+function closesTheOpening(opened: bigint, closed: bigint): boolean {
+  if (opened === 0n || closed === 0n || opened > 0n === closed > 0n) return false
+
+  return legsMatch(opened, closed)
+}
+
+/** Every pool the round trip could have run through and paid at, with who was inside. */
+function through(
+  live: NormalizedTransaction[],
+  front: NormalizedTransaction,
+  back: NormalizedTransaction,
+  signer: string,
+  mint: string,
+  opened: bigint,
+  closed: bigint,
+): Option[] {
+  const options: Option[] = []
+  for (const pool of counterparties(front, back, signer, mint, opened, closed)) {
+    if (!closedBetter(front, back, pool, mint)) continue
+
+    const victims = between(live, front, back, mint, pool)
+    if (victims.length > 0) options.push({ mint, pool, victims, size: absolute(opened) })
+  }
+
+  return options
+}
+
 interface Option extends RoundTrip {
   size: bigint
+}
+
+/**
+ * Whether the second leg closed the position the first one opened, rather than nibbling
+ * at it.
+ *
+ * A round trip is one trade in two halves, and halves that differ by more than a fifth are
+ * two different trades. `445553238 #339/342` sold 4.006 billion tokens and bought back
+ * 30.6 million — 0.76 % — which the blind labelling read, correctly, as "plain large sale".
+ * Nothing else in this file notices, because the direction did reverse and a pool did take
+ * both sides.
+ */
+function legsMatch(opened: bigint, closed: bigint): boolean {
+  const first = absolute(opened)
+  const second = absolute(closed)
+  const smaller = first < second ? first : second
+  const larger = first < second ? second : first
+
+  return smaller * 100n >= LEG_MATCH_PERCENT * larger
+}
+
+/**
+ * Whether the round trip closed at a better price than it opened — the only reason to do
+ * one at all.
+ *
+ * **Read at the pool, not at the wallet.** The signer's own balances carry every other leg
+ * of its transaction: a bot that fills two client orders and hedges the remainder ends the
+ * pair up on SOL because it sold tokens, not because the round trip paid. On
+ * `445553238 #394/397` the wallet shows +736,315,196 lamports and the pool shows the
+ * quote-per-token going from 1.2239e-4 out to 1.2726e-4 back — a loss of half a per cent,
+ * which is what the labelling saw. The wallet figure is the market value of 5.74 trillion
+ * tokens the pair sold and never bought back; a test for "ended up with more SOL" would
+ * call that market maker an attacker.
+ *
+ * Price is `quote / base` at the pool, where base is the reversed mint and quote is the
+ * largest thing the pool moved the other way in the same transaction — its own lamports
+ * included. The two prices are compared by cross-multiplication: balances are integers and
+ * a ratio of two of them is not.
+ *
+ * When either leg has no readable counter-side, the answer is no. A price nobody can read
+ * is not evidence of a profit, and this rule exists to stop the detector reporting triples
+ * it cannot account for.
+ */
+function closedBetter(
+  front: NormalizedTransaction,
+  back: NormalizedTransaction,
+  pool: string,
+  mint: string,
+): boolean {
+  const opening = poolSide(front, pool, mint)
+  const closing = poolSide(back, pool, mint)
+  if (opening === null || closing === null) return false
+
+  const openPrice = opening.quote * closing.base
+  const closePrice = closing.quote * opening.base
+
+  // The pool received the mint, so the signer sold it first and profits by buying it back
+  // cheaper. The other way round, it bought first and profits by selling dearer.
+  return opening.sold ? closePrice < openPrice : closePrice > openPrice
+}
+
+interface PoolSide {
+  /** How much of the reversed mint the pool moved, unsigned. */
+  base: bigint
+  /** How much of the counter-asset it moved the other way, unsigned. */
+  quote: bigint
+  /** Whether the pool took the mint in — that is, whether the signer sold it. */
+  sold: boolean
+}
+
+/** What the pool exchanged in one leg: the reversed mint against whatever paid for it. */
+function poolSide(transaction: NormalizedTransaction, pool: string, mint: string): PoolSide | null {
+  const base = netOf(transaction, pool, mint)
+  if (base === 0n) return null
+
+  let quote = 0n
+  for (const [other, amount] of ownNet(transaction, pool)) {
+    if (other === mint || amount === 0n || amount > 0n === base > 0n) continue
+    if (absolute(amount) > quote) quote = absolute(amount)
+  }
+
+  // A pool that settles against native SOL rather than wrapped SOL moves it here instead.
+  const lamports = transaction.lamportDelta[pool] ?? 0n
+  if (lamports !== 0n && lamports > 0n !== base > 0n && absolute(lamports) > quote) {
+    quote = absolute(lamports)
+  }
+
+  return quote === 0n ? null : { base: absolute(base), quote, sold: base > 0n }
 }
 
 /** Largest leg first; mint then pool break ties, so two runs cannot disagree. */
@@ -198,6 +343,16 @@ function netOf(transaction: NormalizedTransaction, owner: string, mint: string):
  * vaults, fee accounts and shared token accounts are named by transactions that have
  * nothing to do with each other. A victim of a sandwich traded the pool the legs traded,
  * in the asset the legs reversed — anything less is a bystander.
+ *
+ * **And traded it the same way the opening leg did.** Buying in front of somebody else's
+ * buy is the attack: the front-run moves the price against them and the closing leg sells
+ * into it. Buying in front of a *seller* is the same shape and the opposite trade — their
+ * sale pushes the price down and the exit is worse for it, which is why every such triple
+ * the labelling looked at had lost money. `445660284 #487/490` is the case in the notes:
+ * the signer bought, the party in the middle sold, the signer sold out lower.
+ *
+ * Direction is read on the pool's side because the pool has exactly one, whoever else the
+ * transaction paid or routed through: the pool taking the mint in means somebody sold it.
  */
 function between(
   live: NormalizedTransaction[],
@@ -206,6 +361,8 @@ function between(
   mint: string,
   pool: string,
 ): number[] {
+  const opening = netOf(front, pool, mint)
+
   return live
     .filter(
       (middle) =>
@@ -213,9 +370,21 @@ function between(
         middle.index < back.index &&
         sharedSigner(middle, front) === undefined &&
         sharedSigner(middle, back) === undefined &&
-        middle.tokenDelta.some((delta) => delta.owner === pool && delta.mint === mint),
+        tradedWith(middle, pool, mint, opening),
     )
     .map((middle) => middle.index)
+}
+
+/** Moved this mint through this pool, in the same direction the opening leg moved it. */
+function tradedWith(
+  middle: NormalizedTransaction,
+  pool: string,
+  mint: string,
+  opening: bigint,
+): boolean {
+  const moved = netOf(middle, pool, mint)
+
+  return moved !== 0n && moved > 0n === opening > 0n
 }
 
 /** What the transaction moved through accounts the given party owns, by mint. */

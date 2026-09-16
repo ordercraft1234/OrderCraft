@@ -55,8 +55,11 @@ export interface Accuracy {
    *
    * With `falsePositives` this is the denominator of the false-positive rate. Dividing
    * instead by every triple that was checked answers a different question: measured on
-   * the 1,071-slot cache the detector fires on 9 of 3,759 leg pairs, so that rate sits
-   * near zero however wrong the nine are, and the criterion passes without measuring.
+   * the 1,071-slot cache before T055, the detector fired on 9 of 3,759 leg pairs, so
+   * that rate sat near zero however wrong the nine were, and the criterion would pass
+   * without measuring. Since T055 the detector reports none of the nine, which leaves
+   * this denominator empty rather than near-zero — a difference the rate cannot express
+   * and `accuracy.test.ts` reports as a skip.
    */
   confirmedHits: number
   /**
