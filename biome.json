@@ -6,7 +6,13 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["dist/**", "node_modules/**", ".cache/**", "packages/fixtures/slots/**"]
+    "ignore": [
+      "dist/**",
+      "node_modules/**",
+      ".cache/**",
+      "packages/fixtures/slots/**",
+      "packages/fixtures/labels/**"
+    ]
   },
   "formatter": {
     "enabled": true,
