@@ -1,4 +1,5 @@
 import type { NormalizedTransaction, SlotBundle } from '../slot/schema.ts'
+import { absolute, improved, netOf, ownNet, poolSide } from './price.ts'
 
 /** How far apart the outer legs may sit before this stops being one bundle. */
 const DEFAULT_WINDOW = 4
@@ -255,41 +256,7 @@ function closedBetter(
   const closing = poolSide(back, pool, mint)
   if (opening === null || closing === null) return false
 
-  const openPrice = opening.quote * closing.base
-  const closePrice = closing.quote * opening.base
-
-  // The pool received the mint, so the signer sold it first and profits by buying it back
-  // cheaper. The other way round, it bought first and profits by selling dearer.
-  return opening.sold ? closePrice < openPrice : closePrice > openPrice
-}
-
-interface PoolSide {
-  /** How much of the reversed mint the pool moved, unsigned. */
-  base: bigint
-  /** How much of the counter-asset it moved the other way, unsigned. */
-  quote: bigint
-  /** Whether the pool took the mint in — that is, whether the signer sold it. */
-  sold: boolean
-}
-
-/** What the pool exchanged in one leg: the reversed mint against whatever paid for it. */
-function poolSide(transaction: NormalizedTransaction, pool: string, mint: string): PoolSide | null {
-  const base = netOf(transaction, pool, mint)
-  if (base === 0n) return null
-
-  let quote = 0n
-  for (const [other, amount] of ownNet(transaction, pool)) {
-    if (other === mint || amount === 0n || amount > 0n === base > 0n) continue
-    if (absolute(amount) > quote) quote = absolute(amount)
-  }
-
-  // A pool that settles against native SOL rather than wrapped SOL moves it here instead.
-  const lamports = transaction.lamportDelta[pool] ?? 0n
-  if (lamports !== 0n && lamports > 0n !== base > 0n && absolute(lamports) > quote) {
-    quote = absolute(lamports)
-  }
-
-  return quote === 0n ? null : { base: absolute(base), quote, sold: base > 0n }
+  return improved(opening, closing)
 }
 
 /** Largest leg first; mint then pool break ties, so two runs cannot disagree. */
@@ -323,16 +290,6 @@ function counterparties(
 
     return took !== 0n && gave !== 0n && took > 0n !== opened > 0n && gave > 0n !== closed > 0n
   })
-}
-
-/** Net movement of one mint through one party's accounts in one transaction. */
-function netOf(transaction: NormalizedTransaction, owner: string, mint: string): bigint {
-  let net = 0n
-  for (const delta of transaction.tokenDelta) {
-    if (delta.owner === owner && delta.mint === mint) net += delta.amount
-  }
-
-  return net
 }
 
 /**
@@ -387,24 +344,9 @@ function tradedWith(
   return moved !== 0n && moved > 0n === opening > 0n
 }
 
-/** What the transaction moved through accounts the given party owns, by mint. */
-function ownNet(transaction: NormalizedTransaction, signer: string): Map<string, bigint> {
-  const net = new Map<string, bigint>()
-  for (const delta of transaction.tokenDelta) {
-    if (delta.owner !== signer) continue
-    net.set(delta.mint, (net.get(delta.mint) ?? 0n) + delta.amount)
-  }
-
-  return net
-}
-
 function sharedSigner(
   left: NormalizedTransaction,
   right: NormalizedTransaction,
 ): string | undefined {
   return left.signers.find((signer) => right.signers.includes(signer))
-}
-
-function absolute(value: bigint): bigint {
-  return value < 0n ? -value : value
 }
