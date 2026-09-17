@@ -1,0 +1,26 @@
+{
+ "schemaVersion": 1,
+ "slot": 445565758,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 85,
+   "victims": [
+    86
+   ],
+   "back": 88,
+   "note": "Leg #85 sold 4,000,000,000 lamports of wSOL for 419,938,227 USDC (104.98 USDC/SOL) and leg #88 bought 4,086,109,753 wSOL for 428,976,063 USDC (104.98) — the round trip closes at the identical price, so there is no extraction. The only candidate in between, #86, touched wSOL for just 10,809,352 lamports, 0.27% of a leg, far too little to have moved the price, and the legs used different pools."
+  },
+  {
+   "front": 565,
+   "victims": [
+    566
+   ],
+   "back": 567,
+   "note": "Leg #565 spent 22,687,866 USDC to buy 18,724,569,103 yEubJZ…pump and still holds the whole balance — the position is never closed, so there is no round trip. Leg #567 is an unrelated stablecoin swap (300,019,202 for 300,011,396), and mid #566 bought a third token for 361,345 lamports without touching USDC at all."
+  }
+ ]
+}

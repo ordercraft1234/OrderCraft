@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445546039,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 862,
+   "victims": [
+    863,
+    864
+   ],
+   "back": 865,
+   "note": "Front #862 buys 1,228,478,352 bonk for 3,906,429,692 wSOL and never closes it, while back #865 never touches that mint — it is a self-contained USDC/SOL atomic arb netting +97,194 lamports. The mids #863/#864 are one signer's own USDC/SOL round trip, and the only mint shared with the legs is wSOL, so there is no opposite-direction round trip enclosing them."
+  }
+ ]
+}

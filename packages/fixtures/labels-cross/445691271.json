@@ -1,0 +1,18 @@
+{
+ "schemaVersion": 1,
+ "slot": 445691271,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 1194,
+   "victims": [
+    1196
+   ],
+   "back": 1198,
+   "note": "The only transaction between the legs, #1196, moved no tokens at all — just its own 6,169-lamport fee — so there was no trade to sandwich; the shared-mint flag is on native SOL, which is only that fee. The legs also priced identically (103.174 against 103.170 USDC per SOL), net to break-even, and ran through different pools."
+  }
+ ]
+}

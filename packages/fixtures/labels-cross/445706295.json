@@ -1,0 +1,26 @@
+{
+ "schemaVersion": 1,
+ "slot": 445706295,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 1035,
+   "victims": [
+    1038
+   ],
+   "back": 1039,
+   "note": "Opposite-direction legs in the shared wSOL/USDC pair, but the only transaction between them, #1038, moved nothing except its own 5,000-lamport fee, so there was no trade to sandwich. The round trip is also flat: both sides at 102.4 USDC/SOL, leaving -3.256669 USDC against +31,951,685 lamports plus 13,368 lamports of fees."
+  },
+  {
+   "front": 1174,
+   "victims": [
+    1175
+   ],
+   "back": 1176,
+   "note": "The legs are in different assets: #1174 spends 30,000 lamports to buy 3,707,781 of 6AP6cH and never sells it, while #1176 is a self-contained circular arb netting +59,516 lamports on its own. Mid #1175 is a bare SOL transfer with no token swap, so nothing was traded against."
+  }
+ ]
+}

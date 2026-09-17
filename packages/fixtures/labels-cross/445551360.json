@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445551360,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 254,
+   "victims": [
+    255,
+    257
+   ],
+   "back": 258,
+   "note": "No round trip: front #254 buys 11,285,583,389,336 Fadt8H for 100,000 lamports of wSOL and still holds all of it, while back #258 never touches Fadt8H — it is a standalone USDC/wSOL two-pool arbitrage netting its signer +60,590 lamports. Mid #257 trades a mint neither leg holds, and mid #255's 10,834,489 Fadt8H is six orders of magnitude off the front leg's size."
+  }
+ ]
+}

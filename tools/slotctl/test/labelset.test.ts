@@ -23,18 +23,38 @@ const SCREEN_DRAWN = [
   445504723, 445516617, 445529763, 445580782, 445591737, 445608326, 445657009, 445676247, 445706295,
   445714433, 445722258, 445736969, 445740099, 445741351, 445782667, 445787362,
 ]
+/**
+ * Drawn by `slotctl cross` (T058), where the two legs have **different** signers.
+ *
+ * Four hold a pair whose signers the block visibly relates; ten are the control, drawn
+ * with seed 58 from the 114 cached slots that hold a witnessed cross-signer round trip
+ * with no visible link at all. Their verdicts live in `packages/fixtures/labels-cross`,
+ * a set apart because `coverage` there counts a different universe of pairs: what `scan`
+ * proposes is one signer either side, and none of these pairs is in it.
+ */
+const CROSS_DRAWN = [
+  445508166, 445546039, 445551360, 445565758, 445577339, 445636496, 445685950, 445691271, 445765452,
+  445795500, 445833060,
+]
+
+/** The slots the same-signer labels were written against — the first two draws. */
+const LABELLED = [...DETECTOR_DRAWN, ...SCREEN_DRAWN]
+const labelledBundles = bundles.filter((bundle) => LABELLED.includes(bundle.slot))
+const labelledPairs = groupByLegs(labelledBundles.flatMap((bundle) => findCandidates(bundle)))
 
 /**
  * The set the labels are written against, guarded where changing it is visible.
  *
- * **Two draws, and they were made by different rules on purpose.** Seven slots came from
+ * **Three draws, and they were made by different rules on purpose.** Seven slots came from
  * T047: the ones `findSandwiches` fired in over the 1,071-slot cache, before T055
  * narrowed it. The blind labelling rejected all nine triples they held, which left the
  * set with zero known attacks — and a set drawn by the detector's agreement can never
  * hold anything else, however the rule is later corrected. Sixteen more came from T057,
  * drawn by `slotctl screen`: a leg pair whose round trip closed at a better price than it
  * opened, each leg priced at its own pool. Over the same cache that draw finds 26 pairs
- * in 19 slots where the narrow rule finds none.
+ * in 19 slots where the narrow rule finds none. Eleven more came from T058 and `slotctl
+ * cross`, where the two legs have different signers — a universe `scan` does not propose
+ * at all, labelled in `labels-cross` and counted apart from everything here.
  *
  * They are in the repository rather than only in `.cache/slots` for a reason that
  * outlives the labelling: a label file names a slot, and `accuracy.test.ts` refuses to
@@ -47,15 +67,27 @@ const SCREEN_DRAWN = [
  * as recall over an incomplete sample.
  */
 describe('the set the labels describe', () => {
-  it('holds both draws, and says which slot came from which', () => {
+  it('holds all three draws, and says which slot came from which', () => {
     expect(bundles.map((bundle) => bundle.slot).sort((a, b) => a - b)).toStrictEqual(
-      [...DETECTOR_DRAWN, ...SCREEN_DRAWN].sort((a, b) => a - b),
+      [...DETECTOR_DRAWN, ...SCREEN_DRAWN, ...CROSS_DRAWN].sort((a, b) => a - b),
     )
   })
 
+  /**
+   * Pinned over the labelled slots rather than the directory, because that is what the
+   * claim is about. The eleven slots T058 added carry no same-signer labels — they were
+   * drawn for a universe `scan` does not propose — and counting their pairs here would
+   * quietly restate a number the label files were never written against.
+   */
   it('is 148 pairs of legs, which is what the budget was measured on', () => {
-    expect(candidates).toHaveLength(221)
-    expect(pairs).toHaveLength(148)
+    expect(labelledPairs).toHaveLength(148)
+    expect(labelledBundles.flatMap((bundle) => findCandidates(bundle))).toHaveLength(221)
+  })
+
+  /** What the third draw costs the first two: nothing but rows nobody labelled. */
+  it('leaves the same-signer shortlist alone: the new slots add pairs, not verdicts', () => {
+    expect(candidates).toHaveLength(272)
+    expect(pairs).toHaveLength(189)
   })
 
   /**
@@ -64,7 +96,7 @@ describe('the set the labels describe', () => {
    * reason nobody can check again.
    */
   it('reproduces the screen that drew the sixteen: 26 round trips in 19 slots', () => {
-    const screened = bundles.map((bundle) => screenSlot(bundle, pairs))
+    const screened = labelledBundles.map((bundle) => screenSlot(bundle, labelledPairs))
     const chosen = screened.filter((slot) => slot.hits.length > 0)
 
     expect(chosen.reduce((sum, slot) => sum + slot.hits.length, 0)).toBe(26)
@@ -117,6 +149,20 @@ describe('the set the labels describe', () => {
     const found = bundles.flatMap((bundle) => findSandwiches(bundle))
 
     expect(found).toStrictEqual([])
+  })
+
+  /**
+   * The same-signer screen finds nothing new in the eleven slots T058 drew, which is the
+   * point of them: they were chosen by a question about two signers, and the wider screen
+   * of T057 cannot ask it. Pinned so that a slot added for one draw cannot silently
+   * enlarge the denominator of another.
+   */
+  it('adds nothing to the second draw: the cross-signer slots hold no same-signer hit', () => {
+    const inCross = bundles
+      .filter((bundle) => CROSS_DRAWN.includes(bundle.slot))
+      .map((bundle) => screenSlot(bundle, pairs))
+
+    expect(inCross.reduce((sum, slot) => sum + slot.hits.length, 0)).toBe(0)
   })
 })
 

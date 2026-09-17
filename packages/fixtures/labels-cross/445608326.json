@@ -1,0 +1,64 @@
+{
+ "schemaVersion": 1,
+ "slot": 445608326,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 1018,
+   "victims": [
+    1019,
+    1020
+   ],
+   "back": 1022,
+   "note": "The legs are in different assets and the same direction: #1018 sells 2,073,256 of 3NZ9JM for +15,734,976,102 wSOL, #1022 spends 153,297,890 wSOL to buy 297,967,953,631 qgkU23-pump. Neither touches #1019's trade (#1020 moves only fees), so there is no round trip and nothing to extract."
+  },
+  {
+   "front": 1160,
+   "victims": [
+    1162
+   ],
+   "back": 1163,
+   "note": "#1160 sells 422,513,556 USDC for 4,044,382,471 wSOL and never buys it back; #1163 is a self-contained USDC->USDT->USDC cycle by a different key netting only +20,574 USDC. The single mid #1162 traded a pump mint neither leg holds, so no shared pool exists to sandwich."
+  },
+  {
+   "front": 1161,
+   "victims": [
+    1162,
+    1163,
+    1164
+   ],
+   "back": 1165,
+   "note": "Directions are opposite but the sizes do not close: #1161 buys 422,530,682 USDC for 4,044,382,471 lamports (9.5719 per unit), #1165 sells 482,000,000 USDC for 4,613,721,424 (9.5720) on different pools. Combined the two signers are -59,469,318 USDC against +569,338,953 lamports, exactly the market rate, i.e. zero profit."
+  },
+  {
+   "front": 1163,
+   "victims": [
+    1164
+   ],
+   "back": 1165,
+   "note": "The only transaction between the legs, #1164, moves nothing but its own 21,000-lamport fee — there is no trade to be traded against. The front is also a stablecoin cycle netting +20,574 USDC, unrelated to the back's 482,000,000 USDC sale."
+  },
+  {
+   "front": 1166,
+   "victims": [
+    1167,
+    1168,
+    1169
+   ],
+   "back": 1170,
+   "note": "Front buys 482,011,431 USDC for 4,613,721,424 lamports and back sells 576,513,228 USDC for 5,518,429,011 — mismatched sizes at the identical 9.572 rate, leaving the pair a wash rather than a profit. All three mids trade pump mints against wSOL on their own pools; none touches the venues the legs use."
+  },
+  {
+   "front": 1251,
+   "victims": [
+    1252,
+    1253
+   ],
+   "back": 1254,
+   "note": "The front spends 27,999,385 USDC to open a 23,291,767,021 ZTKQNb-pump position it still holds at the end, so nothing is closed behind the mids. The back is a different asset entirely — selling 98,720,711 Xs3eBt for 249,547,947 USDC — while the mids trade two further pump tokens."
+  }
+ ]
+}

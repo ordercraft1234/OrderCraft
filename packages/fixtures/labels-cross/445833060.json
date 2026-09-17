@@ -1,0 +1,27 @@
+{
+ "schemaVersion": 1,
+ "slot": 445833060,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 837,
+   "victims": [
+    839
+   ],
+   "back": 841,
+   "note": "The legs share no token: #837 swaps 38,990,828 bonk into USD1 and ends flat with +26,024 wSOL less its fee, while #841 pushes 998,900,000 USDC through another pump mint and also ends flat in it; mid #839 trades a third asset. Two self-contained atomic arbitrages with no inventory carried from front to back."
+  },
+  {
+   "front": 1185,
+   "victims": [
+    1186,
+    1187
+   ],
+   "back": 1188,
+   "note": "#1185 buys 1,900,722,912 bonk for 4,560,371,284 wSOL and keeps the bonk, so the position is never closed; #1188 is an unrelated wSOL/USDC round trip netting +100,668 with no bonk at all. Mid #1186 trades RAY and #1187 moves USDC dust, neither touching the front's asset."
+  }
+ ]
+}

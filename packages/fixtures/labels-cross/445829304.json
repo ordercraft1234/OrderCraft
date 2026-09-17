@@ -1,0 +1,45 @@
+{
+ "schemaVersion": 1,
+ "slot": 445829304,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 1022,
+   "victims": [
+    1024,
+    1025
+   ],
+   "back": 1026,
+   "note": "Both mids move only their own fee and no token at all, so there is no trade between the legs to sandwich; the legs also price identically (100.955 against 100.950 USDC per SOL) and their sizes differ, so nothing was extracted."
+  },
+  {
+   "front": 1027,
+   "victims": [
+    1028,
+    1029
+   ],
+   "back": 1030,
+   "note": "The legs trade USDC/wSOL while #1028 trades a pump mint for 474,236 lamports and #1029 moves a third token — different pools, and trivial next to the legs' ~3.8 SOL. Buy at 100.955 and sell at 100.951 is the same price, i.e. no displacement and a fractional loss on the round trip."
+  },
+  {
+   "front": 1057,
+   "victims": [
+    1058,
+    1059
+   ],
+   "back": 1060,
+   "note": "#1058 is fee-only and #1059 trades another mint against wSOL, not USDC, so neither is in the legs' market. The legs are also mismatched in size (337,468,827 USDC sold against 491,930,341 bought) at the same price, which is two separate flows rather than a closed round trip."
+  },
+  {
+   "front": 1060,
+   "victims": [
+    1062
+   ],
+   "back": 1064,
+   "note": "#1062 moves only its 5,206-lamport fee, so there is no victim trade. Back leg #1064 is a self-contained two-venue arb by a different signer netting +23,882 lamports against an 18,077-lamport fee — unrelated to #1060's 4.87 SOL USDC purchase."
+  }
+ ]
+}

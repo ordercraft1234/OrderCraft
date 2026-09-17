@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445765452,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 306,
+   "victims": [
+    308,
+    309
+   ],
+   "back": 310,
+   "note": "Both legs are net buys of 9miiJi against SOL — front ends +555,889,834,595 tokens for -2.778 SOL, back +1,012,576,813,339 for -4.956 SOL — so there is no open-and-close round trip and nothing was extracted. Mids #308 and #309 repeat the same buy-one-pool/sell-into-another shape under their own signers: several independent bots on one spread."
+  }
+ ]
+}

@@ -1,0 +1,60 @@
+{
+ "schemaVersion": 1,
+ "slot": 445722258,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 962,
+   "victims": [
+    964
+   ],
+   "back": 966,
+   "note": "Front buys 2,376,767,779 lamports of wSOL for 240,482,590 USDC and still holds it; back is a self-contained cross-pool arb netting +3,524 USDC that closes nothing of the front's. Mid #964 swapped USDT for 119,569 lamports at a different pool and pair from the legs."
+  },
+  {
+   "front": 968,
+   "victims": [
+    969
+   ],
+   "back": 970,
+   "note": "Front sells 1,658,166,775 lamports for +167,779,415 USDC and keeps the USDC; back moves 400,276,844 USDC out and back within one transaction for +123,613 lamports, an atomic two-pool arb rather than a closing leg. Mid #969 traded a different asset."
+  },
+  {
+   "front": 1153,
+   "victims": [
+    1154,
+    1155,
+    1156
+   ],
+   "back": 1157,
+   "note": "All three transactions in between move only fees with no token transfers at all, so there is no trade to be sandwiched. The front is itself already a closed atomic arb (+6,616 USDC) and the back simply buys 3,267,669,739 lamports for 330,624,509 USDC."
+  },
+  {
+   "front": 1174,
+   "victims": [
+    1175
+   ],
+   "back": 1177,
+   "note": "The legs are one-directional and in different pools: front sells 3,128,601,075 lamports at one venue for +316,557,036 USDC, back buys 2,088,360,811 lamports at another for 211,301,424 USDC, so neither is the other's round trip. Mid #1175 traded a different asset pair entirely."
+  },
+  {
+   "front": 1189,
+   "victims": [
+    1191
+   ],
+   "back": 1192,
+   "note": "Mid #1191 is fee-only with no token movement, so nothing was traded against. Front #1189 is in fact the close of the same signer's earlier #1177 (+2,380 USDC), while back #1192 is an unrelated 350,000,000 USDC purchase that stays open."
+  },
+  {
+   "front": 1192,
+   "victims": [
+    1195
+   ],
+   "back": 1196,
+   "note": "Front buys 3,459,164,031 lamports for 350,000,000 USDC and holds it; back round-trips 250,000,000 USDC between two pools inside one transaction for +2,816 USDC, so the front's position is never closed. Mid #1195 traded a different pair from the legs' USDC/SOL."
+  }
+ ]
+}

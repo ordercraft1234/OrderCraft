@@ -1,0 +1,18 @@
+{
+ "schemaVersion": 1,
+ "slot": 445636496,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 222,
+   "victims": [
+    223
+   ],
+   "back": 226,
+   "note": "Front #222 buys 3,683,613,521,153 ERAUKP for 752,837,889 lamports and back #226 sells 5,489,613,338,821 for 1,125,710,093 — 49% more than the front acquired, so the legs are not a matched round trip and most of the proceeds are pre-existing inventory. A constant-product fit from #222/#223 puts the incremental gain attributable to the front leg at only ~4.8M lamports, and both legs paid exactly the same 5,151-lamport fee as the candidate victim #223 with no tip, which cannot buy the ordering a deliberate sandwich requires. #224 and #225 move different mints."
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "schemaVersion": 1,
+ "slot": 445685950,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 202,
+   "victims": [
+    203
+   ],
+   "back": 204,
+   "note": "Front #202 and mid #203 both sell the same pump mint into one pool (7.698T for 2.294 SOL, then 2.744T for 0.784 SOL) — the front does not front-run in the opposite direction. The back #204 buys only 3,380,718,305 tokens, 0.044% of the front's size, so no round trip is closed; this is three sellers in a row with the price sliding down."
+  },
+  {
+   "front": 338,
+   "victims": [
+    339
+   ],
+   "back": 342,
+   "note": "The only transaction between the legs, #339, moves no value at all, so there is nobody to trade against. The legs are also unrelated trades: #338 buys 850,019,214 USDC with 8,236,495,874 lamports, while #342 swaps 657,273,807 USDC into USDT."
+  },
+  {
+   "front": 658,
+   "victims": [
+    659,
+    660
+   ],
+   "back": 661,
+   "note": "Neither mid touches the shared mint EBB7LU — they trade two other pump mints — so the only overlap flagged is native SOL, which every transaction moves. The legs also lose money: #658 pays 507,005,000 lamports for 2,821,610,627,275 tokens and #661 sells back only 16.6% of them, a combined -437.5M lamports."
+  }
+ ]
+}

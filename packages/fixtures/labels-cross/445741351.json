@@ -1,0 +1,77 @@
+{
+ "schemaVersion": 1,
+ "slot": 445741351,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 505,
+   "victims": [
+    506,
+    507
+   ],
+   "back": 508,
+   "note": "#505 is a self-contained closed arb (5,351,763,345 USDC out of one pool, the same amount back into another, +239,897 wSOL), so nothing is left open for #508 to close; #508 is a plain one-way buy in the same direction as #505's first hop. Mid #506 is fee-only and #507 trades another mint."
+  },
+  {
+   "front": 518,
+   "victims": [
+    519,
+    520,
+    521
+   ],
+   "back": 522,
+   "note": "Legs are opposite in USDC but through different pools and the amounts do not tie — the back's 510,964,247 USDC was handed to it by #521, not acquired in #518. Mids #519/#520 are dust trades of a pump mint (998 lamports each), and #521 is a bare transfer, not a swap."
+  },
+  {
+   "front": 522,
+   "victims": [
+    524
+   ],
+   "back": 525,
+   "note": "The only transaction between the legs, #524, moves nothing but its own 5,000-lamport fee, so there is no trade to take value from. The legs are also mismatched: 5,030,852,160 wSOL bought at one pool against 550,000,000 wSOL sold at another by a different signer."
+  },
+  {
+   "front": 523,
+   "victims": [
+    524
+   ],
+   "back": 526,
+   "note": "Again #524 is fee-only, leaving no victim. #526 is simply the same signer closing its own earlier 550,000,000 wSOL sale for +38,823 lamports, unrelated to #523's 5,030,852,160 wSOL sale whose USDC output went elsewhere."
+  },
+  {
+   "front": 527,
+   "victims": [
+    529
+   ],
+   "back": 530,
+   "note": "Mid #529 moves only 6,302 lamports of fee, so nothing was traded against. Both legs push wSOL into the same pool (900,000,000 and 2,380,000,000) — the same direction, not a front/back pair — and #530 is itself a closed two-pool arb netting +61,349."
+  },
+  {
+   "front": 530,
+   "victims": [
+    531
+   ],
+   "back": 533,
+   "note": "Mid #531 is a transfer, not a swap: 206,739,473 USDC and 1,000,000 lamports handed to the back signer, which is inventory funding rather than a price-moving trade. Both legs sell wSOL into the same pool, and #530 already closes itself."
+  },
+  {
+   "front": 593,
+   "victims": [
+    595
+   ],
+   "back": 597,
+   "note": "#595 only transfers 510,964,247 USDC plus 1,000,000 lamports to the back signer — no pool interaction, so there is no execution to squeeze. The legs also sit on different venues with unrelated USDC sizes."
+  },
+  {
+   "front": 594,
+   "victims": [
+    595
+   ],
+   "back": 596,
+   "note": "Directions are opposite but the sole mid #595 is a bare USDC transfer of exactly the 510,964,247 the back leg then spends — the back leg is recycling that transfer, not closing the front leg's 311,007,621, and no traded order sits between them."
+  }
+ ]
+}

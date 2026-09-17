@@ -1,0 +1,46 @@
+{
+ "schemaVersion": 1,
+ "slot": 445572644,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 456,
+   "victims": [
+    457,
+    458,
+    459
+   ],
+   "back": 460,
+   "note": "The legs trade different assets: #456 buys 12,635,873,172 dWgNyP-pump for 17.67 USDC and never sells it, while #460 sells 1,315,105,414,624,811 EbT2jp for 803.13 USDC — a token #456 never touches. The only overlap is USDC as quote, and the mid that also moved USDC traded a third unrelated mint."
+  },
+  {
+   "front": 458,
+   "victims": [
+    459
+   ],
+   "back": 460,
+   "note": "#458 nets -302,556,852 USDC / +66,547,375,360 vWREbf-pump (an unclosed buy) and #460 nets +803,132,054 USDC / -1,315,105,414,624,811 EbT2jp; no common traded asset, and the single mid #459 only moves 7kcVCQ-pump plus SOL, so there is nothing between them to trade against."
+  },
+  {
+   "front": 595,
+   "victims": [
+    596,
+    597
+   ],
+   "back": 599,
+   "note": "Both legs go the same way in uePUMq — #595 nets -2,295,333,631 SOL / +571,776,367,353 tokens and #599 nets -3,491,726,578 SOL / +842,526,863,094 — so there is no round trip to profit from; mids #596 and #597 are buying alongside them, four accumulators into one pool rather than a wrap."
+  },
+  {
+   "front": 915,
+   "victims": [
+    916,
+    917
+   ],
+   "back": 918,
+   "note": "#915 is a self-contained atomic arb across two pools (418,908,939 USDC out one, back into the other, ending +29,238 lamports) so it carries no position for a back leg to close; #917 is the same arb by another bot (+32,558) and #916 moves only a fee, while #918 sells 3,742,759,380 wSOL for 391,968,840 USDC into 8FnX3x — the same direction as #915's leg there, not the reverse."
+  }
+ ]
+}

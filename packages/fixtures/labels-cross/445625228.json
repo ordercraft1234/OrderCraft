@@ -1,0 +1,26 @@
+{
+ "schemaVersion": 1,
+ "slot": 445625228,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 142,
+   "victims": [
+    143
+   ],
+   "back": 144,
+   "note": "No round trip: #142 buys 15,901,674,365 of 12FVcp-pump for 20,741,620 USDC and keeps it, while #144 sells 7,133,600,000 FfFEsz for 16,352,326 USDC — different mints, so the legs neither open nor close the same position. The mid #143 trades a token untouched by either leg; only USDC and native SOL are shared, which is incidental."
+  },
+  {
+   "front": 878,
+   "victims": [
+    879
+   ],
+   "back": 880,
+   "note": "The mid #879 has no value movement at all beyond its own -21,000 lamport fee, so there is no trade in between to extract from. The legs also fail to pair up: #878 nets -55,000,000 Xs7Zdz for +99,516,164 USDC in a self-contained arb, while #880 nets +8,949,461 SKRbvo for -200,000 USDC."
+  }
+ ]
+}

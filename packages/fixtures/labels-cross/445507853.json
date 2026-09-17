@@ -1,0 +1,18 @@
+{
+ "schemaVersion": 1,
+ "slot": 445507853,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 567,
+   "victims": [
+    569
+   ],
+   "back": 571,
+   "note": "Both legs trade mint 2WSv2d in pool 3hmtFP (front sells 4,202,108,651,193 for +502,521,220 lamports; back buys back only 804,317,686,227 for 100,115,000 lamports), but nothing between them touches that mint or that pool: #568 and #570 move only their own fee, and #569 swaps an unrelated mint against wrapped SOL through another pool. With no victim trade in the sandwiched asset and the back closing only ~19% of the front's size, this reads as two independent traders in one pool."
+  }
+ ]
+}

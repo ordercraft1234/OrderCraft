@@ -1,0 +1,53 @@
+{
+ "schemaVersion": 1,
+ "slot": 445577339,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 822,
+   "victims": [
+    823,
+    825
+   ],
+   "back": 826,
+   "note": "The two legs belong to two different SOL/USDC cycles, not one round trip: 7tYfma sells 4.097137450 SOL for 427.334873 USDC at #822 and buys it back with the identical 427.334873 USDC at #827, while g1NcQK does its own cycle at #824/#826 with the identical 417.203018 USDC on both sides. Read as one operator the pair nets +10.13 USDC against -0.097 SOL, i.e. nothing, and the mids sharing wSOL trade a pump mint for a thousandth of the legs' size in a different pool."
+  },
+  {
+   "front": 824,
+   "victims": [
+    825
+   ],
+   "back": 827,
+   "note": "Same interleaving seen from the other side: #824 is g1NcQK's sell leg whose matching buy is #826, and #827 is 7tYfma's buy leg whose matching sell is #822, so the pairing joins halves of two separate cycles. Each cycle returns the exact USDC amount it took out and gains only 92,897 and 98,131 lamports before fees — cross-venue arbitrage, not extraction from #825."
+  },
+  {
+   "front": 1201,
+   "victims": [
+    1202,
+    1203
+   ],
+   "back": 1204,
+   "note": "#1201 is a self-contained atomic arb (20,009,057 wSOL out through RAY and 20,000,003 back, +9,054 lamports), so it opens no position for a later leg to close. #1204 is a one-way sale of 3.76672 SOL for 392.877495 USDC paid out to a third account — different assets, no round trip — and the mids are four orders of magnitude smaller in other mints."
+  },
+  {
+   "front": 1212,
+   "victims": [
+    1213
+   ],
+   "back": 1214,
+   "note": "The single transaction between the legs, #1213, moves nothing at all — only its own 6,606-lamport fee — so there is no trade to sandwich. The legs are unmatched besides: #1212 sells 3.672139075 SOL for 383.012489 USDC and leaves the USDC standing, while #1214 is an independent closed loop returning +39,660 lamports to a different signer."
+  },
+  {
+   "front": 1220,
+   "victims": [
+    1221,
+    1222
+   ],
+   "back": 1223,
+   "note": "Directions are opposite but the sizes are not a round trip — 2.10739955 SOL bought at #1220 against 4.785164689 SOL sold at #1223, in different pools — and the prices are the same market: 104.300 on the buy, 104.302 on the sell, so the pair extracts nothing. The mids traded pump tokens for 0.0000107 and 0.0000200 SOL, five orders of magnitude below the legs."
+  }
+ ]
+}

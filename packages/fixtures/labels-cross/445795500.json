@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445795500,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 70,
+   "victims": [
+    71,
+    72
+   ],
+   "back": 73,
+   "note": "The legs never round-trip a common asset: #70 sells 5,630,460,106,105 GWTP6M for +20,256,840 USDC while #73 spends 199,059,638 USDC for +1,952,323,169 lamports — opposite in USDC only, off by ~10x with different counter-assets. Neither mid shares a pool, and #72 is dust."
+  }
+ ]
+}

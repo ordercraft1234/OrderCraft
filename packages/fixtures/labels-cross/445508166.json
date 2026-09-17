@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445508166,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 163,
+   "victims": [
+    164,
+    165
+   ],
+   "back": 166,
+   "note": "Both legs sell SOL into the same pool 8FnX3x rather than opposing each other: #163 sells 2,513,117,494 lamports for 259,007,161 USDC and #166 sells 210,009,370 lamports there, so there is no round trip closing the front. 6h9kEo ends holding an unclosed +259,007,161 USDC position while Uohg59 only nets +9,370 lamports from its own self-contained cycle; the mids #164/#165 are one signer's cross-pool arb earning +9,100 micro-USDC, not a victim's directional order."
+  }
+ ]
+}

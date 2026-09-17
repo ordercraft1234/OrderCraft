@@ -1,0 +1,27 @@
+{
+ "schemaVersion": 1,
+ "slot": 445657009,
+ "coverage": "exhaustive",
+ "seed": 58,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 474,
+   "victims": [
+    476
+   ],
+   "back": 478,
+   "note": "Front #474 is a one-way conversion: -339,196,651 USDC for +3,286,792,699 wSOL, held, never sold back. Back #478 is a self-contained cycle whose wSOL nets to zero and ends +2,472 USDC, which cannot close a 339 USDC position; mid #476 traded mints neither leg touches."
+  },
+  {
+   "front": 478,
+   "victims": [
+    480,
+    481
+   ],
+   "back": 482,
+   "note": "Both legs are independent closed arbitrage loops in different assets — +2,472 USDC and +3,060 USDC — each fully unwinding its own wSOL inside the one transaction. Mids #480 and #481 are themselves arbs in a mint absent from both legs, so there is no shared position opened in front and closed behind."
+  }
+ ]
+}
