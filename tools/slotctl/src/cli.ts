@@ -1,6 +1,14 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { type SlotLabels, normalizeBlock, slotLabelsSchema } from '@ordercraft/core'
+import {
+  type CrossSlot,
+  corpusOf,
+  crossSlot,
+  renderHit as renderCrossHit,
+  summarize as summarizeCross,
+  toCandidates,
+} from './cross.ts'
 import { fill } from './fill.ts'
 import { type Verdict, progressOf, recordVerdict } from './label.ts'
 import { type LegPair, groupByLegs, renderPair } from './review.ts'
@@ -21,6 +29,7 @@ slotctl review <shortlist> [--index <n>] [--slot <n>] [--slots <dir>]
 slotctl label  <shortlist> [--index <n>] [--slot <n>] [--labels <dir>]
                (--attack | --reject) --note <text> [--victims <a,b>]
 slotctl screen <shortlist> [--slots <dir>] [--labels <dir>]
+slotctl cross  <dir> [--max-program-signers <n>] [--seed <n>] [--out <file>]
 
   fetch  Fetches one slot, normalises it and writes <slot>.json.gz.
          Default target is ${CACHE_DIR}; --fixture writes to ${FIXTURE_DIR}.
@@ -48,6 +57,18 @@ slotctl screen <shortlist> [--slots <dir>] [--labels <dir>]
          measure it. The index counts pairs, not rows: a label is written per
          pair, and scan emits a row per transaction in between. --slot narrows
          the run to one slot, which is how one label file gets filled.
+
+  cross  Reads every slot in <dir> and prints the profitable round trips whose two
+         legs were signed by **different** parties — the one assumption scan, the
+         wider screen and the detector all share and none of them has tested. Each
+         row carries whatever visibly relates the two signers: a third party that
+         signs somewhere and moved value in both legs, a program almost nobody else
+         invokes, or one signer's balance moving inside the other's transaction.
+         The link chooses which slots are worth reviewing; it never chooses which
+         pairs are labelled, so the set stays reproducible from this directory
+         alone. --out writes a shortlist review and label read unchanged, and
+         --seed travels into it so the draw that chose the slots is recorded
+         beside the verdicts written against them.
 
   label  Writes the verdict for the pair review just printed into
          ${LABEL_DIR}/<slot>.json, indexed exactly as review
@@ -452,6 +473,63 @@ ${summarize(screened, labelled)}
   return 0
 }
 
+/**
+ * Prints the cross-signer round trips a directory of slots holds (T058).
+ *
+ * **What is measured over what.** The pairs come from each slot on its own, so this
+ * directory is all that is needed to rebuild the set somebody labelled. The *links*
+ * between two signers are read against the whole directory as a corpus, and a program
+ * that looks rare in thirty slots need not be rare on chain — which is why the link
+ * picks slots to review and never picks pairs to label.
+ */
+function crossCommand(directory: string, rest: string[]): number {
+  const files = readdirSync(directory).filter((name) => name.endsWith('.json.gz'))
+  if (files.length === 0) {
+    process.stderr.write(`no slots in ${directory}\n`)
+    return 1
+  }
+
+  const maxArgument = flag(rest, '--max-program-signers')
+  const maxProgramSigners = maxArgument === undefined ? undefined : Number(maxArgument)
+  if (maxProgramSigners !== undefined && !Number.isSafeInteger(maxProgramSigners)) {
+    process.stderr.write('--max-program-signers takes a whole number\n')
+    return 2
+  }
+
+  const seed = Number(flag(rest, '--seed') ?? 0)
+  if (!Number.isSafeInteger(seed)) {
+    process.stderr.write('--seed takes a whole number\n')
+    return 2
+  }
+
+  const bundles = files.map((name) => readSlot(join(directory, name)))
+  const corpus = corpusOf(bundles, maxProgramSigners)
+  const slots: CrossSlot[] = bundles
+    .map((bundle) => crossSlot(bundle, corpus))
+    .sort((left, right) => left.slot - right.slot)
+
+  for (const slot of slots) {
+    if (slot.hits.length === 0) continue
+    process.stdout.write(`slot ${slot.slot}  ${slot.hits.length} pairs\n`)
+    for (const hit of slot.hits) process.stdout.write(`${renderCrossHit(hit)}\n`)
+  }
+
+  const out = flag(rest, '--out')
+  if (out !== undefined) {
+    const candidates = toCandidates(slots)
+    writeFileSync(
+      out,
+      `${JSON.stringify({ seed, scanned: slots.map((slot) => slot.slot), candidates, randomSlots: [] }, null, 1)}\n`,
+      'utf8',
+    )
+    process.stdout.write(`${out} — ${candidates.length} rows\n`)
+  }
+
+  process.stdout.write(`
+${summarizeCross(slots)}\n`)
+  return 0
+}
+
 async function main(argv: string[]): Promise<number> {
   const [command, target, ...rest] = argv
 
@@ -461,6 +539,7 @@ async function main(argv: string[]): Promise<number> {
   if (command === 'review' && target !== undefined) return reviewCommand(target, rest)
   if (command === 'label' && target !== undefined) return labelCommand(target, rest)
   if (command === 'screen' && target !== undefined) return screenCommand(target, rest)
+  if (command === 'cross' && target !== undefined) return crossCommand(target, rest)
 
   process.stderr.write(`${usage}\n`)
   return 2

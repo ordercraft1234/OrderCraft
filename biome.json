@@ -11,7 +11,8 @@
       "node_modules/**",
       ".cache/**",
       "packages/fixtures/slots/**",
-      "packages/fixtures/labels/**"
+      "packages/fixtures/labels/**",
+      "packages/fixtures/labels-cross/**"
     ]
   },
   "formatter": {

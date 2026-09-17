@@ -20,8 +20,17 @@ export interface LegPair {
   slot: number
   front: number
   back: number
-  /** The signer both legs share. */
+  /** The signer both legs share, or the opening leg's signer when they differ. */
   signer: string
+  /**
+   * The closing leg's signer, when the two legs were signed by different parties (T058).
+   *
+   * Absent for everything `scan` proposes. Where it is present the pair has **no** shared
+   * signer at all, and the `net` block below prints a column per party rather than one —
+   * a screen that headed two wallets' trades "the shared signer" would be contradicting
+   * itself in the same breath it asked to be believed.
+   */
+  counterSigner?: string
   /** Everything the shortlist found between the legs, in block order. */
   between: { index: number; sharedAccounts: string[] }[]
 }
@@ -41,6 +50,7 @@ export function groupByLegs(candidates: Candidate[]): LegPair[] {
       front,
       back,
       signer: candidate.signer,
+      ...(candidate.counterSigner === undefined ? {} : { counterSigner: candidate.counterSigner }),
       between: [],
     }
 
@@ -93,14 +103,17 @@ export function renderPair(bundle: SlotBundle, pair: LegPair): string {
   const middles = between.flatMap(({ transaction }) => (transaction ? [transaction] : []))
   const lines = [
     `slot ${pair.slot}   positions ${positions.join(', ')}   span ${pair.back - pair.front}`,
-    `signer  ${pair.signer}`,
+    pair.counterSigner === undefined
+      ? `signer  ${pair.signer}`
+      : `signers ${pair.signer} (front)
+        ${pair.counterSigner} (back)`,
     `shared  ${shared.join(', ')}`,
     '',
     describe('leg  ', front),
     ...middles.map((transaction) => describe('mid  ', transaction)),
     describe('leg  ', back),
     '',
-    ...netLines(front, back, middles, pair.signer),
+    ...netLines(front, back, middles, pair.signer, pair.counterSigner),
   ]
 
   return `${lines.join('\n')}\n`
@@ -146,41 +159,33 @@ function describe(label: string, transaction: NormalizedTransaction): string {
  * reviewer still has to look at `shared` — the numbers narrow the question, they do not
  * answer it.
  *
- * **Only the shared signer's own side counts.** `tokenDelta` records both ends of every
+ * **Only the signer's own side counts.** `tokenDelta` records both ends of every
  * transfer, so summing a transaction whole always yields zero — netting the pair that
  * way printed a column of noughts for every candidate and said nothing about anybody's
  * position.
+ *
+ * **With two signers there are two positions**, printed one under the other. A pair from
+ * `cross` (T058) has no shared party by construction: the round trip is split, one wallet
+ * long what the other is short, and a single netted column would hide exactly the fact
+ * the reviewer is being asked about.
  */
 function netLines(
   front: NormalizedTransaction,
   back: NormalizedTransaction,
   middles: NormalizedTransaction[],
   signer: string,
+  counterSigner?: string,
 ): string[] {
-  const net = new Map<string, bigint>()
-  for (const transaction of [front, back]) {
-    // The native side counts as a mint of its own. Leaving it out was the difference
-    // between "this round trip lost money" and "+736,315,196 lamports": on a swap that
-    // settles in SOL, the token column alone shows the size and never the proceeds.
-    const lamports = transaction.lamportDelta[signer]
-    if (lamports !== undefined) net.set(NATIVE, (net.get(NATIVE) ?? 0n) + lamports)
+  const parties = counterSigner === undefined ? [signer] : [signer, counterSigner]
+  const positions = parties.map((party) => ({ party, net: positionOf(front, back, party) }))
 
-    for (const delta of transaction.tokenDelta) {
-      if (delta.owner !== signer) continue
-      net.set(delta.mint, (net.get(delta.mint) ?? 0n) + delta.amount)
-    }
-  }
-
-  if (net.size === 0) return ['net   (the pair holds no position)']
+  if (positions.every(({ net }) => net.size === 0)) return ['net   (the pair holds no position)']
 
   const inMiddle = movedInBetween(middles)
-
-  return [
-    'net   the shared signer across both legs, by mint',
-    // The transaction fee is already inside the native figure: lamportDelta is post
-    // minus pre, and the fee leaves the account before the post balance is recorded.
-    // Saying so beats a reviewer discovering it as an unexplained few thousand.
-    '      (the native figure is post minus pre, so the fee is already inside it)',
+  const rows = ({ party, net }: { party: string; net: Map<string, bigint> }): string[] => [
+    // With two parties the mints have to be attributed, or a round trip split over two
+    // wallets reads as one wallet holding both sides of it.
+    ...(counterSigner === undefined ? [] : [`      ${short(party)}`]),
     ...[...net.entries()]
       .sort(([leftMint], [rightMint]) => (leftMint < rightMint ? -1 : 1))
       .map(([mint, amount]) => {
@@ -196,6 +201,41 @@ function netLines(
         return `        ${signed(amount)} ${short(mint)}${mark}`
       }),
   ]
+
+  return [
+    counterSigner === undefined
+      ? 'net   the shared signer across both legs, by mint'
+      : 'net   each signer across both legs, by mint — the legs were signed by two parties',
+    // The transaction fee is already inside the native figure: lamportDelta is post
+    // minus pre, and the fee leaves the account before the post balance is recorded.
+    // Saying so beats a reviewer discovering it as an unexplained few thousand.
+    '      (the native figure is post minus pre, so the fee is already inside it)',
+    ...positions.flatMap(rows),
+  ]
+}
+
+/** One party's position across both legs, native SOL counted as a mint of its own. */
+function positionOf(
+  front: NormalizedTransaction,
+  back: NormalizedTransaction,
+  party: string,
+): Map<string, bigint> {
+  const net = new Map<string, bigint>()
+
+  for (const transaction of [front, back]) {
+    // Leaving the native side out was the difference between "this round trip lost
+    // money" and "+736,315,196 lamports": on a swap that settles in SOL, the token
+    // column alone shows the size and never the proceeds.
+    const lamports = transaction.lamportDelta[party]
+    if (lamports !== undefined) net.set(NATIVE, (net.get(NATIVE) ?? 0n) + lamports)
+
+    for (const delta of transaction.tokenDelta) {
+      if (delta.owner !== party) continue
+      net.set(delta.mint, (net.get(delta.mint) ?? 0n) + delta.amount)
+    }
+  }
+
+  return net
 }
 
 /**

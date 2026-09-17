@@ -2,6 +2,8 @@ export { LABELS_SCHEMA_VERSION, accuracyAgainst, slotLabelsSchema } from './dete
 export type { Accuracy, SlotLabels } from './detect/labels.ts'
 export { tripleOutcome } from './detect/broken.ts'
 export type { BrokenReason, TripleOutcome } from './detect/broken.ts'
+export { crossRoundTrips, linksBetween } from './detect/related.ts'
+export type { Corpus, CrossPair, CrossRoundTrip, Link, LinkKind } from './detect/related.ts'
 export { findSandwiches } from './detect/sandwich.ts'
 export type { Sandwich, SandwichOptions } from './detect/sandwich.ts'
 export { screenPairs } from './detect/wide.ts'

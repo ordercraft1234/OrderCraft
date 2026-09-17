@@ -8,6 +8,15 @@ export interface Candidate {
   positions: [number, number, number]
   /** The signer both outer transactions share. */
   signer: string
+  /**
+   * The signer of the closing leg, when it is a different party.
+   *
+   * Absent from everything `scan` writes — its whole filter is built on one signer
+   * standing either side. It is written by `cross` (T058), whose pairs are signed by two
+   * parties, and it travels in the same row shape so `review` and `label` need no second
+   * path to read it.
+   */
+  counterSigner?: string
   /** Accounts the middle transaction touches that both outer ones touch too. */
   sharedAccounts: string[]
 }
