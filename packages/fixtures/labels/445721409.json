@@ -1,0 +1,91 @@
+{
+ "schemaVersion": 1,
+ "slot": 445721409,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 17,
+   "victims": [
+    18,
+    19
+   ],
+   "back": 21,
+   "note": "Both legs move the same way — each sends USDC out and pays SOL; there is no open-and-close round trip, and #19 is the counterparty paying USDC back, i.e. the signer is funding a market maker, not fencing it in."
+  },
+  {
+   "front": 18,
+   "victims": [
+    21
+   ],
+   "back": 22,
+   "note": "Legs #18 and #22 are both USDC-to-wSOL buys at two different pools — same direction, so no round trip. #20 is fee-only and #21 is a plain USDC transfer with no pool trade to take from."
+  },
+  {
+   "front": 19,
+   "victims": [
+    21
+   ],
+   "back": 22,
+   "note": "The legs are opposite but meet different pools, and the only thing between them, #21, touches no pool — it just hands USDC and lamports to the signer."
+  },
+  {
+   "front": 19,
+   "victims": [
+    21
+   ],
+   "back": 23,
+   "note": "Both legs sell wSOL for USDC through the same pool — same direction, an inventory unwind rather than a round trip; #21 is again only a transfer, not a trade."
+  },
+  {
+   "front": 336,
+   "victims": [
+    339
+   ],
+   "back": 340,
+   "note": "#336 and #340 are byte-identical buys at the same rate 9.86443, so no position is closed; #339 buys the same way at 9.86444, meaning the legs did not displace it at all — this is the buy side of a cross-pool arb."
+  },
+  {
+   "front": 337,
+   "victims": [
+    338
+   ],
+   "back": 341,
+   "note": "Both legs sell 2,367,463,071 wSOL at rate 9.86429 — same direction, twice — and #338 sells at the identical rate, so no price was moved against it."
+  },
+  {
+   "front": 851,
+   "victims": [
+    852
+   ],
+   "back": 853,
+   "note": "Neither leg moves any token or pool liquidity — pure fees and tips — and #852 is likewise 9,350 lamports of fee and tip."
+  },
+  {
+   "front": 851,
+   "victims": [
+    852
+   ],
+   "back": 854,
+   "note": "Same fee-only shape: no mint ever moves, so nothing of value sat between the legs."
+  },
+  {
+   "front": 920,
+   "victims": [
+    921
+   ],
+   "back": 922,
+   "note": "Both legs are bare lamport spends with no token legs at all, and #921 is the same dust shape."
+  },
+  {
+   "front": 1160,
+   "victims": [
+    1161
+   ],
+   "back": 1162,
+   "note": "The legs are opposite in one pool but the buy is 18% larger, so the pair ends long rather than flat, and the buy rate 0.08591 is worse than the sell rate 0.08556; #1161's own sell cleared at 0.0855637 against the front leg's 0.0855640, so the front leg moved its price by essentially nothing."
+  }
+ ]
+}

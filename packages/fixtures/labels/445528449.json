@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445528449,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 134,
+   "victims": [
+    135,
+    136
+   ],
+   "back": 137,
+   "note": "Leg #134 sells 15,585,015 Z8QCki at 0.07973 lamports/token and leg #137 buys back only 12,659,682 at 0.08004 — a partial close at a worse price, which is the wrong orientation around #135, itself a buy from the same pool; #136 trades an unrelated mint in a different pool."
+  }
+ ]
+}

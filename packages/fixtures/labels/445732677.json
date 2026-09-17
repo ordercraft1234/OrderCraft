@@ -1,0 +1,114 @@
+{
+ "schemaVersion": 1,
+ "slot": 445732677,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 103,
+   "victims": [
+    105,
+    106
+   ],
+   "back": 107,
+   "note": "Neither leg trades anything: only lamports on the signer with no SPL mint anywhere; mids #105 and #106 are likewise fee-sized native-only entries."
+  },
+  {
+   "front": 105,
+   "victims": [
+    106,
+    107,
+    108
+   ],
+   "back": 109,
+   "note": "Same fee-only shape: legs move nothing but lamports and mids #106-#108 are also native-only; net -68,465 lamports is just cost."
+  },
+  {
+   "front": 606,
+   "victims": [
+    607,
+    608,
+    609
+   ],
+   "back": 610,
+   "note": "The legs are not a round trip: #606 sells 2,246,558,319 of 3onZG7 while #610 buys 405,467,527,599 of it — 180x larger and at a worse unit price — leaving a large long. #608 is the only same-mint mid and it sells, which cannot explain buying back higher."
+  },
+  {
+   "front": 615,
+   "victims": [
+    616
+   ],
+   "back": 617,
+   "note": "Both legs go the same way: two sells of ~31.5 trillion 12eGMX each, not an open-and-close; mid #616 trades a different mint."
+  },
+  {
+   "front": 615,
+   "victims": [
+    616,
+    618
+   ],
+   "back": 619,
+   "note": "Again two sells in the same direction, net -43,869,698,606,322 tokens; the mids are in other mints entirely."
+  },
+  {
+   "front": 617,
+   "victims": [
+    618
+   ],
+   "back": 619,
+   "note": "Both legs sell 12eGMX, so there is no reversal to close a round trip, and mid #618 moves a mint neither leg touches."
+  },
+  {
+   "front": 619,
+   "victims": [
+    620,
+    621
+   ],
+   "back": 622,
+   "note": "Shape is buy-then-sell but the sizes are 3x apart, the unit price is flat (4.763e-4 against 4.760e-4), and neither mid touches the traded mint."
+  },
+  {
+   "front": 682,
+   "victims": [
+    683
+   ],
+   "back": 684,
+   "note": "Each leg is a self-contained cyclic arb, so the pair holds no position, and the legs are in different mints from each other and from mid #683."
+  },
+  {
+   "front": 682,
+   "victims": [
+    683,
+    685
+   ],
+   "back": 686,
+   "note": "Legs are in different assets and each closes inside its own transaction; mid #685 does trade B9HTar, but the back leg never returns to that mint."
+  },
+  {
+   "front": 684,
+   "victims": [
+    685
+   ],
+   "back": 686,
+   "note": "#684 arbs 4HdtVL and #686 arbs 5p5di9 — different mints, each flat within its own transaction — while mid #685 moves a third."
+  },
+  {
+   "front": 684,
+   "victims": [
+    685
+   ],
+   "back": 687,
+   "note": "Legs are unrelated atomic arbs in two mints, both ending flat, and mid #685's mint appears in neither leg."
+  },
+  {
+   "front": 684,
+   "victims": [
+    685
+   ],
+   "back": 688,
+   "note": "Both legs are separate closed arbs holding no position, and mid #685 trades a mint the legs never touch."
+  }
+ ]
+}

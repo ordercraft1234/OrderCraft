@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "slot": 445529385,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 714,
+   "victims": [
+    715,
+    716
+   ],
+   "back": 717,
+   "note": "Leg #714 sells 2,566,802,767 pump for ~183.2M lamports but leg #717 buys back only 21,038,587 (0.8%); mid #715 is a bare 40,505-lamport transfer and mid #716 is a same-direction sell 840x smaller, and rates run 0.0714 / 0.0714 / 0.0716, so the back leg repurchased above the front sale price rather than extracting from anyone."
+  }
+ ]
+}

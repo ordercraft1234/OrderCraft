@@ -1,0 +1,18 @@
+{
+ "schemaVersion": 1,
+ "slot": 445800789,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 146,
+   "victims": [
+    147
+   ],
+   "back": 148,
+   "note": "Leg 146 sells 4,439,187 of 53u5m6 for 1,858,518 lamports and leg 148 buys back only 2,580,850 for 1,175,203 — a sell placed in front of #147, which is itself a buy, so the pair sits on the opposite side of the victim's trade; the pool price moved against them (0.4316 on the sell against 0.4334 on the buyback) and only ~58% of the position was closed."
+  }
+ ]
+}

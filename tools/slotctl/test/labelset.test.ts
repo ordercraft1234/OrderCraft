@@ -38,8 +38,23 @@ const CROSS_DRAWN = [
   445795500, 445833060,
 ]
 
-/** The slots the same-signer labels were written against — the first two draws. */
-const LABELLED = [...DETECTOR_DRAWN, ...SCREEN_DRAWN]
+/**
+ * Drawn by `slotctl shape` (T059), on the cache grown tenfold for the purpose.
+ *
+ * The shape screen asks only for the shape — one signer either side, both legs at the
+ * same pool in opposite directions, somebody in between trading that asset there — and
+ * **not** whether the round trip paid. Nineteen slots, 123 pairs labelled exhaustively,
+ * and the first marked attack in the whole set came out of them: `445694841 #341/344`,
+ * a sell-side sandwich that ended 226,718 lamports down.
+ */
+const SHAPE_DRAWN = [
+  445507065, 445510737, 445528449, 445529385, 445561317, 445580721, 445598001, 445623273, 445670685,
+  445690521, 445694841, 445715901, 445721409, 445726017, 445732677, 445768461, 445770477, 445786173,
+  445800789,
+]
+
+/** The slots the same-signer labels were written against — every draw but the cross one. */
+const LABELLED = [...DETECTOR_DRAWN, ...SCREEN_DRAWN, ...SHAPE_DRAWN]
 const labelledBundles = bundles.filter((bundle) => LABELLED.includes(bundle.slot))
 const labelledPairs = groupByLegs(labelledBundles.flatMap((bundle) => findCandidates(bundle)))
 
@@ -68,9 +83,9 @@ const labelledPairs = groupByLegs(labelledBundles.flatMap((bundle) => findCandid
  * as recall over an incomplete sample.
  */
 describe('the set the labels describe', () => {
-  it('holds all three draws, and says which slot came from which', () => {
+  it('holds all four draws, and says which slot came from which', () => {
     expect(bundles.map((bundle) => bundle.slot).sort((a, b) => a - b)).toStrictEqual(
-      [...DETECTOR_DRAWN, ...SCREEN_DRAWN, ...CROSS_DRAWN].sort((a, b) => a - b),
+      [...DETECTOR_DRAWN, ...SCREEN_DRAWN, ...CROSS_DRAWN, ...SHAPE_DRAWN].sort((a, b) => a - b),
     )
   })
 
@@ -80,15 +95,15 @@ describe('the set the labels describe', () => {
    * drawn for a universe `scan` does not propose — and counting their pairs here would
    * quietly restate a number the label files were never written against.
    */
-  it('is 148 pairs of legs, which is what the budget was measured on', () => {
-    expect(labelledPairs).toHaveLength(148)
-    expect(labelledBundles.flatMap((bundle) => findCandidates(bundle))).toHaveLength(221)
+  it('is 271 pairs of legs, every one of them judged', () => {
+    expect(labelledPairs).toHaveLength(271)
+    expect(labelledBundles.flatMap((bundle) => findCandidates(bundle))).toHaveLength(411)
   })
 
-  /** What the third draw costs the first two: nothing but rows nobody labelled. */
-  it('leaves the same-signer shortlist alone: the new slots add pairs, not verdicts', () => {
-    expect(candidates).toHaveLength(272)
-    expect(pairs).toHaveLength(189)
+  /** What the cross draw costs the rest: rows nobody labelled, in its own universe. */
+  it('leaves the same-signer shortlist alone: the cross slots add pairs, not verdicts', () => {
+    expect(candidates).toHaveLength(462)
+    expect(pairs).toHaveLength(312)
   })
 
   /**
@@ -97,8 +112,14 @@ describe('the set the labels describe', () => {
    * reason nobody can check again.
    */
   it('reproduces the screen that drew the sixteen: 26 round trips in 19 slots', () => {
-    const screened = labelledBundles.map((bundle) => screenSlot(bundle, labelledPairs))
-    const chosen = screened.filter((slot) => slot.hits.length > 0)
+    // Over the twenty-three the screen itself chose, so the figure keeps meaning what it
+    // meant when the budget was read off it — the shape draw added slots it never saw.
+    const drawn = [...DETECTOR_DRAWN, ...SCREEN_DRAWN]
+    const screenBundles = bundles.filter((bundle) => drawn.includes(bundle.slot))
+    const screenPairs = groupByLegs(screenBundles.flatMap((bundle) => findCandidates(bundle)))
+    const chosen = screenBundles
+      .map((bundle) => screenSlot(bundle, screenPairs))
+      .filter((slot) => slot.hits.length > 0)
 
     expect(chosen.reduce((sum, slot) => sum + slot.hits.length, 0)).toBe(26)
     expect(chosen).toHaveLength(19)
@@ -156,23 +177,26 @@ describe('the set the labels describe', () => {
    * The population a bigger cache is being bought for (T059), pinned where the set is
    * defined: pairs with the sandwich **shape** and no question about whether they paid.
    *
-   * Over the 1,071-slot cache there are seven of them in six slots, and **every one is
-   * already labelled and rejected** — which is the whole argument for fetching more
-   * blocks rather than re-reading these. Here the same screen over the fixture
-   * directory is pinned, so a change to `scan` or to the shape rule that moves the
-   * population shows up beside the labels it would invalidate.
+   * Over the 1,071-slot cache there were seven of them in six slots, every one already
+   * labelled and rejected — which is what bought the tenfold cache. Over 10,727 slots the
+   * screen finds **26 in 25 slots**, all now labelled, and among them the first marked
+   * attack in the whole project. Here the same screen over the fixture directory is
+   * pinned, so a change to `scan` or to the shape rule that moves the population shows up
+   * beside the labels it would invalidate.
    */
   it('holds the shape population, and every slot of it is already judged', () => {
     const shaped = bundles.map((bundle) => shapeSlot(bundle, pairs))
     const chosen = shaped.filter((slot) => slot.hits.length > 0)
     const hits = chosen.flatMap((slot) => slot.hits)
 
-    expect(hits).toHaveLength(7)
-    expect(chosen.map((slot) => slot.slot).sort((a, b) => a - b)).toStrictEqual([
-      445507853, 445553238, 445625228, 445660284, 445813028, 445829304,
-    ])
-    // None of them paid, and that is why the detector reports nothing here.
+    expect(hits).toHaveLength(26)
+    expect(chosen).toHaveLength(25)
+    // **Not one of the twenty-six paid.** That single fact is why the detector reports
+    // nothing anywhere in this set, and why the one marked attack — a sandwich that lost
+    // 226,718 lamports — is a miss rather than a hit.
     expect(hits.filter((hit) => hit.paid)).toStrictEqual([])
+    // Every slot holding the shape carries a label file, so the population the recall
+    // figure is read off is judged whole rather than sampled.
     expect(chosen.every((slot) => LABELLED.includes(slot.slot))).toBe(true)
   })
 

@@ -1,0 +1,88 @@
+{
+ "schemaVersion": 1,
+ "slot": 445670685,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 195,
+   "victims": [
+    197
+   ],
+   "back": 199,
+   "note": "Both legs are identical bare SOL transfers (-40,005,000 at the signer, +40,000,000 to two different recipients) with no token legs at all, so there is no position opened or closed around #197's swap."
+  },
+  {
+   "front": 199,
+   "victims": [
+    202
+   ],
+   "back": 203,
+   "note": "Same fan-out pattern: two pure native transfers, while #202 is an unrelated pump swap; the legs never touch that mint or any pool."
+  },
+  {
+   "front": 201,
+   "victims": [
+    202
+   ],
+   "back": 203,
+   "note": "Each leg moves -40,005,000/+40,000,000 lamports to distinct addresses with zero token flow, so they cannot have taken the price move in #202 in either direction."
+  },
+  {
+   "front": 201,
+   "victims": [
+    202
+   ],
+   "back": 204,
+   "note": "Legs are the same 0.04 SOL transfers, no swap and no shared mint with #202; the net is transferred principal, not a trading loss."
+  },
+  {
+   "front": 301,
+   "victims": [
+    302,
+    303,
+    304
+   ],
+   "back": 305,
+   "note": "#301 sells 446,419,959,029 ADQnsC while #305 buys 543,155,258,280 of a different mint — no round trip; the mids traded two further mints, neither of which either leg touches."
+  },
+  {
+   "front": 305,
+   "victims": [
+    306,
+    307
+   ],
+   "back": 309,
+   "note": "Both legs are buys in unrelated mints — same direction, nothing closed — and the mids share no pool with them."
+  },
+  {
+   "front": 309,
+   "victims": [
+    310
+   ],
+   "back": 311,
+   "note": "#309 buys U17QJM and #311 buys at84RK, two different tokens bought in sequence, while #310 trades a third; the only shared item is the fees."
+  },
+  {
+   "front": 319,
+   "victims": [
+    320,
+    321,
+    322
+   ],
+   "back": 323,
+   "note": "Legs are opposite-direction in JTjC85 (sell 2,873,168, buy back 1,748,723) but the mids are themselves buys — a sell placed ahead of a buyer improves the buyer's fill — and it is a partial close at a slightly worse rate (0.6178 against 0.6199)."
+  },
+  {
+   "front": 322,
+   "victims": [
+    323,
+    324
+   ],
+   "back": 325,
+   "note": "Both legs buy JTjC85, leaving the signer net long 187,791,571 — same direction with nothing sold back."
+  }
+ ]
+}

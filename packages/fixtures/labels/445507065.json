@@ -1,0 +1,27 @@
+{
+ "schemaVersion": 1,
+ "slot": 445507065,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 56,
+   "victims": [
+    57,
+    58
+   ],
+   "back": 59,
+   "note": "Leg 56 sold 1,494,323,035 mcW6ia for ~118.4M lamports but leg 59 bought back only 21,631,085 tokens (1.4%), leaving net -1,472,691,950 tokens — a position exit, not a closed round trip; mid 57 was itself a sell of the same token worth ~0.002 SOL and the implied price barely moved (0.0793 against 0.0795, the buyback slightly worse), while mid 58 traded unrelated mints."
+  },
+  {
+   "front": 61,
+   "victims": [
+    62
+   ],
+   "back": 63,
+   "note": "Both legs are identical plain SOL transfers of 43,000,000,000 lamports to two different recipients, same direction, no token acquired and none sold; mid 62's swap shares no traded asset and cannot be positioned against by two outbound transfers."
+  }
+ ]
+}

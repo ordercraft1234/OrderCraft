@@ -1,0 +1,45 @@
+{
+ "schemaVersion": 1,
+ "slot": 445726017,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 482,
+   "victims": [
+    483,
+    485
+   ],
+   "back": 486,
+   "note": "Both mids show only their own native balance falling, i.e. fee-only transactions with no counterparty flow to trade against; the legs likewise carry no token movement."
+  },
+  {
+   "front": 1127,
+   "victims": [
+    1128
+   ],
+   "back": 1129,
+   "note": "Mid #1128 moves only -9,452 of its own native balance, and the two legs are the same shape in the same direction rather than an opened-and-reversed round trip."
+  },
+  {
+   "front": 1235,
+   "victims": [
+    1236
+   ],
+   "back": 1239,
+   "note": "The legs are in different assets — #1235 is a self-closing multi-hop arb, #1239 touches other mints entirely — and mid #1236 moved only a fee."
+  },
+  {
+   "front": 1896,
+   "victims": [
+    1897,
+    1898,
+    1899
+   ],
+   "back": 1900,
+   "note": "Shape looks like a short sandwich (sell 1,058,773 tokens, buy back 928,262 in the same pool), but the two mid sells executed at marginally better unit prices than the front's, and the buy side sits ~0.4% above, the pool fee; with ~7,400 lamports of fee against ~19,700 of notional and an 88% close, this is dust round-tripping in a flat pool."
+  }
+ ]
+}

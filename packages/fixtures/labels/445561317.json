@@ -1,0 +1,35 @@
+{
+ "schemaVersion": 1,
+ "slot": 445561317,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 296,
+   "victims": [
+    298
+   ],
+   "back": 300,
+   "note": "Legs are inverted relative to the mid: #296 sells 19,260,201 H7VbA2 at 0.06724 and #300 buys 21,761,544 back at 0.06751, while the only same-mint mid #298 is itself a buy — selling in front of somebody's buy improves their fill rather than taking from it, and the round trip is not even closed."
+  },
+  {
+   "front": 326,
+   "victims": [
+    327
+   ],
+   "back": 329,
+   "note": "Neither leg trades anything: -8,337 and -8,471 lamports with small tips, no SPL movement at all, so the net is pure fee burn and there is no position around #327's swap."
+  },
+  {
+   "front": 329,
+   "victims": [
+    330,
+    331
+   ],
+   "back": 332,
+   "note": "Same empty legs — #329 spends 8,471 lamports and #332 only 6,171, with zero token flow, while the mids swap unrelated mints."
+  }
+ ]
+}

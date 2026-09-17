@@ -1,0 +1,78 @@
+{
+ "schemaVersion": 1,
+ "slot": 445715901,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 445,
+   "victims": [
+    447
+   ],
+   "back": 448,
+   "note": "Front 445 sells 4,140,307 ocqb and mid 447 sells at the same rate to within ~1 ppm, so the front leg took nothing from it; the back leg then buys 6,905,997 (67% more than was sold) at the worse rate 0.27374, leaving an open long."
+  },
+  {
+   "front": 454,
+   "victims": [
+    455
+   ],
+   "back": 456,
+   "note": "Both legs are buys in different tokens while mid 455 trades a third mint; no shared asset and no opposite direction."
+  },
+  {
+   "front": 455,
+   "victims": [
+    456
+   ],
+   "back": 457,
+   "note": "Leg 455 moves 47A4cb and leg 457 moves 5Po6yF, two different mints, and mid 456 trades a third; the signer's balance changes only by fees."
+  },
+  {
+   "front": 726,
+   "victims": [
+    727,
+    728
+   ],
+   "back": 729,
+   "note": "Leg 726 buys G12htn and leg 729 buys ERavUf — different mints, same direction — while the mids are dust swaps of about 9,925 lamports."
+  },
+  {
+   "front": 734,
+   "victims": [
+    736
+   ],
+   "back": 737,
+   "note": "Neither leg moves any token, so there is no trade to bracket mid 736's 13,472,004-lamport swap with; net is just fees."
+  },
+  {
+   "front": 735,
+   "victims": [
+    736
+   ],
+   "back": 737,
+   "note": "Same shape with a different front: both legs token-free, so mid 736 is not being traded against."
+  },
+  {
+   "front": 753,
+   "victims": [
+    754,
+    755,
+    756
+   ],
+   "back": 757,
+   "note": "No mint appears on either leg, while mids 754-756 are three identical dust swaps."
+  },
+  {
+   "front": 762,
+   "victims": [
+    763,
+    764
+   ],
+   "back": 766,
+   "note": "Legs hold no token leg at all, and the mids repeat the same dust swap; the net is fees, not a round trip."
+  }
+ ]
+}

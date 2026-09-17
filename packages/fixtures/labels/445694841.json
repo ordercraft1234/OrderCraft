@@ -1,0 +1,36 @@
+{
+ "schemaVersion": 1,
+ "slot": 445694841,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [
+  {
+   "front": 341,
+   "victims": [
+    342
+   ],
+   "back": 344,
+   "note": "Leg 341 sells 2,036,568 RiVJXQ into vault AQeK2F for 1,714,113 wSOL, mid #342 sells 394,621 of the same mint into the same vault, and leg 344 buys back 2,067,790 for 1,747,369 — front leg in the victim's direction, back leg opposite, 101.5% of the position closed. The round trip ended down (net -226,718 lamports at ~96.7k fee per leg) but the positioning is a sell-side sandwich. #343 trades a different mint and is not a victim."
+  }
+ ],
+ "rejected": [
+  {
+   "front": 302,
+   "victims": [
+    305
+   ],
+   "back": 306,
+   "note": "Both legs are pure native-SOL movements with no token leg at all; the only mid swaps a mint neither leg holds or trades."
+  },
+  {
+   "front": 576,
+   "victims": [
+    578,
+    579
+   ],
+   "back": 580,
+   "note": "Leg 576 is a self-contained arbitrage inside one transaction and leg 580 moves only -81,942 native with no token at all; mids #578 and #579 are bare SOL transfers with no swap."
+  }
+ ]
+}

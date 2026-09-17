@@ -1,0 +1,53 @@
+{
+ "schemaVersion": 1,
+ "slot": 445580721,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 684,
+   "victims": [
+    686,
+    687
+   ],
+   "back": 688,
+   "note": "Both legs move only bare lamports (-11,892/+6,892 and -11,070/+3,400) with no SPL token movement at all; the real swaps at #686 and #687 are in mints the legs never touch."
+  },
+  {
+   "front": 927,
+   "victims": [
+    929,
+    930
+   ],
+   "back": 931,
+   "note": "Leg 927 sells only 32,518,458 of 7kcVCQ while leg 931 buys 3,812,810,690 — the round trip is 0.85% closed and the net is a large open long; direction is also wrong, since #929 and #930 are both buys and the pair sold in front of them."
+  },
+  {
+   "front": 955,
+   "victims": [
+    957
+   ],
+   "back": 959,
+   "note": "Shape looks right (buy 555,635,381,846 at 0.008852, #957 buys, then sell 520,174,842,233), but the signer only co-signs #959 — the fee payer is another party, i.e. it is the fill side of someone else's order — and the venues do not match; the -335,596,824 lamports net is almost exactly the retained tokens valued at ~0.0088, so the trip extracted nothing."
+  },
+  {
+   "front": 957,
+   "victims": [
+    959,
+    960
+   ],
+   "back": 961,
+   "note": "The party sells 198,941,645,712 at 0.008844 in a transaction paid for by somebody else, then buys 177,847,531,438 at 0.008852 — a sell placed in front of the buys at #959 and #960 and closed with another buy is the losing direction, and the net is flat inventory rebalancing."
+  },
+  {
+   "front": 1146,
+   "victims": [
+    1148
+   ],
+   "back": 1149,
+   "note": "Both legs are pure SOL fan-outs to unrelated addresses with a 5,000-lamport fee each; #1148 is a 300,000,000 Juprjz-for-USDC swap in mints the legs never touch."
+  }
+ ]
+}

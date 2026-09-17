@@ -1,0 +1,18 @@
+{
+ "schemaVersion": 1,
+ "slot": 445690521,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 39,
+   "victims": [
+    41
+   ],
+   "back": 43,
+   "note": "Legs are opposite directions on one pool, but front #39 SELLS 5,517,886 tokens for 1,613,202 and back #43 BUYS 5,489,099 back for 1,611,220 — wrapped around #41, which is itself a BUY on that same pool; a buy in between makes the rebuy dearer, so the pair paid #41's impact rather than taking from it."
+  }
+ ]
+}

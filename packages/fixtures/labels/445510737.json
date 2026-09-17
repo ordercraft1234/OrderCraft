@@ -1,0 +1,27 @@
+{
+ "schemaVersion": 1,
+ "slot": 445510737,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 655,
+   "victims": [
+    657,
+    658
+   ],
+   "back": 659,
+   "note": "Both legs trade mint 3tVQKG (sell 116,580,455,391,493 then buy 114,682,587,909,189), while #657 and #658 trade only HTqMgo against a pool that appears in neither leg; the sole shared asset is native SOL, so there is no trade of the legs' asset in between to take from."
+  },
+  {
+   "front": 670,
+   "victims": [
+    673
+   ],
+   "back": 674,
+   "note": "Only #673 touches the legs' mint and pool, but it is a buy (2,732,301 tokens at ~0.1117) sitting between a leg that SOLD 16,407,015 at ~0.11126 and a leg that bought back 16,489,721 at ~0.11170 — the legs are positioned to help a buyer, not squeeze one, and the round trip closes above where it opened."
+  }
+ ]
+}

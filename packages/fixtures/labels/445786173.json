@@ -1,0 +1,26 @@
+{
+ "schemaVersion": 1,
+ "slot": 445786173,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 382,
+   "victims": [
+    384
+   ],
+   "back": 385,
+   "note": "Neither leg takes any token position — only fee and tip traffic — so the pair never holds the mint mid #384 swaps and cannot have round-tripped against it."
+  },
+  {
+   "front": 444,
+   "victims": [
+    445
+   ],
+   "back": 447,
+   "note": "The legs are the wrong way round for a sandwich of #445: leg #444 SELLS 1,687,921 KsNDMh at ~0.677 and leg #447 BUYS 1,982,667 back at ~0.680, while the mid is itself a BUY; selling ahead of somebody's buy hands value to that party, and the round trip ends long."
+  }
+ ]
+}

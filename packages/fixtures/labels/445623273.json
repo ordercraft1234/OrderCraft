@@ -1,0 +1,61 @@
+{
+ "schemaVersion": 1,
+ "slot": 445623273,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 834,
+   "victims": [
+    835
+   ],
+   "back": 836,
+   "note": "Both legs are bare SOL transfers (the 5,000 gap being the fee) with no token movement whatsoever, while mid #835 swaps a pump mint against wSOL; the legs hold no position in it."
+  },
+  {
+   "front": 834,
+   "victims": [
+    835,
+    837
+   ],
+   "back": 838,
+   "note": "Legs are plain lamport transfers minus a 5,000 fee, with net showing only -49,396 SOL and no mint balance; mids #835 and #837 trade tokens the legs never touch."
+  },
+  {
+   "front": 836,
+   "victims": [
+    837
+   ],
+   "back": 838,
+   "note": "Both legs move only native SOL to unrelated recipients; mid #837's swap has no counterpart in either leg."
+  },
+  {
+   "front": 838,
+   "victims": [
+    839,
+    840
+   ],
+   "back": 842,
+   "note": "Legs are SOL-only transfers with no token acquired or disposed, so the swaps in #839 and #840 were not straddled by any position."
+  },
+  {
+   "front": 842,
+   "victims": [
+    843
+   ],
+   "back": 844,
+   "note": "Both legs are pure lamport transfers carrying no mint; mid #843 buys an asset the legs never hold."
+  },
+  {
+   "front": 1221,
+   "victims": [
+    1222,
+    1223
+   ],
+   "back": 1225,
+   "note": "Leg #1221 sells 15,463,283 nPmd and leg #1225 buys 1,764,401,365 — same mint but a sell followed by a 114x-larger buy, wrong polarity to sandwich #1223's own buy, and the net shows a position opened rather than closed; implied prices are flat at 0.0690/0.0692/0.0692."
+  }
+ ]
+}

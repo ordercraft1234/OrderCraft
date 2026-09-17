@@ -1,0 +1,138 @@
+{
+ "schemaVersion": 1,
+ "slot": 445770477,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 37,
+   "victims": [
+    38
+   ],
+   "back": 39,
+   "note": "Leg #37 is a real sell of 805,647,305 6GmAFS, but leg #39 moves no tokens at all, so no round trip is closed; direction is also wrong, since mid #38 was buying."
+  },
+  {
+   "front": 113,
+   "victims": [
+    115
+   ],
+   "back": 116,
+   "note": "Neither leg trades anything — fee-and-tip transactions only — and the mid is likewise; net is pure cost with no position taken."
+  },
+  {
+   "front": 114,
+   "victims": [
+    115
+   ],
+   "back": 116,
+   "note": "Same tip-only shape: both legs move no tokens, and so does the mid; nothing was bought, sold, or extracted."
+  },
+  {
+   "front": 115,
+   "victims": [
+    116,
+    117
+   ],
+   "back": 118,
+   "note": "Legs are bare lamport transfers to a tip account, and both mids are the same. No mint moves anywhere."
+  },
+  {
+   "front": 126,
+   "victims": [
+    127
+   ],
+   "back": 128,
+   "note": "Both legs carry no token movement, and the mid carries none either; the net is fee and tip only."
+  },
+  {
+   "front": 127,
+   "victims": [
+    128
+   ],
+   "back": 129,
+   "note": "Both legs are tip payments with the mid equally empty of token flow; no asset exposure opened or closed."
+  },
+  {
+   "front": 127,
+   "victims": [
+    128,
+    130
+   ],
+   "back": 131,
+   "note": "Legs move only lamports, as do the mids. Despite a long shared-account list, nothing of substance sits between the legs."
+  },
+  {
+   "front": 128,
+   "victims": [
+    129,
+    130,
+    131
+   ],
+   "back": 132,
+   "note": "Both legs send to the same tip account and trade no mint; the mids are the same shape, so there was no round trip and no counterparty traded against."
+  },
+  {
+   "front": 129,
+   "victims": [
+    130
+   ],
+   "back": 131,
+   "note": "Both legs are tip-only, and the mid moves no token; nothing was positioned around anything."
+  },
+  {
+   "front": 486,
+   "victims": [
+    487,
+    488
+   ],
+   "back": 490,
+   "note": "This is a real opposite-direction round trip in 6NYojG (+436,246,878 lamports), but the two transactions in between trade entirely different mints, so nothing between the legs could have moved the price the legs traded on."
+  },
+  {
+   "front": 819,
+   "victims": [
+    820
+   ],
+   "back": 821,
+   "note": "Mid #820 is a genuine 259,633,457-lamport swap, but neither leg shows a token balance change; the legs took no side of that market."
+  },
+  {
+   "front": 821,
+   "victims": [
+    822,
+    823
+   ],
+   "back": 824,
+   "note": "Legs hold no token position at all, while the mids trade mints the legs never touch."
+  },
+  {
+   "front": 1055,
+   "victims": [
+    1057
+   ],
+   "back": 1059,
+   "note": "Both legs are lamport-only, and so is the mid; no mint in the shared list actually moves."
+  },
+  {
+   "front": 1057,
+   "victims": [
+    1059,
+    1060
+   ],
+   "back": 1061,
+   "note": "Both legs are identical tip payments and move no tokens; mid #1060 is a real sale but the legs hold none of it."
+  },
+  {
+   "front": 1060,
+   "victims": [
+    1062,
+    1063
+   ],
+   "back": 1064,
+   "note": "Legs do run opposite ways around mid #1063, which also sold the mint — but #1063 executed at 0.058369, identical to the front leg's 0.058368, so the front leg moved its price not at all, and the back leg bought 31% more than was sold, leaving a net long rather than a closed round trip."
+  }
+ ]
+}

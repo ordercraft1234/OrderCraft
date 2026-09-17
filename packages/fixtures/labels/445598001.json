@@ -1,0 +1,229 @@
+{
+ "schemaVersion": 1,
+ "slot": 445598001,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 42,
+   "victims": [
+    44
+   ],
+   "back": 46,
+   "note": "Legs are opposite sides of the same pool (sell 18,268,491 for 1,763,886, buy 11,458,787 for 1,110,821) and #44 sells the same mint into the same pool, but #44's fill price 0.09655 is indistinguishable from the front leg's 0.09656 — the front sale moved the pool essentially not at all — and only ~63% of the position was closed."
+  },
+  {
+   "front": 69,
+   "victims": [
+    72
+   ],
+   "back": 73,
+   "note": "Both legs are the identical 99,985,174-lamport SOL move between fresh accounts with a 10,000 fee; no token position exists, and mid #72 is a fee-only transaction."
+  },
+  {
+   "front": 73,
+   "victims": [
+    75
+   ],
+   "back": 76,
+   "note": "Legs repeat the same 99,985,174 SOL shuffle and net only -20,000 in fees; mid #75 spends -14,202 lamports on fees alone."
+  },
+  {
+   "front": 76,
+   "victims": [
+    77,
+    78
+   ],
+   "back": 79,
+   "note": "Mids #77 and #78 are real swaps, but the legs hold none of those mints — each leg is only the fixed 99,985,174 SOL transfer — so the pair carries no position they could move."
+  },
+  {
+   "front": 79,
+   "victims": [
+    80
+   ],
+   "back": 81,
+   "note": "Identical 99,985,174 SOL shuffles on both sides with net -20,000 fees; mid #80 is a -13,325 fee-only transaction."
+  },
+  {
+   "front": 79,
+   "victims": [
+    80
+   ],
+   "back": 82,
+   "note": "Same fixed SOL move on both legs and a fee-only mid; no mint is shared and no directional exposure exists to profit from."
+  },
+  {
+   "front": 81,
+   "victims": [
+    83
+   ],
+   "back": 84,
+   "note": "Legs are the repeated 99,985,174 SOL transfer pattern; mid #83 only burns -12,614 in fees."
+  },
+  {
+   "front": 81,
+   "victims": [
+    83
+   ],
+   "back": 85,
+   "note": "Both legs move the same lamports between unrelated fresh accounts and net -20,000 in fees; the single mid trades nothing."
+  },
+  {
+   "front": 82,
+   "victims": [
+    83
+   ],
+   "back": 84,
+   "note": "The two legs are the same SOL shuffle rather than opposite sides of a trade, and mid #83 is fee-only."
+  },
+  {
+   "front": 82,
+   "victims": [
+    83
+   ],
+   "back": 85,
+   "note": "No token moves in either leg and mid #83 spends -12,614 on fees, so there is nothing to sandwich."
+  },
+  {
+   "front": 93,
+   "victims": [
+    95
+   ],
+   "back": 96,
+   "note": "Mid #95 is a genuine swap but the legs hold none of that mint and only repeat the SOL shuffle, so the pair is not positioned around it."
+  },
+  {
+   "front": 94,
+   "victims": [
+    95
+   ],
+   "back": 96,
+   "note": "Legs are the same transfer twice, netting -20,000 fees; #95 trades a mint neither leg touches."
+  },
+  {
+   "front": 94,
+   "victims": [
+    95,
+    97
+   ],
+   "back": 98,
+   "note": "Neither #95 nor #97 shares a mint or position with the legs, which are again the SOL shuffle with no directional side."
+  },
+  {
+   "front": 96,
+   "victims": [
+    97
+   ],
+   "back": 98,
+   "note": "Both legs are the identical SOL move and mid #97 only pays fees; there is no trade in between and no position to close."
+  },
+  {
+   "front": 96,
+   "victims": [
+    97
+   ],
+   "back": 99,
+   "note": "Legs go the same way, not opposite ways, and mid #97 is fee-only at -11,594."
+  },
+  {
+   "front": 96,
+   "victims": [
+    97
+   ],
+   "back": 100,
+   "note": "The shuffle repeats on both legs with net -20,000 fees, and #97 offers nothing to trade against."
+  },
+  {
+   "front": 98,
+   "victims": [
+    101
+   ],
+   "back": 102,
+   "note": "Both legs are the standard 99,985,174 lamport move; mid #101 spends -10,350 on fees and holds no token the legs touch."
+  },
+  {
+   "front": 99,
+   "victims": [
+    101
+   ],
+   "back": 102,
+   "note": "No opposite-direction trade exists: each leg is the same fixed SOL transfer, and #101 is fee-only."
+  },
+  {
+   "front": 99,
+   "victims": [
+    101
+   ],
+   "back": 103,
+   "note": "Legs repeat the shuffle to different destinations and net -20,000 in fees; mid #101 moves only 5,350 lamports of value."
+  },
+  {
+   "front": 100,
+   "victims": [
+    101
+   ],
+   "back": 102,
+   "note": "Identical SOL transfers on both sides with no token leg, and mid #101 is fee-only, so no sandwich structure is present."
+  },
+  {
+   "front": 100,
+   "victims": [
+    101
+   ],
+   "back": 103,
+   "note": "Both legs are the same fixed-amount SOL shuffle rather than a buy and a sell, and #101 carries no swap."
+  },
+  {
+   "front": 100,
+   "victims": [
+    101
+   ],
+   "back": 104,
+   "note": "The pair's only net effect is -20,000 lamports of fees from two identical transfers; #101's fee-only activity cannot be the victim of a trade that never happened."
+  },
+  {
+   "front": 102,
+   "victims": [
+    105
+   ],
+   "back": 106,
+   "note": "Legs are the recurring SOL move between fresh accounts; mid #105 is a bare -10,423 fee transaction."
+  },
+  {
+   "front": 103,
+   "victims": [
+    105
+   ],
+   "back": 106,
+   "note": "No mint is shared beyond nominal wSOL, both legs move the identical lamports the same way, and #105 trades nothing."
+  },
+  {
+   "front": 104,
+   "victims": [
+    105
+   ],
+   "back": 106,
+   "note": "Two identical SOL transfers with net -20,000 fees and a fee-only mid; there is nothing of substance between the legs."
+  },
+  {
+   "front": 108,
+   "victims": [
+    109,
+    110
+   ],
+   "back": 112,
+   "note": "Both legs are native-only fee transactions and the mids are likewise fee-only; no token trades in any of the four."
+  },
+  {
+   "front": 879,
+   "victims": [
+    881
+   ],
+   "back": 883,
+   "note": "Mid #881 is a large real swap, but the legs are the same 99,985,174-lamport shuffle holding none of that mint, so the pair has no position that #881 could move in its favour."
+  }
+ ]
+}

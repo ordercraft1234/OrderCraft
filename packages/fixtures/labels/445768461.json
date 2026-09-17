@@ -1,0 +1,105 @@
+{
+ "schemaVersion": 1,
+ "slot": 445768461,
+ "coverage": "exhaustive",
+ "seed": 0,
+ "checkedOn": "2026-09-10",
+ "attacks": [],
+ "rejected": [
+  {
+   "front": 140,
+   "victims": [
+    141,
+    142
+   ],
+   "back": 144,
+   "note": "Both legs move only lamports and carry no token leg at all, so there is no position opened or closed around the large #141/#142 arbitrage swaps."
+  },
+  {
+   "front": 149,
+   "victims": [
+    150,
+    151
+   ],
+   "back": 152,
+   "note": "Legs are pure fee-plus-tip transactions with no mint moved, and the mids likewise show no token flow."
+  },
+  {
+   "front": 149,
+   "victims": [
+    150,
+    151
+   ],
+   "back": 153,
+   "note": "Same empty shape: the legs only pay fees with tips to validator accounts, no token movement on either side of the mids."
+  },
+  {
+   "front": 228,
+   "victims": [
+    230
+   ],
+   "back": 232,
+   "note": "The front sells 6,500,000,000 wSOL for 657,398,935 USDC at one pool while the back sells that identical USDC back at another for +116,163 lamports — a cross-venue arb of 0.0018%; the back leg runs the same direction as victim #230 and the front never touches that pool."
+  },
+  {
+   "front": 278,
+   "victims": [
+    279,
+    280
+   ],
+   "back": 281,
+   "note": "Legs are byte-identical fee/tip transactions with zero token flow, so the 1,000,000,000 wSOL movement in #279 is not being straddled by any trade."
+  },
+  {
+   "front": 278,
+   "victims": [
+    279,
+    280
+   ],
+   "back": 282,
+   "note": "Front is the same tip-only transaction and back is a bare fee; no mint is bought or sold on either leg."
+  },
+  {
+   "front": 281,
+   "victims": [
+    283,
+    284
+   ],
+   "back": 285,
+   "note": "Neither leg holds a token position, so #283's 708,832-lamport wSOL move is untouched by them."
+  },
+  {
+   "front": 298,
+   "victims": [
+    299
+   ],
+   "back": 300,
+   "note": "Both legs are the same-direction buy of HQSXsx, leaving the signer long with no exit; mid #299 trades a different mint."
+  },
+  {
+   "front": 622,
+   "victims": [
+    623,
+    624
+   ],
+   "back": 625,
+   "note": "The legs buy 3,763,542,009,108 D8pqQP and sell back only 2,085,250,232,749, while the mids trade a different mint against a different pool — a partial close in an asset the mids never touch."
+  },
+  {
+   "front": 624,
+   "victims": [
+    625
+   ],
+   "back": 627,
+   "note": "The legs are in different assets, so there is no round trip; #627 merely buys after #625's sell rather than closing anything opened in front of it."
+  },
+  {
+   "front": 625,
+   "victims": [
+    627
+   ],
+   "back": 628,
+   "note": "Leg #625 sells 2,085,250,232,749 and leg #628 buys 22,838,634,109,279 — a sell ahead of #627's buy would improve that buyer's price, and the back leg then buys 11x larger at the raised price; wrong orientation and wrong size."
+  }
+ ]
+}
