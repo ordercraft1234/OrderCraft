@@ -3,6 +3,10 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react()],
+  // GitHub Pages serves a project site under `/<repo>/`, so the workflow passes
+  // `BASE_PATH=/OrderCraft/`; everywhere else (dev, preview, a custom domain) the
+  // default `/` applies. Routes are hash-based, so only asset URLs depend on this.
+  base: process.env.BASE_PATH ?? '/',
   build: {
     // The comparison screen draws one element per transaction on a 1,500-transaction
     // slot, so the bundle budget that matters is SC-006 (interactive under 2 s on 3G),

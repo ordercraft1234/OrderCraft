@@ -1,0 +1,56 @@
+# Builds apps/web and publishes it to GitHub Pages on every push to main.
+#
+# The site is a project page, so it lives under https://<owner>.github.io/<repo>/ and
+# Vite needs that prefix as `base` — passed as BASE_PATH. A custom domain later means
+# setting the repository variable PAGES_BASE_PATH to "/" and nothing else.
+#
+# Lint and typecheck run before the build; the test suite does not, on purpose: the
+# gate is red by measurement (SC-003, see README), and a deploy must not depend on a
+# number the product is honest about failing.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm typecheck
+      - run: pnpm --filter @ordercraft/web build
+        env:
+          BASE_PATH: ${{ vars.PAGES_BASE_PATH || format('/{0}/', github.event.repository.name) }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

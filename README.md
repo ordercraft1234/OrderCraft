@@ -119,6 +119,24 @@ node tools/slotctl/src/cli.ts scan packages/fixtures/slots --out .cache/fixtures
 node tools/slotctl/src/cli.ts review .cache/fixtures-shortlist.json --index 0
 ```
 
+## Deploy — GitHub Pages
+
+`.github/workflows/pages.yml` builds `apps/web` on every push to `main` and publishes it
+to `https://ordercraft1234.github.io/OrderCraft/`. The workflow runs lint and typecheck
+first, not the tests — the test suite is red by measurement (see above), and a deploy must
+not depend on that number. There is nothing to configure beyond the first run: GitHub
+enables Pages with the Actions source when `deploy-pages` runs for the first time; if it
+does not, set **Settings → Pages → Source** to *GitHub Actions* and re-run the workflow.
+
+Routes are hash-based (`#/compare`), so a project page under `/OrderCraft/` needs no
+rewrite rule — only the asset prefix, which Vite gets as `BASE_PATH`. A custom domain
+later means one repository variable, `PAGES_BASE_PATH=/`, and nothing in the code.
+To check the Pages build locally:
+
+```sh
+BASE_PATH=/OrderCraft/ pnpm --filter @ordercraft/web build   # MSYS_NO_PATHCONV=1 in Git Bash
+```
+
 ## Roadmap
 
 - **M2 — visible from another computer.** Hono API, Postgres (Supabase), policies
