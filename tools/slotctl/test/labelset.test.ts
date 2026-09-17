@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { groupByLegs } from '../src/review.ts'
 import { findCandidates } from '../src/scan.ts'
 import { screenSlot } from '../src/screen.ts'
+import { shapeSlot } from '../src/shape.ts'
 import { readSlot } from '../src/store.ts'
 
 const SLOTS = fileURLToPath(new URL('../../../packages/fixtures/slots', import.meta.url))
@@ -149,6 +150,30 @@ describe('the set the labels describe', () => {
     const found = bundles.flatMap((bundle) => findSandwiches(bundle))
 
     expect(found).toStrictEqual([])
+  })
+
+  /**
+   * The population a bigger cache is being bought for (T059), pinned where the set is
+   * defined: pairs with the sandwich **shape** and no question about whether they paid.
+   *
+   * Over the 1,071-slot cache there are seven of them in six slots, and **every one is
+   * already labelled and rejected** — which is the whole argument for fetching more
+   * blocks rather than re-reading these. Here the same screen over the fixture
+   * directory is pinned, so a change to `scan` or to the shape rule that moves the
+   * population shows up beside the labels it would invalidate.
+   */
+  it('holds the shape population, and every slot of it is already judged', () => {
+    const shaped = bundles.map((bundle) => shapeSlot(bundle, pairs))
+    const chosen = shaped.filter((slot) => slot.hits.length > 0)
+    const hits = chosen.flatMap((slot) => slot.hits)
+
+    expect(hits).toHaveLength(7)
+    expect(chosen.map((slot) => slot.slot).sort((a, b) => a - b)).toStrictEqual([
+      445507853, 445553238, 445625228, 445660284, 445813028, 445829304,
+    ])
+    // None of them paid, and that is why the detector reports nothing here.
+    expect(hits.filter((hit) => hit.paid)).toStrictEqual([])
+    expect(chosen.every((slot) => LABELLED.includes(slot.slot))).toBe(true)
   })
 
   /**

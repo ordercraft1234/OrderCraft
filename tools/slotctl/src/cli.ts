@@ -15,6 +15,7 @@ import { type LegPair, groupByLegs, renderPair } from './review.ts'
 import { fetchBlock } from './rpc.ts'
 import { type Candidate, findCandidates, sampleSlots } from './scan.ts'
 import { renderHit, screenSlot, summarize } from './screen.ts'
+import { renderHit as renderShapeHit, shapeSlot, summarize as summarizeShape } from './shape.ts'
 import { readSlot, slotPath, writeSlot } from './store.ts'
 
 const CACHE_DIR = '.cache/slots'
@@ -30,6 +31,7 @@ slotctl label  <shortlist> [--index <n>] [--slot <n>] [--labels <dir>]
                (--attack | --reject) --note <text> [--victims <a,b>]
 slotctl screen <shortlist> [--slots <dir>] [--labels <dir>]
 slotctl cross  <dir> [--max-program-signers <n>] [--seed <n>] [--out <file>]
+slotctl shape  <shortlist> [--slots <dir>] [--labels <dir>]
 
   fetch  Fetches one slot, normalises it and writes <slot>.json.gz.
          Default target is ${CACHE_DIR}; --fixture writes to ${FIXTURE_DIR}.
@@ -69,6 +71,15 @@ slotctl cross  <dir> [--max-program-signers <n>] [--seed <n>] [--out <file>]
          alone. --out writes a shortlist review and label read unchanged, and
          --seed travels into it so the draw that chose the slots is recorded
          beside the verdicts written against them.
+
+  shape  Prints the slots that hold the sandwich **shape**, whether or not the
+         round trip paid: one signer either side, both legs meeting the same pool
+         in opposite directions, somebody in between trading that asset through
+         that pool. The three checks the detector adds on top — profit, polarity,
+         matching leg sizes — are printed per row and never applied, because a
+         draw made by the rule under test returns what the rule already believes.
+         A front-run that misjudged its victim loses money and is still an attack;
+         this is the only population where such a pair can be found.
 
   label  Writes the verdict for the pair review just printed into
          ${LABEL_DIR}/<slot>.json, indexed exactly as review
@@ -530,6 +541,52 @@ ${summarizeCross(slots)}\n`)
   return 0
 }
 
+/**
+ * Prints the slots holding the sandwich shape, with what each one would cost to label.
+ *
+ * Shares `loadPairs` with `review`, `label` and `screen` deliberately: the shortlist is
+ * the universe a label file claims to cover, and a screen that proposed pairs from
+ * anywhere else would be measured against a denominator that never held them.
+ */
+function shapeCommand(shortlistPath: string, rest: string[]): number {
+  const loaded = loadPairs(shortlistPath, rest)
+  if (typeof loaded === 'number') return loaded
+
+  const { pairs } = loaded
+  const directory = flag(rest, '--slots') ?? CACHE_DIR
+  const labelDirectory = flag(rest, '--labels') ?? LABEL_DIR
+  const labelled = new Set(
+    existsSync(labelDirectory)
+      ? readdirSync(labelDirectory)
+          .filter((name) => name.endsWith('.json'))
+          .map((name) => Number(name.replace('.json', '')))
+      : [],
+  )
+
+  const shaped = []
+  for (const slot of [...new Set(pairs.map((pair) => pair.slot))].sort(
+    (left, right) => left - right,
+  )) {
+    const path = slotPath(directory, slot)
+    if (!existsSync(path)) {
+      process.stderr.write(`slot ${slot} is not in ${directory}\n`)
+      return 1
+    }
+
+    const result = shapeSlot(readSlot(path), pairs)
+    shaped.push(result)
+    if (result.hits.length === 0) continue
+
+    process.stdout.write(
+      `slot ${slot}  ${result.pairs} pairs${labelled.has(slot) ? '  (already labelled)' : ''}\n`,
+    )
+    for (const hit of result.hits) process.stdout.write(`${renderShapeHit(hit)}\n`)
+  }
+
+  process.stdout.write(`\n${summarizeShape(shaped, labelled)}\n`)
+  return 0
+}
+
 async function main(argv: string[]): Promise<number> {
   const [command, target, ...rest] = argv
 
@@ -540,6 +597,7 @@ async function main(argv: string[]): Promise<number> {
   if (command === 'label' && target !== undefined) return labelCommand(target, rest)
   if (command === 'screen' && target !== undefined) return screenCommand(target, rest)
   if (command === 'cross' && target !== undefined) return crossCommand(target, rest)
+  if (command === 'shape' && target !== undefined) return shapeCommand(target, rest)
 
   process.stderr.write(`${usage}\n`)
   return 2
