@@ -12,8 +12,10 @@ import {
 import { type Db, schema } from '@ordercraft/db'
 import { migrationSql } from '@ordercraft/db/migrations'
 import { writeSlot } from '@ordercraft/slots'
+import type { RpcOptions } from '@ordercraft/slots'
 import { drizzle } from 'drizzle-orm/pglite'
 import { type App, createApp } from '../src/app.ts'
+import { SlotFetcher } from '../src/services/fetch.ts'
 import { SlotStore } from '../src/services/slots.ts'
 
 export const WEB_ORIGIN = 'http://localhost:5173'
@@ -50,6 +52,12 @@ export const UNRUNNABLE_POLICY: Policy = {
   steps: [{ kind: 'allowDeny', rules: [{ effect: 'deny', match: { match: 'all' } }] }],
 }
 
+export interface HarnessOptions {
+  /** Turns `/slots/fetch` on, against whatever `fetchImpl` answers. */
+  rpc?: RpcOptions
+  now?: () => number
+}
+
 export interface Harness {
   app: App
   db: Db
@@ -65,7 +73,7 @@ export interface Harness {
  * fixture slots, one label file, an empty cache. `syncFixtures` runs the way it does
  * at boot, so the tests start where the server starts.
  */
-export async function openHarness(): Promise<Harness> {
+export async function openHarness(options: HarnessOptions = {}): Promise<Harness> {
   const root = mkdtempSync(join(tmpdir(), 'ordercraft-api-'))
   const dirs = {
     fixtures: join(root, 'slots'),
@@ -85,7 +93,14 @@ export async function openHarness(): Promise<Harness> {
   const store = new SlotStore(dirs)
   await store.syncFixtures(db)
 
-  const app = createApp({ db, store, webOrigin: WEB_ORIGIN, log: false })
+  const app = createApp({
+    db,
+    store,
+    webOrigin: WEB_ORIGIN,
+    fetcher: options.rpc === undefined ? undefined : new SlotFetcher(options.rpc),
+    now: options.now,
+    log: false,
+  })
 
   return {
     app,

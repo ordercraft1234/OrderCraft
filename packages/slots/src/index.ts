@@ -4,6 +4,6 @@
  * the API, which serves it and fills the live cache in the same format (FR-024).
  */
 
-export { fetchBlock } from './rpc.ts'
+export { RpcRefused, SLOT_MISSING_CODES, fetchBlock } from './rpc.ts'
 export type { RpcOptions } from './rpc.ts'
 export { readSlot, slotContentHash, slotPath, writeSlot } from './store.ts'

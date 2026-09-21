@@ -13,6 +13,30 @@ export interface RpcOptions {
 }
 
 /**
+ * The node answered, and the answer was no. The code is the JSON-RPC one, kept so a
+ * caller can tell "this slot was skipped" from "this node is unwell" — the message
+ * alone is prose, and prose differs between providers.
+ */
+export class RpcRefused extends Error {
+  readonly slot: number
+  readonly code: number
+
+  constructor(slot: number, code: number, message: string) {
+    super(`getBlock ${slot} refused: ${message} (code ${code})`)
+    this.name = 'RpcRefused'
+    this.slot = slot
+    this.code = code
+  }
+}
+
+/** Codes a Solana node uses for "there is no block at this slot" rather than a fault. */
+export const SLOT_MISSING_CODES: ReadonlySet<number> = new Set([
+  -32004, // block not available for slot
+  -32007, // slot was skipped, or missing due to ledger jump to recent snapshot
+  -32009, // slot was skipped, or missing in long-term storage
+])
+
+/**
  * One `getBlock` call. The result is handed back untouched: shape belongs to
  * `normalizeBlock`, which owns the only description of what a block must contain.
  */
@@ -52,7 +76,7 @@ export async function fetchBlock(slot: number, options: RpcOptions): Promise<unk
 
   if (envelope.data.error !== undefined) {
     const { code, message } = envelope.data.error
-    throw new Error(`getBlock ${slot} refused: ${message} (code ${code})`)
+    throw new RpcRefused(slot, code, message)
   }
 
   if (!('result' in payload)) {

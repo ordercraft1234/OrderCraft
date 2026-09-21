@@ -7,6 +7,7 @@ import { handleError } from './errors.ts'
 import { policyRoutes } from './routes/policies.ts'
 import { runRoutes } from './routes/runs.ts'
 import { slotRoutes } from './routes/slots.ts'
+import type { SlotFetcher } from './services/fetch.ts'
 import type { SlotStore } from './services/slots.ts'
 
 export interface AppOptions {
@@ -14,6 +15,10 @@ export interface AppOptions {
   store: SlotStore
   /** The one origin allowed to call from a browser — the web app's. */
   webOrigin: string
+  /** Live fetching; absent while the server has no RPC address (FR-023). */
+  fetcher?: SlotFetcher | undefined
+  /** The rate limiter's clock, for tests. */
+  now?: (() => number) | undefined
   /** Off in tests: the request log is noise there. */
   log?: boolean
 }
@@ -33,7 +38,10 @@ export function createApp(options: AppOptions) {
 
   const api = new Hono()
     .route('/policies', policyRoutes(options.db))
-    .route('/slots', slotRoutes(options.db, options.store))
+    .route(
+      '/slots',
+      slotRoutes(options.db, options.store, { fetcher: options.fetcher, now: options.now }),
+    )
     .route('/runs', runRoutes(options.db, options.store))
 
   app.route('/api', api)

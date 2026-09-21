@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fetchBlock } from '../src/rpc.ts'
+import { RpcRefused, SLOT_MISSING_CODES, fetchBlock } from '../src/rpc.ts'
 
 const ok = (result: unknown) =>
   new Response(JSON.stringify({ jsonrpc: '2.0', id: 1, result }), { status: 200 })
@@ -49,9 +49,13 @@ describe('fetchBlock', () => {
         { status: 200 },
       )
 
-    await expect(fetchBlock(12, { url: 'https://rpc.example', fetchImpl: stub })).rejects.toThrow(
-      /skipped/,
+    const refusal = await fetchBlock(12, { url: 'https://rpc.example', fetchImpl: stub }).catch(
+      (error: unknown) => error,
     )
+    expect(refusal).toBeInstanceOf(RpcRefused)
+    expect(refusal).toMatchObject({ slot: 12, code: -32009 })
+    expect(String(refusal)).toMatch(/skipped/)
+    expect(SLOT_MISSING_CODES.has((refusal as RpcRefused).code)).toBe(true)
   })
 
   it('reports an HTTP failure with its status', async () => {

@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server'
 import { createDb } from '@ordercraft/db'
 import { createApp } from './app.ts'
 import { readEnv } from './env.ts'
+import { SlotFetcher } from './services/fetch.ts'
 import { SlotStore } from './services/slots.ts'
 
 /**
@@ -16,7 +17,9 @@ const store = new SlotStore(SlotStore.repositoryDirs(env.SLOT_CACHE_DIR))
 const indexed = await store.syncFixtures(db)
 console.log(`slots: ${indexed} fixture${indexed === 1 ? '' : 's'} newly indexed`)
 
-const app = createApp({ db, store, webOrigin: env.WEB_ORIGIN })
+const fetcher =
+  env.SOLANA_RPC_URL === undefined ? undefined : new SlotFetcher({ url: env.SOLANA_RPC_URL })
+const app = createApp({ db, store, webOrigin: env.WEB_ORIGIN, fetcher })
 
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`api: listening on http://localhost:${info.port}`)
