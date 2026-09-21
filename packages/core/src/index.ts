@@ -1,3 +1,4 @@
+export { base58, unsignedIntegerString } from './common/scalars.ts'
 export { LABELS_SCHEMA_VERSION, accuracyAgainst, slotLabelsSchema } from './detect/labels.ts'
 export type { Accuracy, SlotLabels } from './detect/labels.ts'
 export { tripleOutcome } from './detect/broken.ts'
