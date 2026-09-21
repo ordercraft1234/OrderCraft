@@ -1,22 +1,24 @@
 {
-  "name": "@ordercraft/slotctl",
+  "name": "@ordercraft/slots",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "bin": {
-    "slotctl": "./src/cli.ts"
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
   },
   "scripts": {
-    "fetch": "node src/cli.ts fetch",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@noble/hashes": "^1.6.1",
     "@ordercraft/core": "workspace:*",
-    "@ordercraft/slots": "workspace:*",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/node": "^26.5.0",
     "typescript": "^5.7.2",
     "vitest": "^3.0.5"
   }

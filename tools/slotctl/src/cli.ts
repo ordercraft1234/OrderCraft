@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { type SlotLabels, normalizeBlock, slotLabelsSchema } from '@ordercraft/core'
+import { fetchBlock, readSlot, slotPath, writeSlot } from '@ordercraft/slots'
 import {
   type CrossSlot,
   corpusOf,
@@ -12,11 +13,9 @@ import {
 import { fill } from './fill.ts'
 import { type Verdict, progressOf, recordVerdict } from './label.ts'
 import { type LegPair, groupByLegs, renderPair } from './review.ts'
-import { fetchBlock } from './rpc.ts'
 import { type Candidate, findCandidates, sampleSlots } from './scan.ts'
 import { renderHit, screenSlot, summarize } from './screen.ts'
 import { renderHit as renderShapeHit, shapeSlot, summarize as summarizeShape } from './shape.ts'
-import { readSlot, slotPath, writeSlot } from './store.ts'
 
 const CACHE_DIR = '.cache/slots'
 const FIXTURE_DIR = 'packages/fixtures/slots'

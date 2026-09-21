@@ -5,7 +5,7 @@ import { gunzipSync, gzipSync } from 'node:zlib'
 import { normalizeBlock } from '@ordercraft/core'
 import { afterAll, describe, expect, it } from 'vitest'
 import block from '../../../packages/core/test/fixtures/block-sample.json' with { type: 'json' }
-import { readSlot, slotPath, writeSlot } from '../src/store.ts'
+import { readSlot, slotContentHash, slotPath, writeSlot } from '../src/store.ts'
 
 const dir = mkdtempSync(join(tmpdir(), 'slotctl-'))
 const bundle = normalizeBlock(441394400, block)
@@ -43,5 +43,13 @@ describe('slot store', () => {
     writeFileSync(path, 'not gzip')
 
     expect(() => readSlot(path)).toThrow()
+  })
+
+  it('hashes the written bytes, so the same bundle hashes the same on any machine', () => {
+    const hash = slotContentHash(bundle)
+
+    expect(hash).toMatch(/^[0-9a-f]{64}$/)
+    expect(slotContentHash(readSlot(writeSlot(dir, bundle)))).toBe(hash)
+    expect(slotContentHash({ ...bundle, blockTime: null })).not.toBe(hash)
   })
 })

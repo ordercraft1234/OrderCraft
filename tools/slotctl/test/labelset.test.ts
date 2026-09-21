@@ -2,12 +2,12 @@ import { readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { findSandwiches } from '@ordercraft/core'
+import { readSlot } from '@ordercraft/slots'
 import { describe, expect, it } from 'vitest'
 import { groupByLegs } from '../src/review.ts'
 import { findCandidates } from '../src/scan.ts'
 import { screenSlot } from '../src/screen.ts'
 import { shapeSlot } from '../src/shape.ts'
-import { readSlot } from '../src/store.ts'
 
 const SLOTS = fileURLToPath(new URL('../../../packages/fixtures/slots', import.meta.url))
 

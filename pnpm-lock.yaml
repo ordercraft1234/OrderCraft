@@ -21,6 +21,55 @@ importers:
         specifier: ^3.0.5
         version: 3.2.7(@types/node@26.5.0)
 
+  apps/api:
+    dependencies:
+      '@hono/node-server':
+        specifier: 2.1.1
+        version: 2.1.1(hono@4.13.8)
+      '@hono/zod-validator':
+        specifier: 0.9.1
+        version: 0.9.1(hono@4.13.8)(zod@3.25.76)
+      '@noble/hashes':
+        specifier: ^1.6.1
+        version: 1.8.0
+      '@ordercraft/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@ordercraft/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@ordercraft/fixtures':
+        specifier: workspace:*
+        version: link:../../packages/fixtures
+      '@ordercraft/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@ordercraft/slots':
+        specifier: workspace:*
+        version: link:../../packages/slots
+      hono:
+        specifier: 4.13.8
+        version: 4.13.8
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+    devDependencies:
+      '@electric-sql/pglite':
+        specifier: 0.5.8
+        version: 0.5.8
+      '@types/node':
+        specifier: ^26.5.0
+        version: 26.5.0
+      drizzle-orm:
+        specifier: 0.45.3
+        version: 0.45.3(@electric-sql/pglite@0.5.8)(postgres@3.4.9)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.5
+        version: 3.2.7(@types/node@26.5.0)
+
   apps/web:
     dependencies:
       '@ordercraft/core':
@@ -143,11 +192,36 @@ importers:
         specifier: ^3.0.5
         version: 3.2.7(@types/node@26.5.0)
 
+  packages/slots:
+    dependencies:
+      '@noble/hashes':
+        specifier: ^1.6.1
+        version: 1.8.0
+      '@ordercraft/core':
+        specifier: workspace:*
+        version: link:../core
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^26.5.0
+        version: 26.5.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.5
+        version: 3.2.7(@types/node@26.5.0)
+
   tools/slotctl:
     dependencies:
       '@ordercraft/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@ordercraft/slots':
+        specifier: workspace:*
+        version: link:../../packages/slots
       zod:
         specifier: ^3.24.1
         version: 3.25.76
@@ -897,6 +971,18 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@hono/node-server@2.1.1':
+    resolution: {integrity: sha512-ELuehkj5VCBdgEw9zs+ivkKwyzzUCSQuE96YmiPvn1ECBoZCczbFXJLeEGMTYjphP6gydh4pHMqEYPVMYUVgQg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      hono: ^4
+
+  '@hono/zod-validator@0.9.1':
+    resolution: {integrity: sha512-iiv6w0qrIc0arfvCtUqBWsvl4fXjzaTcQcCJTTtCnkawF9HHGE+KjEl0ox3gQJ6rKZEgE3mLExlQCF72M+mNuw==}
+    peerDependencies:
+      hono: '>=4.11.2'
+      zod: ^3.25.0 || ^4.0.0
+
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
 
@@ -1421,6 +1507,10 @@ packages:
   hasown@2.0.4:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
+
+  hono@4.13.8:
+    resolution: {integrity: sha512-/Gng7NfoykZl2pjukW5Z6+8Yxm3BPRf86GTbQnt0SbySkvax4fyL4H3HhY1cCpBGmiW9XDRFzRV+CXK2W8QudQ==}
+    engines: {node: '>=16.9.0'}
 
   is-binary-path@2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
@@ -2269,6 +2359,15 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
+  '@hono/node-server@2.1.1(hono@4.13.8)':
+    dependencies:
+      hono: 4.13.8
+
+  '@hono/zod-validator@0.9.1(hono@4.13.8)(zod@3.25.76)':
+    dependencies:
+      hono: 4.13.8
+      zod: 3.25.76
+
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -2744,6 +2843,8 @@ snapshots:
   hasown@2.0.4:
     dependencies:
       function-bind: 1.1.2
+
+  hono@4.13.8: {}
 
   is-binary-path@2.1.0:
     dependencies:
