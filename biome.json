@@ -12,7 +12,8 @@
       ".cache/**",
       "packages/fixtures/slots/**",
       "packages/fixtures/labels/**",
-      "packages/fixtures/labels-cross/**"
+      "packages/fixtures/labels-cross/**",
+      "packages/db/drizzle/**"
     ]
   },
   "formatter": {

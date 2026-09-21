@@ -16,3 +16,6 @@ coverage/
 # Claude Design canvas: sources are committed, the built page (~2 MB) is not
 design/*.html
 !design/*.dc.html
+
+# packages/db/test/drift.test.ts runs drizzle-kit over a throwaway copy of drizzle/
+packages/db/.drift-*/
