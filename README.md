@@ -18,8 +18,13 @@ this block", never "here is how you are protected".
 
 The kernel, the CLI and the four web screens run on a curated set of 53 real mainnet
 slots that live in this repository. The API, the Postgres schema and the shareable
-links are written and tested; what is missing is the two accounts they run on — see
-**Deploy** below. Presets, batch runs and export are M3.
+links are written, tested and running against the project's Postgres; what is missing
+is the host the API runs on — see **Deploy** below. Presets, batch runs and export
+are M3.
+
+Measured against that database rather than against the test harness: a policy posted
+twice is stored once and keeps its address, and a second `POST /runs` for the same
+`(policy, slot)` returns the first run — 0.71 s to compute it, 0.16 s to hand it back.
 
 The web app therefore has two modes, and neither is a degraded version of the other:
 
@@ -202,8 +207,9 @@ does nothing without it.
 ## Roadmap
 
 - **M2 — visible from another computer.** Hono API, Postgres (Supabase), policies
-  and runs saved by hash, links (a link is access; there is no privacy). Built; the
-  deployment waits on the owner's Render and Supabase accounts.
+  and runs saved by hash, links (a link is access; there is no privacy). Built, with
+  the schema migrated and the API verified against it; the deployment waits on the
+  owner's Render account.
 - **M3 — presets, batch runs, export.** A preset library in code, p50/p95 over many
   slots with progress, JSON-DSL export/import with a hash round-trip, and a
   TypeScript interface stub with the disclaimer that it is not a BAM config.
