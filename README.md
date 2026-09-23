@@ -14,23 +14,32 @@ the plugin framework is closed. OrderCraft demonstrates a simulation, not produc
 ordering. The right sentence for it is "here is what your policy would have done to
 this block", never "here is how you are protected".
 
-## Status: M1 shipped, M2 built and waiting on its accounts
+## Status: M2 — deployed and reachable from another computer
 
 The kernel, the CLI and the four web screens run on a curated set of 53 real mainnet
 slots that live in this repository. The API, the Postgres schema and the shareable
-links are written, tested and running against the project's Postgres; what is missing
-is the host the API runs on — see **Deploy** below. Presets, batch runs and export
+links are deployed: the site is at
+[ordercraft1234.github.io/OrderCraft](https://ordercraft1234.github.io/OrderCraft/)
+and it talks to `https://ordercraft-api.onrender.com`. Presets, batch runs and export
 are M3.
 
-Measured against that database rather than against the test harness: a policy posted
-twice is stored once and keeps its address, and a second `POST /runs` for the same
-`(policy, slot)` returns the first run — 0.71 s to compute it, 0.16 s to hand it back.
+Idempotency is what this milestone had to prove, and it is proved across machines
+rather than inside one process: a run computed locally against the project's Postgres
+and the same run asked for through the deployed API come back with the same `id` —
+0.71 s to compute it, 0.33 s to hand it back. A policy posted twice is stored once and
+keeps its address.
+
+The API runs on a free plan and sleeps after fifteen quiet minutes, so a first request
+after a long silence can take the better part of a minute. The screens that wait say
+why. A scheduled ping keeps it awake most of the time; it is a convenience, not a
+dependency.
 
 The web app therefore has two modes, and neither is a degraded version of the other:
 
 - **Without `VITE_API_URL`** it computes every run in the browser, on the slot the
   repository ships. Nothing is saved, there is no link, and the screens say so. This
-  is what a clean clone does and what the published site does until the API exists.
+  is what a clean clone does — measured at seventeen seconds from `git clone` to a
+  reordered block, against a ten-minute budget, with no key, no database and no `.env`.
 - **With an address** it saves the policy, asks the API for the run and hands back a
   link — `#/p/<hash>/compare` opens that policy's comparison on anyone's machine. A
   link is access: there is no sign-in and nothing here is private.
@@ -174,6 +183,8 @@ site builds in browser-only mode, which is a working site rather than a broken o
 
 ### The API — Render, and Postgres — Supabase
 
+Both are live. What follows is how they were set up, and how to do it again.
+
 `render.yaml` is a Blueprint: Render → New → **Blueprint** → this repository, then fill
 in the four variables it marks `sync: false`. The free plan gives one web service, no
 background worker, an ephemeral filesystem and a container that sleeps after fifteen
@@ -207,9 +218,8 @@ does nothing without it.
 ## Roadmap
 
 - **M2 — visible from another computer.** Hono API, Postgres (Supabase), policies
-  and runs saved by hash, links (a link is access; there is no privacy). Built, with
-  the schema migrated and the API verified against it; the deployment waits on the
-  owner's Render account.
+  and runs saved by hash, links (a link is access; there is no privacy). Done and
+  deployed.
 - **M3 — presets, batch runs, export.** A preset library in code, p50/p95 over many
   slots with progress, JSON-DSL export/import with a hash round-trip, and a
   TypeScript interface stub with the disclaimer that it is not a BAM config.
