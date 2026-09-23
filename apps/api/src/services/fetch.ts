@@ -9,7 +9,8 @@ import type { SlotStore } from './slots.ts'
 /**
  * `POST /slots/fetch` (FR-023, FR-024). A slot already on disk is answered from the
  * index without touching the network; anything else is one `getBlock`, normalised,
- * written to the cache and indexed — after which it is a slot like any other.
+ * written to the cache and indexed — after which it is a slot like any other. A slot
+ * whose row survived a restart but whose file did not counts as anything else.
  *
  * Two requests for the same new slot at once share one fetch rather than spending
  * two RPC calls on one block.
@@ -27,7 +28,13 @@ export class SlotFetcher {
       if (error instanceof HttpError && error.code === 'NOT_FOUND') return undefined
       throw error
     })
-    if (known !== undefined) return { slot, txCount: known.txCount, cached: true }
+    // The row is not the evidence — the file is. A cached block whose file went with
+    // the container is indexed and unreadable, and answering `cached: true` for it
+    // would be the one answer that makes it unrecoverable: the caller is told there
+    // is nothing to do, and the block never comes back.
+    if (known !== undefined && store.hasBytes(known.source, slot)) {
+      return { slot, txCount: known.txCount, cached: true }
+    }
 
     const running = this.#inFlight.get(slot)
     if (running !== undefined) return running

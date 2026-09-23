@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, rmSync } from 'node:fs'
 import { policyHash } from '@ordercraft/core'
 import {
   apiErrorSchema,
@@ -10,6 +10,7 @@ import { slotPath } from '@ordercraft/slots'
 import { afterEach, describe, expect, it } from 'vitest'
 import block from '../../../packages/core/test/fixtures/block-sample.json' with { type: 'json' }
 import { FETCH_LIMIT } from '../src/routes/slots.ts'
+import { SlotStore } from '../src/services/slots.ts'
 import { FIXTURE_SLOT, type Harness, POLICY, UNKNOWN_SLOT, openHarness } from './harness.ts'
 
 const RPC_URL = 'https://rpc.example/?api-key=secret-key'
@@ -39,6 +40,81 @@ let h: Harness | undefined
 afterEach(async () => {
   await h?.close()
   h = undefined
+})
+
+/**
+ * The deployment this runs on has no disk that survives a restart: a free host stops
+ * the container after fifteen quiet minutes and starts a new one with an empty
+ * filesystem, while Postgres keeps every row. So the pair (row, file) comes apart in
+ * exactly one direction, and only for `rpc` slots — fixtures ship inside the image.
+ *
+ * Nothing in the suite could see this before, because a temporary directory in a test
+ * outlives the test. These three delete the file behind the row on purpose.
+ */
+describe('a cached block whose file is gone', () => {
+  async function fetchThenDeleteFile(): Promise<{ harness: Harness; calls: number[] }> {
+    const rpc = node()
+    const harness = await openHarness({ rpc: { url: RPC_URL, fetchImpl: rpc.fetchImpl } })
+
+    await harness.api('/slots/fetch', { method: 'POST', json: { slot: UNKNOWN_SLOT } })
+    const path = slotPath(harness.dirs.cache, UNKNOWN_SLOT)
+    expect(existsSync(path)).toBe(true)
+    rmSync(path)
+
+    return { harness, calls: rpc.calls }
+  }
+
+  it('is fetched again rather than reported as cached', async () => {
+    const { harness, calls } = await fetchThenDeleteFile()
+    h = harness
+
+    const response = await h.api('/slots/fetch', { method: 'POST', json: { slot: UNKNOWN_SLOT } })
+
+    expect(response.status).toBe(200)
+    expect(fetchSlotResponseSchema.parse(await response.json()).cached).toBe(false)
+    expect(calls).toEqual([UNKNOWN_SLOT, UNKNOWN_SLOT])
+    expect(existsSync(slotPath(h.dirs.cache, UNKNOWN_SLOT))).toBe(true)
+  })
+
+  it('says what happened and what to do about it, rather than failing', async () => {
+    const { harness } = await fetchThenDeleteFile()
+    h = harness
+
+    const response = await h.api(`/slots/${UNKNOWN_SLOT}`)
+
+    // Not a 500: the block is recoverable and the caller is the one who can recover
+    // it. A bare server error would send them to read our logs instead.
+    expect(response.status).toBe(404)
+    const { error } = apiErrorSchema.parse(await response.json())
+    expect(error.code).toBe('NOT_FOUND')
+    expect(error.details.hint).toContain('POST /slots/fetch')
+  })
+
+  /**
+   * A run still answers while this process is the one that fetched the block: the
+   * parsed bundle is in memory, and it is the same bundle whichever way it is read.
+   * Losing the file does not make the block wrong — it makes it unreadable **next
+   * time**, and the next time is a new process.
+   */
+  it('still runs while the parsed block is in this process, and stops after a restart', async () => {
+    const { harness } = await fetchThenDeleteFile()
+    h = harness
+
+    await h.api('/policies', { method: 'POST', json: { body: POLICY } })
+    const response = await h.api('/runs', {
+      method: 'POST',
+      json: { hash: policyHash(POLICY), slot: UNKNOWN_SLOT },
+    })
+    expect(response.status).toBe(200)
+
+    // The restart, faithfully: a new store over the same directories and the same
+    // rows, with nothing kept in memory. This is what the host hands us every time
+    // it wakes the service up.
+    const restarted = new SlotStore(h.dirs)
+    await expect(restarted.read(h.db, UNKNOWN_SLOT)).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    })
+  })
 })
 
 describe('POST /slots/fetch', () => {

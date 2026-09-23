@@ -14,12 +14,25 @@ the plugin framework is closed. OrderCraft demonstrates a simulation, not produc
 ordering. The right sentence for it is "here is what your policy would have done to
 this block", never "here is how you are protected".
 
-## Status: M1 — the kernel on real slots
+## Status: M1 shipped, M2 built and waiting on its accounts
 
-The kernel, the CLI and the four web screens exist and run on a curated set of
-53 real mainnet slots that live in this repository. There is no server, no database,
-no shareable links, no presets, no batch runs and no export yet — that is M2 and M3.
-A policy lives in the browser tab and is gone on reload.
+The kernel, the CLI and the four web screens run on a curated set of 53 real mainnet
+slots that live in this repository. The API, the Postgres schema and the shareable
+links are written and tested; what is missing is the two accounts they run on — see
+**Deploy** below. Presets, batch runs and export are M3.
+
+The web app therefore has two modes, and neither is a degraded version of the other:
+
+- **Without `VITE_API_URL`** it computes every run in the browser, on the slot the
+  repository ships. Nothing is saved, there is no link, and the screens say so. This
+  is what a clean clone does and what the published site does until the API exists.
+- **With an address** it saves the policy, asks the API for the run and hands back a
+  link — `#/p/<hash>/compare` opens that policy's comparison on anyone's machine. A
+  link is access: there is no sign-in and nothing here is private.
+
+Both call the same kernel in the same order, so the figures do not depend on which
+answered. Measured on the demo policy and the shipped slot: `moved 334 · delayed 4 ·
+dropped 32 · deferred 26 · reordered 32.0 % · max 129 ms`, identical either way.
 
 | Criterion | Budget | Measured | Where |
 |---|---|---|---|
@@ -28,7 +41,7 @@ A policy lives in the browser tab and is gone on reload.
 | SC-003 detector accuracy | recall ≥ 90 % on exhaustively labeled slots; false positives ≤ 5 % of what it reported | **recall 0 of 1 — FAILED.** 42 slots labeled exhaustively (271 leg pairs), one confirmed attack (`445694841 #341/344`, 3 of 3 blind labelers), and the detector is silent on it because the round trip closed at a loss. Precision is unmeasurable: nothing was reported | `packages/fixtures/test/accuracy.test.ts` |
 | SC-004 anti-snipe breaks ≥ 95 % of marked triples | — | denominator is one marked triple; the detector does not report it, so the attack screen shows its empty state | same test |
 
-**The gate is red on purpose.** `pnpm gate` ends with 371 passed, 5 skipped and
+**The gate is red on purpose.** `pnpm gate` ends with 489 passed, 5 skipped and
 exactly one failure: `accuracy.test.ts`, "recall 0 of 1 marked attacks across 42
 exhaustively checked slots". That failure is a measurement, not a broken build.
 Removing the detector's profitability check would give recall 1/1 at 13 % precision
@@ -45,6 +58,10 @@ pnpm install
 pnpm dev          # web app on http://localhost:5173
 pnpm gate         # biome check + typecheck + tests (red by design, see above)
 ```
+
+That is the whole demo: no API address, no database, no RPC key. To run the API too,
+copy `.env.example` to `.env`, give it a `DATABASE_URL` and set `VITE_API_URL` to the
+API's address — one file at the repository root serves both halves.
 
 Demo walkthrough (under 10 minutes from a clean clone):
 
@@ -72,8 +89,12 @@ packages/core       the simulation kernel — a pure function, no Date/Math/fetc
   order/            apply — one total order, one place
   metrics/          run metrics, extracted value
   detect/           sandwich detector, "is it broken", the sieves used to build the label set
+packages/shared     the API contract as Zod schemas — one copy, both sides parse it
+packages/slots      the RPC client and the on-disk slot format, shared by the API and the CLI
+packages/db         Drizzle schema and migrations; tests run on a real Postgres (PGlite, wasm)
 packages/fixtures   53 real slots (gzip), 42 label files (labels/), 20 cross-signer label files (labels-cross/)
 tools/slotctl       CLI: fetch · fill · scan · review · label · screen · cross · shape
+apps/api            Hono 4: /policies, /runs (idempotent on (hash, slot)), /slots, /slots/fetch
 apps/web            React 18 + Vite 5, hash router, four screens
 design/             the M0 canvas sources (Claude Design artboards)
 ```
@@ -119,7 +140,11 @@ node tools/slotctl/src/cli.ts scan packages/fixtures/slots --out .cache/fixtures
 node tools/slotctl/src/cli.ts review .cache/fixtures-shortlist.json --index 0
 ```
 
-## Deploy — GitHub Pages
+## Deploy
+
+Two free accounts and one repository variable. Neither is needed to run the demo.
+
+### The web app — GitHub Pages
 
 `.github/workflows/pages.yml` builds `apps/web` on every push to `main` and publishes it
 to `https://ordercraft1234.github.io/OrderCraft/`. The workflow runs lint and typecheck
@@ -137,11 +162,48 @@ To check the Pages build locally:
 BASE_PATH=/OrderCraft/ pnpm --filter @ordercraft/web build   # MSYS_NO_PATHCONV=1 in Git Bash
 ```
 
+The API address is a repository **variable**, not a secret: it ends up in the bundle
+either way, and there is nothing behind it that a name would protect. Settings →
+Secrets and variables → **Actions** → Variables → `API_URL`. Leave it unset and the
+site builds in browser-only mode, which is a working site rather than a broken one.
+
+### The API — Render, and Postgres — Supabase
+
+`render.yaml` is a Blueprint: Render → New → **Blueprint** → this repository, then fill
+in the four variables it marks `sync: false`. The free plan gives one web service, no
+background worker, an ephemeral filesystem and a container that sleeps after fifteen
+quiet minutes; the file says what each of those costs and where it is handled.
+
+Supabase gives two connection strings and they are not interchangeable:
+
+| | Port | Used for |
+|---|---|---|
+| Session pooler | 5432 | `db:migrate`, from a laptop, before the deploy that needs it |
+| Transaction pooler | 6543 | the running service — `createDb` turns prepared statements off when it sees this port |
+
+Direct `db.<project>.supabase.co:5432` is IPv6-only and will not resolve from most
+places; use the poolers. The role is `postgres`, not `anon`. There is no RLS: the
+product has no accounts by decision (FR-020), and a policy on a table nobody owns
+would protect nothing.
+
+```sh
+# once per schema change, before the deploy that needs it
+DATABASE_URL_MIGRATE='postgresql://postgres.<project>:<password>@<host>:5432/postgres' \
+  pnpm --filter @ordercraft/db db:migrate
+```
+
+Migrations are deliberately not run by the service at boot: a deploy that migrated on
+the way up would turn every rollback into a data question.
+
+Last, `.github/workflows/keepalive.yml` pings `/health` every five minutes so the
+first visitor does not pay the cold start. It reads the same `API_URL` variable and
+does nothing without it.
+
 ## Roadmap
 
 - **M2 — visible from another computer.** Hono API, Postgres (Supabase), policies
-  and runs saved by hash, links (a link is access; there is no privacy), deploy on
-  the owner's accounts.
+  and runs saved by hash, links (a link is access; there is no privacy). Built; the
+  deployment waits on the owner's Render and Supabase accounts.
 - **M3 — presets, batch runs, export.** A preset library in code, p50/p95 over many
   slots with progress, JSON-DSL export/import with a hash round-trip, and a
   TypeScript interface stub with the disclaimer that it is not a BAM config.

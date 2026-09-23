@@ -1,0 +1,56 @@
+# The API, on Render's free plan. Render → New → Blueprint → this repository, then
+# fill in the four variables marked `sync: false` in the dashboard. The service lives
+# at https://<name>.onrender.com and redeploys on every push to main.
+#
+# Free plan, and the consequences are deliberate rather than tolerated:
+#
+# - **It sleeps after fifteen quiet minutes** and the first request afterwards waits
+#   about a minute for a cold start. The web app says so on the screens that wait.
+#   `.github/workflows/keepalive.yml` pings /health every five minutes, which keeps it
+#   awake inside GitHub's 750 free hours a month; when that schedule lapses — GitHub
+#   disables cron after sixty days without a commit — the app still works, slowly.
+# - **The filesystem does not survive a restart.** `SLOT_CACHE_DIR` is a cache and
+#   nothing else: the slots that matter ship in the repository, and a live-fetched
+#   block whose file went with the container is fetched again rather than reported as
+#   cached (`apps/api/src/services/fetch.ts`).
+# - **There is no background worker on the free plan** — one web service is the whole
+#   allowance. OrderCraft needs no worker: every run is computed inside a request.
+#
+# Migrations are not run here. `pnpm --filter @ordercraft/db db:migrate` goes through
+# Supabase's session pooler from a laptop, before the deploy that needs it — see the
+# README. A deploy that silently migrated would make the rollback a data question.
+services:
+  - type: web
+    name: ordercraft-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    # Not `corepack enable`: Node 25 dropped corepack, and on the Node 26 image the
+    # call fails with EROFS because the image ships its own pnpm in read-only /usr/bin.
+    buildCommand: npx -y pnpm@9.15.0 install --frozen-lockfile
+    # No build step: Node runs the TypeScript as it is. The version is pinned to the
+    # one this is developed and tested on, because the difference between Node
+    # versions here is which modules load at all.
+    startCommand: node apps/api/src/server.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "26"
+      # Render hands the port to the process; `apps/api/src/env.ts` reads it.
+      - key: SLOT_CACHE_DIR
+        value: .cache/slots
+      # The one origin allowed to call from a browser: the Pages site, scheme and host
+      # only. CORS is the whole of the access control here, and it is not much — there
+      # is no sign-in by decision (FR-020) and a link is access.
+      - key: WEB_ORIGIN
+        sync: false
+      # Runtime connection: Supabase's transaction pooler, port 6543. Direct 5432 is
+      # IPv6-only and prepared statements do not survive pgbouncer — `createDb` turns
+      # them off when it sees the port.
+      - key: DATABASE_URL
+        sync: false
+      # Empty is a supported state: /slots/fetch then answers 403 RPC_DISABLED and the
+      # curated set is all there is (FR-023). Set it and the door opens, ten fetches a
+      # minute per address.
+      - key: SOLANA_RPC_URL
+        sync: false

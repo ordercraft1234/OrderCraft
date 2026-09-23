@@ -102,18 +102,27 @@ export class SlotStore {
   }
 
   /**
+   * Whether the bytes behind a row are actually on disk.
+   *
+   * A row and a file are two different things, and on a free host they part company:
+   * the cache lives outside the repository and outside the container's next life, so
+   * a block fetched before a restart leaves its row in Postgres and nothing on disk.
+   * Everything that reads a slot asks this first, and `/slots/fetch` asks it before
+   * deciding it has nothing to do.
+   */
+  hasBytes(source: SlotSource, slot: number): boolean {
+    return existsSync(slotPath(this.#dirFor(source), slot))
+  }
+
+  /**
    * The file as it is on disk — gzip — for `GET /slots/:slot`, which hands it over
    * with `Content-Encoding: gzip` and lets the browser unpack it.
    */
   async bytes(db: Db, slot: number): Promise<Buffer> {
     const { source } = await this.summary(db, slot)
-    const path = slotPath(this.#dirFor(source), slot)
-    if (!existsSync(path)) {
-      // The row promised a file that is not there: not the caller's mistake, ours.
-      throw new Error(`slot ${slot} is indexed as ${source} but ${path} is missing`)
-    }
+    this.#requireBytes(source, slot)
 
-    return readFileSync(path)
+    return readFileSync(slotPath(this.#dirFor(source), slot))
   }
 
   /** The bundle, parsed and checked, for a run. */
@@ -122,6 +131,7 @@ export class SlotStore {
     if (kept !== undefined) return kept
 
     const { source } = await this.summary(db, slot)
+    this.#requireBytes(source, slot)
     const bundle = readSlot(slotPath(this.#dirFor(source), slot))
     this.#remember(bundle)
 
@@ -143,6 +153,28 @@ export class SlotStore {
     this.#remember(bundle)
 
     return this.summary(db, bundle.slot)
+  }
+
+  /**
+   * The two missing-file cases are not the same failure and must not read the same.
+   *
+   * A cached block gone from an ephemeral disk is recoverable and the caller is the
+   * one who can recover it, so it is `NOT_FOUND` with the instruction. A fixture gone
+   * missing is a broken build — the file ships inside the image — and pointing the
+   * caller at `/slots/fetch` for it would send them to fix something that is ours.
+   */
+  #requireBytes(source: SlotSource, slot: number): void {
+    if (this.hasBytes(source, slot)) return
+
+    if (source === 'fixture') {
+      throw new Error(`slot ${slot} is indexed as a fixture but its file is missing`)
+    }
+
+    throw notFound('slot', {
+      slot,
+      reason: 'this block was cached and the cache is gone',
+      hint: 'load it again with POST /slots/fetch',
+    })
   }
 
   #dirFor(source: SlotSource): string {
