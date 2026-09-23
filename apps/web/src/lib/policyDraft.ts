@@ -1,4 +1,10 @@
-import { POLICY_SCHEMA_VERSION, type Policy, type Selector, policySchema } from '@ordercraft/core'
+import {
+  POLICY_SCHEMA_VERSION,
+  type Policy,
+  type PolicyStep,
+  type Selector,
+  policySchema,
+} from '@ordercraft/core'
 
 /**
  * What the builder holds while a person is typing, and why it is not a `Policy`.
@@ -141,6 +147,64 @@ export function toPolicy(draft: PolicyDraft): DraftResult {
   if (parsed.success) return { ok: true, policy: parsed.data }
 
   return { ok: false, errors: parsed.error.issues.map(issueToFieldError) }
+}
+
+/**
+ * A stored policy back into the text an editor holds — the inverse of `toPolicy`.
+ *
+ * It exists because a link names a policy by the hash of its canonical body. Opening
+ * the link puts the body in the builder, and if the builder read it back even slightly
+ * differently — a number written another way, an address list joined with the wrong
+ * separator — the screen would offer to save a *different* policy under the link that
+ * brought it there. `policyDraft.test.ts` round-trips both directions and compares
+ * hashes, not shapes.
+ *
+ * The fields the current `match` does not use come back empty rather than remembered:
+ * a stored body carries only the branch it is, and inventing the rest would put text
+ * on screen that nobody typed.
+ */
+export function policyToDraft(policy: Policy): PolicyDraft {
+  return { name: policy.name, steps: policy.steps.map(stepToDraft) }
+}
+
+function stepToDraft(step: PolicyStep): DraftStep {
+  switch (step.kind) {
+    case 'speedBump':
+      return {
+        kind: step.kind,
+        delayMs: String(step.delayMs),
+        appliesTo: selectorToDraft(step.appliesTo),
+      }
+    case 'batchAuction':
+      return {
+        kind: step.kind,
+        windowMs: String(step.windowMs),
+        appliesTo: selectorToDraft(step.appliesTo),
+      }
+    case 'allowDeny':
+      return {
+        kind: step.kind,
+        rules: step.rules.map((rule) => ({
+          effect: rule.effect,
+          match: selectorToDraft(rule.match),
+        })),
+      }
+  }
+}
+
+function selectorToDraft(selector: Selector): DraftSelector {
+  switch (selector.match) {
+    case 'all':
+      return emptySelector('all')
+    case 'program':
+      return { ...emptySelector('program'), addresses: selector.programs.join('\n') }
+    case 'signer':
+      return { ...emptySelector('signer'), addresses: selector.signers.join('\n') }
+    case 'account':
+      return { ...emptySelector('account'), addresses: selector.accounts.join('\n') }
+    case 'tokenDeltaAbove':
+      return { ...emptySelector('tokenDeltaAbove'), mint: selector.mint, amount: selector.amount }
+  }
 }
 
 function draftStepToInput(step: DraftStep, index: number, errors: FieldError[]): unknown {

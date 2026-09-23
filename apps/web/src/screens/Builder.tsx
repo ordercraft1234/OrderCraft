@@ -1,21 +1,21 @@
-import { POLICY_SCHEMA_VERSION, PRIMITIVES, policyHash, validatePolicy } from '@ordercraft/core'
+import { POLICY_SCHEMA_VERSION, PRIMITIVES, validatePolicy } from '@ordercraft/core'
 import { DEMO_SLOT } from '@ordercraft/fixtures'
 import { useMemo } from 'react'
+import { SavePolicy } from '../components/SavePolicy.tsx'
 import { Screen } from '../components/Screen.tsx'
 import { fieldClass } from '../components/SelectorEditor.tsx'
 import { StepRow } from '../components/StepRow.tsx'
 import {
   type DraftStep,
-  type PolicyDraft,
   addStep,
   errorsFor,
   moveStep,
   removeStep,
-  toPolicy,
   updateStep,
 } from '../lib/policyDraft.ts'
 import { toHash } from '../lib/router.ts'
-import { navigate } from '../lib/useRoute.ts'
+import { navigate } from '../lib/useLocation.ts'
+import type { PolicySession } from '../lib/usePolicySession.ts'
 
 /**
  * Artboard 1, on the real schema.
@@ -26,20 +26,17 @@ import { navigate } from '../lib/useRoute.ts'
  * whole block, two speed bumps on one class. Only the first can stop the text from
  * becoming a policy, so the second only runs once the first has passed.
  *
- * The draft belongs to `App`, not to this screen: the comparison replays the same one,
- * and a copy kept here would let the two screens disagree about what the policy is.
+ * The draft belongs to the session, not to this screen: the comparison replays the same
+ * one, and a copy kept here would let the two screens disagree about what the policy is.
  */
 interface BuilderProps {
-  draft: PolicyDraft
-  onChange: (draft: PolicyDraft) => void
+  session: PolicySession
 }
 
-export function Builder({ draft, onChange }: BuilderProps) {
-  const setDraft = onChange
+export function Builder({ session }: BuilderProps) {
+  const { draft, parsed, draftHash: hash, stored, edit: setDraft, markStored } = session
 
-  const parsed = useMemo(() => toPolicy(draft), [draft])
   const validation = useMemo(() => (parsed.ok ? validatePolicy(parsed.policy) : null), [parsed])
-  const hash = useMemo(() => (parsed.ok ? policyHash(parsed.policy) : null), [parsed])
 
   const errors = parsed.ok ? [] : parsed.errors
   const blockingIssues = validation?.issues.filter((issue) => issue.severity === 'error') ?? []
@@ -102,8 +99,19 @@ export function Builder({ draft, onChange }: BuilderProps) {
               {hash === null ? 'content hash — · ' : `content hash ${hash.slice(0, 12)} · `}
               schema v{POLICY_SCHEMA_VERSION}
             </div>
-            <RunState blocked={reasonNotRunnable(errors.length, blockingIssues.length)} />
+            <RunState
+              blocked={reasonNotRunnable(errors.length, blockingIssues.length)}
+              policyHash={stored ? hash : null}
+            />
           </div>
+
+          <SavePolicy
+            policy={parsed.ok ? parsed.policy : null}
+            hash={hash}
+            stored={stored}
+            onStored={markStored}
+            blocked={reasonNotRunnable(errors.length, blockingIssues.length)}
+          />
         </div>
 
         <div className="flex w-full flex-col gap-6 lg:w-[340px]">
@@ -182,13 +190,13 @@ function reasonNotRunnable(schemaErrors: number, blockingIssues: number): string
   return null
 }
 
-function RunState({ blocked }: { blocked: string | null }) {
+function RunState({ blocked, policyHash }: { blocked: string | null; policyHash: string | null }) {
   return (
     <div className="flex items-baseline gap-3">
       <button
         type="button"
         disabled={blocked !== null}
-        onClick={() => navigate(toHash({ name: 'compare' }))}
+        onClick={() => navigate(toHash({ name: 'compare' }, policyHash))}
         className="text-[12px] underline underline-offset-4 disabled:text-muted disabled:no-underline disabled:opacity-40"
       >
         Run on slot

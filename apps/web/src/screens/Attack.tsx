@@ -1,46 +1,47 @@
-import {
-  type ExtractedValue,
-  type Policy,
-  type Sandwich,
-  type SlotBundle,
-  type TripleOutcome,
-  apply,
-  extractedValue,
-  findSandwiches,
-  tripleOutcome,
-  validatePolicy,
-} from '@ordercraft/core'
-import { type ReactNode, useMemo } from 'react'
+import type { ExtractedValue, Sandwich, SlotBundle, TripleOutcome } from '@ordercraft/core'
+import type { ReactNode } from 'react'
 import { AttackField } from '../components/AttackField.tsx'
 import { Screen } from '../components/Screen.tsx'
+import { SourceNote } from '../components/SourceNote.tsx'
 import { TimeModelNote } from '../components/TimeModelNote.tsx'
 import { attackWindow } from '../lib/attackWindow.ts'
-import { type PolicyDraft, toPolicy } from '../lib/policyDraft.ts'
 import { toHash } from '../lib/router.ts'
-import { useDemoSlot } from '../lib/useDemoSlot.ts'
+import type { PolicySession } from '../lib/usePolicySession.ts'
+import { type RunView, useRun } from '../lib/useRun.ts'
 
 const number = new Intl.NumberFormat('en-US')
 
 interface AttackProps {
   /** Which triple of the run to open. 1-based, as printed. */
   triple: number
-  draft: PolicyDraft
+  session: PolicySession
+  /** The stored policy the links on this screen should carry, or `null`. */
+  policyHash: string | null
 }
 
 /** Artboard 3: one triple, before and after, on the detector from T025–T028. */
-export function Attack({ triple, draft }: AttackProps) {
-  const slot = useDemoSlot()
-  const parsed = useMemo(() => toPolicy(draft), [draft])
+export function Attack({ triple, session, policyHash }: AttackProps) {
+  const run = useRun(session.parsed, session.draftHash, session.markStored)
 
-  if (slot.status !== 'ready') {
+  if (run.status === 'loading') {
     return (
       <Screen title="One attack, before and after" subtitle={`Triple ${triple}`}>
-        <Note>{slot.status === 'loading' ? 'Loading the recorded block.' : slot.reason}</Note>
+        <Note>
+          {run.stage === 'slot' ? 'Loading the recorded block.' : 'Running the policy on it.'}
+        </Note>
       </Screen>
     )
   }
 
-  if (!parsed.ok || !validatePolicy(parsed.policy).runnable) {
+  if (run.status === 'failed') {
+    return (
+      <Screen title="One attack, before and after" subtitle={`Triple ${triple}`}>
+        <Note>{run.reason}</Note>
+      </Screen>
+    )
+  }
+
+  if (run.status === 'blocked') {
     return (
       <Screen title="One attack, before and after" subtitle={`Triple ${triple}`}>
         <Note>
@@ -51,41 +52,53 @@ export function Attack({ triple, draft }: AttackProps) {
     )
   }
 
-  return <Found bundle={slot.bundle} policy={parsed.policy} triple={triple} />
+  return <Found view={run.view} triple={triple} policyHash={policyHash} />
 }
 
-function Found({ bundle, policy, triple }: { bundle: SlotBundle; policy: Policy; triple: number }) {
-  const found = useMemo(() => findSandwiches(bundle), [bundle])
-  const ordering = useMemo(() => apply(policy, bundle), [policy, bundle])
-  const sandwich = found[triple - 1]
-  const identity = `Slot ${number.format(bundle.slot)} · ${found.length} triple${found.length === 1 ? '' : 's'} marked`
+/**
+ * The triple and its verdict come out of the run rather than being recomputed here.
+ *
+ * `outcomes[i]` is the fate of `attacks[i]` — the contract guarantees the two are the
+ * same length, and reading them as a pair is what keeps the verdict under the legs from
+ * belonging to a different triple than the one on screen.
+ */
+function Found({
+  view,
+  triple,
+  policyHash,
+}: { view: RunView; triple: number; policyHash: string | null }) {
+  const { bundle, ordering, attacks, outcomes } = view
+  const attack = attacks[triple - 1]
+  const outcome = outcomes[triple - 1]
+  const identity = `Slot ${number.format(bundle.slot)} · ${attacks.length} triple${attacks.length === 1 ? '' : 's'} marked`
 
-  if (sandwich === undefined) {
+  if (attack === undefined || outcome === undefined) {
     return (
       <Screen title="One attack, before and after" subtitle={identity}>
         <Note>
-          {found.length === 0
+          {attacks.length === 0
             ? 'The detector marked no triple in this block. It looks for the same party either side of somebody else, on one pool, trading in opposite directions — and before it says so it asks three more things: that the party in the middle traded the same way the first leg did, that the round trip closed at a better price than it opened, and that the two legs matched in size.'
-            : `There is no triple ${triple} here. ${found.length} were marked.`}
+            : `There is no triple ${triple} here. ${attacks.length} were marked.`}
         </Note>
-        {found.length === 0 ? null : <TripleLinks count={found.length} current={triple} />}
+        {attacks.length === 0 ? null : (
+          <TripleLinks count={attacks.length} current={triple} policyHash={policyHash} />
+        )}
       </Screen>
     )
   }
 
-  const outcome = tripleOutcome(sandwich, ordering)
-  const value = extractedValue(bundle, sandwich)
-  const rows = attackWindow(sandwich, ordering, bundle.transactions.length)
+  const rows = attackWindow(attack, ordering, bundle.transactions.length)
 
   return (
     <Screen title="One attack, before and after" subtitle={identity}>
       <div className="flex flex-col gap-6">
-        <TripleLinks count={found.length} current={triple} />
-        <Legs bundle={bundle} sandwich={sandwich} value={value} />
+        <TripleLinks count={attacks.length} current={triple} policyHash={policyHash} />
+        <Legs bundle={bundle} sandwich={attack} value={attack.extracted} />
         <AttackField rows={rows} />
-        <Baseline sandwich={sandwich} value={value} />
+        <Baseline sandwich={attack} value={attack.extracted} />
         <UnderPolicy outcome={outcome} />
         <TimeModelNote recorded={bundle.transactions.length} />
+        <SourceNote source={view.source} />
       </div>
     </Screen>
   )
@@ -198,14 +211,18 @@ const PRIMITIVE_NAMES = {
   allowDeny: 'allow / deny',
 } as const
 
-function TripleLinks({ count, current }: { count: number; current: number }) {
+function TripleLinks({
+  count,
+  current,
+  policyHash,
+}: { count: number; current: number; policyHash: string | null }) {
   return (
     <div className="flex flex-wrap items-baseline gap-3 text-[12px] text-muted">
       <span className="text-[11px] uppercase tracking-[0.16em]">triples</span>
       {Array.from({ length: count }, (_, position) => position + 1).map((triple) => (
         <a
           key={triple}
-          href={toHash({ name: 'attack', triple })}
+          href={toHash({ name: 'attack', triple }, policyHash)}
           className={
             triple === current ? 'text-ink' : 'underline underline-offset-4 hover:text-ink'
           }

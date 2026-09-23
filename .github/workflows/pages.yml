@@ -40,6 +40,11 @@ jobs:
       - run: pnpm --filter @ordercraft/web build
         env:
           BASE_PATH: ${{ vars.PAGES_BASE_PATH || format('/{0}/', github.event.repository.name) }}
+          # Unset is a supported build, not a broken one: the app then computes runs in
+          # the browser on the slot the repository ships, and says so on screen. Set the
+          # repository variable API_URL to the deployed API and the site gains saving,
+          # shareable links and stored runs.
+          VITE_API_URL: ${{ vars.API_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist

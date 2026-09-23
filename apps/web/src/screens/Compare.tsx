@@ -1,10 +1,10 @@
-import { type SlotBundle, apply, runMetrics, validatePolicy } from '@ordercraft/core'
-import { type ReactNode, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { RibbonField } from '../components/RibbonField.tsx'
 import { Screen } from '../components/Screen.tsx'
+import { SourceNote } from '../components/SourceNote.tsx'
 import { TimeModelNote } from '../components/TimeModelNote.tsx'
-import { type PolicyDraft, toPolicy } from '../lib/policyDraft.ts'
-import { useDemoSlot } from '../lib/useDemoSlot.ts'
+import type { PolicySession } from '../lib/usePolicySession.ts'
+import { type RunView, useRun } from '../lib/useRun.ts'
 
 const number = new Intl.NumberFormat('en-US')
 
@@ -14,62 +14,64 @@ const number = new Intl.NumberFormat('en-US')
  * The policy is the one on the Policy screen — there is no second policy hiding here.
  * When it does not compile, the screen says which screen to go and fix, rather than
  * falling back to something that would run.
+ *
+ * Where the run itself is computed is `useRun`'s business, not this screen's: the
+ * figures are the same either way and the screen prints which it was underneath.
  */
-export function Compare({ draft }: { draft: PolicyDraft }) {
-  const slot = useDemoSlot()
-  const parsed = useMemo(() => toPolicy(draft), [draft])
+export function Compare({ session }: { session: PolicySession }) {
+  const run = useRun(session.parsed, session.draftHash, session.markStored)
 
-  if (slot.status === 'loading') {
+  if (run.status === 'loading') {
     return (
-      <Screen title="Comparison" subtitle="Loading the recorded block">
-        <Note>Half a megabyte of gzip. It ships with the app — no network call goes out.</Note>
+      <Screen title="Comparison" subtitle={LOADING[run.stage].subtitle}>
+        <Note>{LOADING[run.stage].detail}</Note>
       </Screen>
     )
   }
 
-  if (slot.status === 'failed') {
+  if (run.status === 'failed') {
     return (
-      <Screen title="Comparison" subtitle="The recorded block did not load">
-        <Note>{slot.reason}</Note>
+      <Screen title="Comparison" subtitle="The run did not come back">
+        <Note>{run.reason}</Note>
       </Screen>
     )
   }
 
-  return <Run bundle={slot.bundle} parsed={parsed} />
-}
-
-function Run({ bundle, parsed }: { bundle: SlotBundle; parsed: ReturnType<typeof toPolicy> }) {
-  const identity = `Slot ${number.format(bundle.slot)} · ${number.format(bundle.transactions.length)} transactions · recorded`
-
-  // Both validators, same order as the builder: the schema decides whether this is a
-  // policy, `validatePolicy` whether it would order anything. `apply` throws on the
-  // second, so the screen answers it before asking.
-  const validation = parsed.ok ? validatePolicy(parsed.policy) : null
-  const result = useMemo(
-    () => (parsed.ok && validation?.runnable === true ? apply(parsed.policy, bundle) : null),
-    [parsed, validation?.runnable, bundle],
-  )
-  const metrics = useMemo(
-    () => (result === null ? null : runMetrics(bundle, result)),
-    [bundle, result],
-  )
-
-  if (result === null || metrics === null) {
+  if (run.status === 'blocked') {
     return (
-      <Screen title="Comparison" subtitle={identity}>
+      <Screen title="Comparison">
         <Note>
           Nothing to compare yet: the policy on the Policy screen{' '}
-          {parsed.ok ? 'would not order anything' : 'is not valid'}. This screen replays whatever
-          that screen holds, and never a policy of its own.
+          {run.reason === 'inert' ? 'would not order anything' : 'is not valid'}. This screen
+          replays whatever that screen holds, and never a policy of its own.
         </Note>
       </Screen>
     )
   }
 
+  return <Run view={run.view} />
+}
+
+const LOADING = {
+  slot: {
+    subtitle: 'Loading the recorded block',
+    detail: 'Half a megabyte of gzip. It ships with the app — no network call goes out.',
+  },
+  run: {
+    subtitle: 'Running the policy',
+    detail:
+      'The block is here; the ordering is being computed. On a free-plan API the first request after a quiet spell also has to wake the server.',
+  },
+} as const
+
+function Run({ view }: { view: RunView }) {
+  const { bundle, ordering, metrics } = view
+  const identity = `Slot ${number.format(bundle.slot)} · ${number.format(bundle.transactions.length)} transactions · recorded`
+
   return (
     <Screen title="Comparison" subtitle={identity}>
       <div className="flex flex-col gap-6">
-        <RibbonField ordering={result} recorded={bundle.transactions.length} />
+        <RibbonField ordering={ordering} recorded={bundle.transactions.length} />
 
         <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 border-t border-hairline pt-3 text-[12px]">
           <Count label="moved" value={number.format(metrics.moved)} />
@@ -84,6 +86,7 @@ function Run({ bundle, parsed }: { bundle: SlotBundle; parsed: ReturnType<typeof
         </div>
 
         <TimeModelNote recorded={bundle.transactions.length} />
+        <SourceNote source={view.source} />
 
         <Note>
           Percentiles run over the {number.format(metrics.included)} transactions still in the

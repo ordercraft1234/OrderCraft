@@ -3,6 +3,14 @@ import { NAVIGATION, type Route, isCurrent, toHash } from '../lib/router.ts'
 
 interface FrameProps {
   current: Route
+  /**
+   * The stored policy every navigation link should carry, or `null`.
+   *
+   * It is `null` whenever the draft on screen is not the one the hash names — an
+   * unsaved edit, or a policy that was never saved. Moving between screens then drops
+   * the prefix rather than carrying an address that points at something else.
+   */
+  policyHash: string | null
   children: ReactNode
 }
 
@@ -14,7 +22,7 @@ interface FrameProps {
  * with the ribbon field, and the ribbon field is the only thing on the page worth
  * looking at.
  */
-export function Frame({ current, children }: FrameProps) {
+export function Frame({ current, policyHash, children }: FrameProps) {
   return (
     <div className="flex min-h-screen flex-col bg-ground text-ink">
       <header className="flex flex-col gap-3 border-b border-hairline px-6 py-4 sm:flex-row sm:items-baseline sm:justify-between sm:px-10">
@@ -23,7 +31,7 @@ export function Frame({ current, children }: FrameProps) {
           {NAVIGATION.map((entry) => (
             <a
               key={entry.label}
-              href={toHash(entry.route)}
+              href={toHash(entry.route, policyHash)}
               className={
                 isCurrent(current, entry.route)
                   ? 'text-[11px] uppercase tracking-[0.16em] text-ink'

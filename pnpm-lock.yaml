@@ -78,6 +78,9 @@ importers:
       '@ordercraft/fixtures':
         specifier: workspace:*
         version: link:../../packages/fixtures
+      '@ordercraft/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       react:
         specifier: ^18.3.1
         version: 18.3.1
