@@ -1,0 +1,282 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body {
+      margin: 0;
+      background: #F4F6F7;
+      color: #141A24;
+      font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .serif { font-family: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif; }
+    .mono {
+      font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+    a { color: #4890A8; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 4136px; box-sizing: border-box; background: #F4F6F7; display: flex; flex-direction: column;">
+
+  <!-- ── masthead ─────────────────────────────────────────────────────────── -->
+  <div style="padding: 32px 120px 20px; border-bottom: 2px solid #141A24; display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true">
+        <g fill="#4890A8">
+          <circle cx="15" cy="15" r="12"/><circle cx="38.3" cy="15" r="12"/><circle cx="61.7" cy="15" r="12"/><circle cx="85" cy="15" r="12"/>
+          <circle cx="15" cy="38.3" r="12"/><circle cx="61.7" cy="38.3" r="12"/><circle cx="85" cy="38.3" r="12"/>
+          <circle cx="15" cy="61.7" r="12"/><circle cx="38.3" cy="61.7" r="12"/><circle cx="61.7" cy="61.7" r="12"/><circle cx="85" cy="61.7" r="12"/>
+          <circle cx="15" cy="85" r="12"/><circle cx="38.3" cy="85" r="12"/><circle cx="61.7" cy="85" r="12"/><circle cx="85" cy="85" r="12"/>
+        </g>
+        <circle cx="38.3" cy="38.3" r="11.2" fill="#2F3134"/>
+      </svg>
+      <div class="serif" style="font-size: 21px;">OrderCraft</div>
+    </div>
+    <div class="mono" style="font-size: 12px; color: #5C6874;">Measurement report &middot; v0.2.0 &middot; September 2026</div>
+  </div>
+
+  <!-- ── 1 · hero ─────────────────────────────────────────────────────────── -->
+  <div style="padding: 72px 120px 0;">
+    <div style="display: flex; gap: 28px;">
+      <div class="serif" style="width: 36px; flex: none; font-size: 40px; color: #4890A8; line-height: 1.05;">1</div>
+      <div style="flex: 1;">
+        <h1 class="serif" style="margin: 0; font-size: 46px; line-height: 1.16; font-weight: 400; max-width: 900px;">See what an ordering policy would have done to a real block.</h1>
+        <p style="margin: 24px 0 0; font-size: 17.5px; line-height: 1.62; max-width: 720px; color: #2A3442;">OrderCraft is a visual builder for transaction-ordering policies with a simulator that replays them on recorded Solana mainnet slots. Compose a policy from three primitives, run it on a block that actually happened, and read what it moved, delayed, dropped and deferred &mdash; before anyone writes a line of validator code.</p>
+        <div style="margin: 30px 0 0; display: flex; align-items: center; gap: 26px;">
+          <div style="background: #4890A8; color: #FFFFFF; padding: 12px 24px; border-radius: 2px; font-size: 15px;">Open the builder &rarr;</div>
+          <div style="font-size: 15px; color: #4890A8; border-bottom: 1px solid #A8C4CE; padding-bottom: 1px;">Repository</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- figure strip -->
+  <div style="padding: 44px 120px 0;">
+    <div style="background: #FBFCFC; border: 1px solid #CBD2D9; border-radius: 2px;">
+      <div class="mono" style="font-size: 12px; color: #5C6874; padding: 16px 28px; border-bottom: 1px solid #CBD2D9;">slot 445553238 &middot; 1,100 recorded &middot; 1,042 included &middot; policy d2fae9a2f6ea</div>
+      <div style="display: flex; padding: 26px 0 28px;">
+        <div style="flex: 1; padding: 0 28px;">
+          <div class="mono" style="font-size: 32px; line-height: 1.1;">334</div>
+          <div style="font-size: 11.5px; color: #5C6874; margin-top: 6px;">moved</div>
+        </div>
+        <div style="flex: 1; padding: 0 28px; border-left: 1px solid #CBD2D9;">
+          <div class="mono" style="font-size: 32px; line-height: 1.1;">4</div>
+          <div style="font-size: 11.5px; color: #5C6874; margin-top: 6px;">delayed</div>
+        </div>
+        <div style="flex: 1; padding: 0 28px; border-left: 1px solid #CBD2D9;">
+          <div class="mono" style="font-size: 32px; line-height: 1.1;">32</div>
+          <div style="font-size: 11.5px; color: #5C6874; margin-top: 6px;">dropped</div>
+        </div>
+        <div style="flex: 1; padding: 0 28px; border-left: 1px solid #CBD2D9;">
+          <div class="mono" style="font-size: 32px; line-height: 1.1;">26</div>
+          <div style="font-size: 11.5px; color: #5C6874; margin-top: 6px;">deferred</div>
+        </div>
+        <div style="flex: 1.15; padding: 0 28px; border-left: 1px solid #CBD2D9;">
+          <div class="mono" style="font-size: 32px; line-height: 1.1;">32.0&thinsp;%</div>
+          <div style="font-size: 11.5px; color: #5C6874; margin-top: 6px;">reordered</div>
+        </div>
+        <div style="flex: 1.35; padding: 0 28px; border-left: 1px solid #CBD2D9;">
+          <div class="mono" style="font-size: 32px; line-height: 1.1;">129<span style="font-size: 18px;">&thinsp;ms</span></div>
+          <div style="font-size: 11.5px; color: #5C6874; margin-top: 6px;">maximum added delay &middot; p50 0&thinsp;ms</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 12px; color: #5C6874; margin-top: 12px; max-width: 900px;">One run of the policy the application opens with. Recomputed for this page on 2026-09-25; the browser, the API and this page agree to the digit.</div>
+  </div>
+
+  <!-- ── 2 · what it does ─────────────────────────────────────────────────── -->
+  <div style="padding: 92px 120px 0;">
+    <div style="display: flex; gap: 28px; align-items: baseline; border-bottom: 1px solid #CBD2D9; padding-bottom: 14px;">
+      <div class="serif" style="width: 36px; flex: none; font-size: 30px; color: #4890A8;">2</div>
+      <h2 class="serif" style="margin: 0; font-size: 30px; font-weight: 400;">What it does</h2>
+    </div>
+    <div style="display: flex; margin-top: 34px; padding-left: 64px;">
+      <div style="flex: 1; padding-right: 36px;">
+        <h3 class="serif" style="margin: 0 0 12px; font-size: 19px; font-weight: 400;">Compose a policy</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;">Three primitives and no more: a <b style="font-weight: 600;">speed bump</b> that delays a class of transactions by a window, a <b style="font-weight: 600;">batch auction</b> that groups a window into one execution price with a deterministic order inside it, and <b style="font-weight: 600;">allow/deny</b> over named programs and signers. Ranges are checked before the run; a half-typed policy does not compile, and the policy&rsquo;s hash shows a dash until it does.</p>
+      </div>
+      <div style="flex: 1; padding: 0 36px; border-left: 1px solid #CBD2D9;">
+        <h3 class="serif" style="margin: 0 0 12px; font-size: 19px; font-weight: 400;">Run it on a block that happened</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;">Fifty-three recorded mainnet slots ship inside the repository, so the demo needs no RPC key, no account and no database. A run over a slot of up to 1,500 transactions takes <span class="mono">p50 1.5&thinsp;ms</span>, <span class="mono">p95 3.0&thinsp;ms</span> against a three-second budget, and fifty repeats of the same run are identical fifty times out of fifty.</p>
+      </div>
+      <div style="flex: 1; padding-left: 36px; border-left: 1px solid #CBD2D9;">
+        <h3 class="serif" style="margin: 0 0 12px; font-size: 19px; font-weight: 400;">Hand the result to someone else</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;">A policy is addressed by the hash of its own body, so <span class="mono" style="font-size: 13.5px;">#/p/&lt;hash&gt;/compare</span> opens that policy and its run on any machine. Asking for the same run twice returns the same run id instead of computing it again. A link is access: there is no sign-in, and nothing here is private.</p>
+      </div>
+    </div>
+
+    <!-- proof plate: screenshot of the comparison screen -->
+    <div style="margin: 48px 0 0; padding-left: 64px;">
+      <div style="border: 1px solid #CBD2D9; background: #EEF0F2; height: 392px; overflow: hidden;">
+        <svg width="1136" height="390" viewBox="0 0 1136 390" aria-hidden="true">
+          <rect x="0" y="0" width="1136" height="390" fill="#EEF0F2"/>
+          <text x="40" y="20" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" fill="#5C6874">OrderCraft &#160;&#160;Comparison &#160;&#160;&#8212;&#160;&#160; slot 445553238 &#183; 1,100 transactions &#183; recorded</text>
+          <rect x="40" y="28" width="1056" height="1" fill="#CBD2D9"/>
+          <text x="340" y="52" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10.5" fill="#5C6874">Recorded</text>
+          <text x="752" y="52" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10.5" fill="#5C6874">Under your policy</text>
+          <rect x="340" y="62" width="44" height="280" fill="#C6CED6"/>
+          <rect x="752" y="62" width="44" height="280" fill="#C6CED6"/>
+          <g stroke="#2B4C7E" stroke-width="0.7" opacity="0.45" fill="none">
+            <path d="M384 76 L752 134"/><path d="M384 92 L752 70"/><path d="M384 108 L752 188"/>
+            <path d="M384 124 L752 98"/><path d="M384 140 L752 244"/><path d="M384 156 L752 118"/>
+            <path d="M384 172 L752 286"/><path d="M384 188 L752 154"/><path d="M384 204 L752 312"/>
+            <path d="M384 220 L752 176"/><path d="M384 236 L752 208"/><path d="M384 252 L752 330"/>
+            <path d="M384 268 L752 226"/><path d="M384 284 L752 262"/><path d="M384 300 L752 298"/>
+            <path d="M384 316 L752 336"/><path d="M384 332 L752 252"/>
+          </g>
+          <rect x="40" y="358" width="1056" height="1" fill="#CBD2D9"/>
+          <text x="40" y="378" font-family="ui-monospace, Consolas, monospace" font-size="11" fill="#141A24">moved 334 &#160;&#160;delayed 4 &#160;&#160;dropped 32 &#160;&#160;deferred 26 &#160;&#160;reordered 32.0 % &#160;&#160;max 129 ms</text>
+        </svg>
+      </div>
+      <div style="font-size: 12px; color: #5C6874; margin-top: 10px;">The comparison screen. Each ribbon is one transaction moving from the position it held in the recorded block to the position your policy gives it; a column is 1,100 transactions drawn as texture, not as rows. Nothing on it is red: the detector reports no sandwich on this slot, and the screen does not pretend otherwise.</div>
+    </div>
+  </div>
+
+  <!-- ── 3 · how it works ─────────────────────────────────────────────────── -->
+  <div style="padding: 92px 120px 0;">
+    <div style="display: flex; gap: 28px; align-items: baseline; border-bottom: 1px solid #CBD2D9; padding-bottom: 14px;">
+      <div class="serif" style="width: 36px; flex: none; font-size: 30px; color: #4890A8;">3</div>
+      <h2 class="serif" style="margin: 0; font-size: 30px; font-weight: 400;">How it works, and what it assumes</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 34px 72px; margin-top: 34px; padding-left: 64px;">
+      <div style="display: flex; gap: 18px;">
+        <div class="serif mono" style="flex: none; font-size: 15px; color: #4890A8; padding-top: 2px;">1</div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="font-weight: 600; color: #141A24;">A policy is a sequence of steps.</b> Each step shifts time, marks a batch or drops a transaction. The order is decided once, at the end.</p>
+      </div>
+      <div style="display: flex; gap: 18px;">
+        <div class="serif mono" style="flex: none; font-size: 15px; color: #4890A8; padding-top: 2px;">2</div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="font-weight: 600; color: #141A24;">The ordering is computed once</b>, by <span class="mono" style="font-size: 13.5px;">(priority, time, original index, signature)</span>. The key ends in the signature, so a tie is impossible by construction and the same input always gives the same output.</p>
+      </div>
+      <div style="display: flex; gap: 18px;">
+        <div class="serif mono" style="flex: none; font-size: 15px; color: #4890A8; padding-top: 2px;">3</div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="font-weight: 600; color: #141A24;">Arrival time is a model, not a measurement.</b> A slot records order, not time, so <span class="mono" style="font-size: 13.5px;">arrival(i) = floor(i &times; 400 / N)</span>. 400&thinsp;ms is the protocol&rsquo;s nominal slot; our own cache measures about 317&thinsp;ms. The constant works as a scale, not a clock &mdash; the figures are the same under both &mdash; and the result screen says so.</p>
+      </div>
+      <div style="display: flex; gap: 18px;">
+        <div class="serif mono" style="flex: none; font-size: 15px; color: #4890A8; padding-top: 2px;">4</div>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="font-weight: 600; color: #141A24;">The metrics are descriptive, not counterfactual.</b> No price is modelled and no alternative execution is computed. Deferred is not dropped: a transaction pushed past the slot boundary was not refused, it would not have made the block on this scale, and the two are counted apart.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4 · what was measured ────────────────────────────────────────────── -->
+  <div style="padding: 92px 120px 0;">
+    <div style="display: flex; gap: 28px; align-items: baseline; border-bottom: 1px solid #CBD2D9; padding-bottom: 14px;">
+      <div class="serif" style="width: 36px; flex: none; font-size: 30px; color: #4890A8;">4</div>
+      <h2 class="serif" style="margin: 0; font-size: 30px; font-weight: 400;">What was measured</h2>
+    </div>
+
+    <div style="margin-top: 30px; padding-left: 64px;">
+      <div style="display: flex; font-size: 11.5px; color: #5C6874; border-bottom: 1px solid #141A24; padding-bottom: 8px;">
+        <div style="flex: 2.1;">Criterion</div>
+        <div style="flex: 2.3;">Budget</div>
+        <div style="flex: 1.5; text-align: right;">Measured</div>
+      </div>
+
+      <div style="display: flex; font-size: 15px; border-bottom: 1px solid #CBD2D9; padding: 15px 0; align-items: baseline;">
+        <div style="flex: 2.1;">Run time <span style="color: #5C6874;">SC-001</span></div>
+        <div style="flex: 2.3; color: #2A3442;">slot &le; 1,500 tx in under 3&thinsp;s, p95</div>
+        <div class="mono" style="flex: 1.5; text-align: right;">p50 1.5 ms / p95 3.0 ms</div>
+      </div>
+      <div style="display: flex; font-size: 15px; border-bottom: 1px solid #CBD2D9; padding: 15px 0; align-items: baseline;">
+        <div style="flex: 2.1;">Determinism <span style="color: #5C6874;">SC-002</span></div>
+        <div style="flex: 2.3; color: #2A3442;">50 repeats identical</div>
+        <div class="mono" style="flex: 1.5; text-align: right;">50 / 50</div>
+      </div>
+      <div style="display: flex; font-size: 15px; border-bottom: 1px solid #CBD2D9; padding: 15px 0; align-items: baseline;">
+        <div style="flex: 2.1;">First screen <span style="color: #5C6874;">SC-006</span></div>
+        <div style="flex: 2.3; color: #2A3442;">interactive under 2&thinsp;s on a 3G profile</div>
+        <div class="mono" style="flex: 1.5; text-align: right;">1,207 ms</div>
+      </div>
+      <div style="display: flex; font-size: 15px; border-bottom: 1px solid #CBD2D9; padding: 15px 0; align-items: baseline;">
+        <div style="flex: 2.1;">Clean clone <span style="color: #5C6874;">SC-009</span></div>
+        <div style="flex: 2.3; color: #2A3442;">demo reproduced in under 10 min</div>
+        <div class="mono" style="flex: 1.5; text-align: right;">~17 s</div>
+      </div>
+      <div style="display: flex; font-size: 15px; border-bottom: 1px solid #CBD2D9; padding: 15px 0; align-items: baseline;">
+        <div style="flex: 2.1;">Run idempotence</div>
+        <div style="flex: 2.3; color: #2A3442;">a repeated run is not computed twice</div>
+        <div class="mono" style="flex: 1.5; text-align: right;">same id, two machines</div>
+      </div>
+      <div style="display: flex; font-size: 15px; border-bottom: 1px solid #CBD2D9; padding: 15px 0; align-items: baseline; color: #C8402B;">
+        <div style="flex: 2.1;">Detector recall <span style="opacity: 0.75;">SC-003</span></div>
+        <div style="flex: 2.3;">&ge; 90 % on exhaustively labelled slots</div>
+        <div class="mono" style="flex: 1.5; text-align: right;">recall 0 of 1 &mdash; failed</div>
+      </div>
+
+      <div style="margin-top: 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 72px; font-size: 12.5px; line-height: 1.6; color: #5C6874;">
+        <div><b style="color: #141A24; font-weight: 600;">SC-006</b> &mdash; Lighthouse 12 on its own mobile profile (1,638&thinsp;Kbit/s, RTT 150&thinsp;ms, CPU &times;4) against the published site: performance 100, total blocking time 0&thinsp;ms, desktop profile 401&thinsp;ms. The first screen has room because it does not fetch the slot &mdash; 82&thinsp;KB of bundle; the half megabyte of recorded block arrives only on the screens that draw one.</div>
+        <div><b style="color: #141A24; font-weight: 600;">SC-009</b> &mdash; measured from a clean clone in a temporary directory with no <span class="mono">.env</span>, no RPC key and no database: clone 4&thinsp;s, install 8&thinsp;s, dev server 3&thinsp;s, walkthrough 2&thinsp;s.</div>
+        <div><b style="color: #141A24; font-weight: 600;">Idempotence</b> &mdash; the same run computed locally against the project&rsquo;s Postgres and asked for through the deployed API came back with the same id: 0.71&thinsp;s to compute, 0.33&thinsp;s to hand back. A unique key on <span class="mono">(policy hash, slot)</span> holds it, not a process.</div>
+        <div style="color: #C8402B;"><b style="font-weight: 600;">SC-003</b> &mdash; the detector is silent on the only confirmed attack in our set. Forty-two slots were labelled exhaustively, 271 leg pairs, and one sandwich was confirmed (<span class="mono">445694841 #341/344</span>, three of three blind labellers). The detector does not report it, because the round trip closed at a loss and the rule requires profit. Precision cannot be measured at all: nothing was reported. Dropping the profit check would give recall 1 of 1 at 13&thinsp;% precision against a 5&thinsp;% ceiling, so the rule stands until the denominator grows.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5 · what it does not do ──────────────────────────────────────────── -->
+  <div style="padding: 92px 120px 0;">
+    <div style="display: flex; gap: 28px; align-items: baseline; border-bottom: 1px solid #CBD2D9; padding-bottom: 14px;">
+      <div class="serif" style="width: 36px; flex: none; font-size: 30px; color: #4890A8;">5</div>
+      <h2 class="serif" style="margin: 0; font-size: 30px; font-weight: 400;">What it does not do</h2>
+    </div>
+    <div style="margin-top: 30px; padding-left: 64px; max-width: 1000px;">
+      <div style="border-bottom: 1px solid #CBD2D9; padding: 14px 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="color: #141A24; font-weight: 600;">There is no integration with Jito BAM, and there will not be one.</b> The plugin framework is closed and has no public SDK. Nothing here demonstrates that a policy works on a live validator, and no criterion claims it does.</div>
+      <div style="border-bottom: 1px solid #CBD2D9; padding: 14px 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="color: #141A24; font-weight: 600;">The detector finds nothing on the demo block.</b> The attack screen shows its empty state, and that is the measured result rather than a missing feature &mdash; see SC-003 above.</div>
+      <div style="border-bottom: 1px solid #CBD2D9; padding: 14px 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="color: #141A24; font-weight: 600;">Only sandwich.</b> Backrun arbitrage, JIT liquidity and liquidation races are not detected at all.</div>
+      <div style="border-bottom: 1px solid #CBD2D9; padding: 14px 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="color: #141A24; font-weight: 600;">Nothing is deployed on chain and no funds are held.</b> The simulator works with order and metadata; it does not reconstruct chain state and does not compute how a transaction would have executed in another order.</div>
+      <div style="border-bottom: 1px solid #CBD2D9; padding: 14px 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="color: #141A24; font-weight: 600;">There are no accounts, so there is no privacy.</b> A link is access. Do not put sensitive address lists in it.</div>
+      <div style="border-bottom: 1px solid #CBD2D9; padding: 14px 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><b style="color: #141A24; font-weight: 600;">The labels are not a human gold standard.</b> They were written by blind model agents, one slot each, with no access to the detector, its rule, the documentation or the network. That caveat travels with every figure the label set produces.</div>
+    </div>
+  </div>
+
+  <!-- ── 6 · questions ────────────────────────────────────────────────────── -->
+  <div style="padding: 92px 120px 0;">
+    <div style="display: flex; gap: 28px; align-items: baseline; border-bottom: 1px solid #CBD2D9; padding-bottom: 14px;">
+      <div class="serif" style="width: 36px; flex: none; font-size: 30px; color: #4890A8;">6</div>
+      <h2 class="serif" style="margin: 0; font-size: 30px; font-weight: 400;">Questions</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px 72px; margin-top: 32px; padding-left: 64px;">
+      <div>
+        <h3 class="serif" style="margin: 0 0 8px; font-size: 18px; font-weight: 400;">Does this protect my users?</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;">No. It shows what a policy would have done to a block that has already happened. It is a test bench, not production ordering, and there is no path from here to a live validator.</p>
+      </div>
+      <div>
+        <h3 class="serif" style="margin: 0 0 8px; font-size: 18px; font-weight: 400;">Do I need an RPC key, an account or a database?</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;">No. Fifty-three recorded slots are in the repository; <span class="mono" style="font-size: 13.5px;">pnpm install &amp;&amp; pnpm dev</span> is the whole demo. Keys matter only if you fetch slots of your own with the CLI.</p>
+      </div>
+      <div>
+        <h3 class="serif" style="margin: 0 0 8px; font-size: 18px; font-weight: 400;">Why does the test suite fail on purpose?</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;"><span class="mono" style="font-size: 13.5px;">pnpm gate</span> ends with 489 passed, 5 skipped and exactly one failure, and that failure is SC-003. It is a measurement, not a broken build; softening the threshold would make the number meaningless.</p>
+      </div>
+      <div>
+        <h3 class="serif" style="margin: 0 0 8px; font-size: 18px; font-weight: 400;">What is the 400&thinsp;ms?</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.62; color: #2A3442;">The protocol&rsquo;s nominal slot, used as the scale for modelled arrival times. Our cache measures about 317&thinsp;ms per slot. The run&rsquo;s figures are the same under either, which is why the constant is allowed to stay nominal &mdash; and why the result screen says it is a model.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 7 · footer ───────────────────────────────────────────────────────── -->
+  <div style="margin-top: auto; padding: 72px 120px 44px;">
+    <div style="border-top: 2px solid #141A24; padding-top: 22px; display: flex; justify-content: space-between; align-items: flex-start; gap: 72px;">
+      <div style="font-size: 13px; color: #5C6874; max-width: 700px; line-height: 1.6;">The API runs on a free plan and sleeps after fifteen quiet minutes; the first request after a silence can take the better part of a minute, and the screens that wait say why. The builder needs no API at all.</div>
+      <div style="text-align: right; font-size: 13px; color: #5C6874; line-height: 1.9;">
+        <div style="color: #4890A8;">github.com/ordercraft1234/OrderCraft</div>
+        <div>MIT licence</div>
+        <div class="mono" style="font-size: 12px;">v0.2.0 &middot; 2026-09-25</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

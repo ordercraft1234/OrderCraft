@@ -1,7 +1,21 @@
 {
   "artboards": [
-    { "file": "Policy.dc.html", "x": 0, "y": 0, "w": 1440, "h": 1024, "title": "1 · Policy" },
-    { "file": "Main.dc.html", "x": 1560, "y": 0, "w": 1440, "h": 1024, "title": "2 · Comparison" },
+    {
+      "file": "Policy.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1024,
+      "title": "1 · Policy"
+    },
+    {
+      "file": "Main.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1024,
+      "title": "2 · Comparison"
+    },
     {
       "file": "Attack.dc.html",
       "x": 3120,
@@ -17,6 +31,14 @@
       "w": 1440,
       "h": 1024,
       "title": "4 · Across many blocks"
+    },
+    {
+      "file": "landing.dc.html",
+      "x": 0,
+      "y": 1400,
+      "w": 1440,
+      "h": 4136,
+      "title": "5 · Landing"
     }
   ],
   "annotations": [
@@ -40,7 +62,16 @@
       "y": -260,
       "w": 700,
       "text": "T007, 2026-09-08. The class \"Swaps against pools under 24h old\" is removed: pool age cannot be derived from a slot. The demo policy now rests on \"Swaps above 5,000 USDC\" — the only expressive class that tells the attacker's legs from the victim without knowing addresses in advance.\n\nThree figures on the canvas are not yet checked against the implemented model and will be replaced by the run in T023:\n· the \"under policy\" positions (438 / 403 / 441 and the rest of the table) correspond to a shift of ~10 ms, not 120 ms: at N = 1,182 one position = 0.338 ms, so 120 ms = 355 positions;\n· deferred stands without a number — only a run gives it;\n· reordered 46.3 % is divided by recorded (1,182), whereas runMetrics divides by included."
+    },
+    {
+      "id": "landing-register",
+      "x": 0,
+      "y": 1200,
+      "w": 900,
+      "text": "T060, 2026-09-25. The landing, in the register of a report of measurement: the page's one honest claim is a measurement, and a report is the only frame in which a FAILED row is content rather than an apology.\nThree faces where the app has one - serif headings, sans prose, monospace figures. The app is an instrument; this is a document about the instrument.\nRed appears exactly twice on the page, both about SC-003. The proof plate deliberately carries no red marks: the detector reports no sandwich on slot 445553238, so a screenshot showing one would be a fabrication.\nFigures verified on 2026-09-25 by running apply + runMetrics over the shipped fixture, not copied from the docs."
     }
   ],
-  "launch": { "view": "canvas" }
+  "launch": {
+    "view": "canvas"
+  }
 }
