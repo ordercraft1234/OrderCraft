@@ -1,0 +1,645 @@
+/* OrderCraft landing — a measurement report.
+   No build step: this file is copied into the Pages artifact as it is. */
+
+:root {
+  --ground: #f4f6f7;
+  --inset: #fbfcfc;
+  --ink: #141a24;
+  --ink-prose: #2a3442;
+  --muted: #5c6874;
+  --hairline: #cbd2d9;
+  --accent: #4890a8;
+  --accent-underline: #a8c4ce;
+  /* The failed criterion only: the SC-003 row and its footnote. */
+  --failed: #c8402b;
+
+  --serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  --gutter: 64px;
+  --section-gap: 88px;
+  --side: 40px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-color: var(--accent-underline);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+b {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+p {
+  margin: 0;
+}
+
+.mono,
+code {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+code {
+  font-size: 0.9em;
+}
+
+.wrap {
+  max-width: calc(1200px + 2 * var(--side));
+  margin: 0 auto;
+  padding: 0 var(--side);
+}
+
+/* ── masthead ─────────────────────────────────────────────────────────── */
+
+.masthead {
+  border-bottom: 2px solid var(--ink);
+}
+
+.masthead .wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  padding-top: 28px;
+  padding-bottom: 18px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--serif);
+  font-size: 21px;
+}
+
+.brand img {
+  display: block;
+}
+
+.edition {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── sections ─────────────────────────────────────────────────────────── */
+
+main > section {
+  padding-top: var(--section-gap);
+}
+
+.section-head {
+  display: flex;
+  gap: 28px;
+  align-items: baseline;
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 14px;
+}
+
+.numeral {
+  flex: none;
+  width: 36px;
+  font-family: var(--serif);
+  color: var(--accent);
+}
+
+.section-head .numeral,
+h2 {
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  margin: 0;
+}
+
+.body {
+  padding-left: var(--gutter);
+  margin-top: 34px;
+}
+
+.source {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 12px;
+  max-width: 900px;
+}
+
+/* ── 1 · hero ─────────────────────────────────────────────────────────── */
+
+.hero {
+  padding-top: 72px;
+}
+
+.hero-row {
+  display: flex;
+  gap: 28px;
+}
+
+.hero .numeral {
+  font-size: 40px;
+  line-height: 1.05;
+}
+
+h1 {
+  font-size: 46px;
+  line-height: 1.16;
+  max-width: 900px;
+}
+
+.lede {
+  margin-top: 24px;
+  font-size: 17.5px;
+  line-height: 1.62;
+  max-width: 720px;
+  color: var(--ink-prose);
+}
+
+.actions {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px 26px;
+  font-size: 15px;
+}
+
+.button {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 2px;
+  text-decoration: none;
+}
+
+.button:hover {
+  background: #3b7b91;
+}
+
+.figures {
+  margin-top: 44px;
+  background: var(--inset);
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+}
+
+.figures-head {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.figures dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1.15fr 1.35fr;
+  padding: 26px 0 28px;
+}
+
+.figures dl > div {
+  display: flex;
+  flex-direction: column-reverse;
+  padding: 0 28px;
+}
+
+.figures dl > div + div {
+  border-left: 1px solid var(--hairline);
+}
+
+.figures dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.figures dd small {
+  font-size: 18px;
+}
+
+.figures dt {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* ── 2 · what it does ─────────────────────────────────────────────────── */
+
+.three {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.three > div {
+  padding: 0 36px;
+}
+
+.three > div:first-child {
+  padding-left: 0;
+}
+
+.three > div:last-child {
+  padding-right: 0;
+}
+
+.three > div + div {
+  border-left: 1px solid var(--hairline);
+}
+
+h3 {
+  font-size: 19px;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+.prose {
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--ink-prose);
+}
+
+.prose code {
+  font-size: 13.5px;
+}
+
+.plate {
+  margin: 48px 0 0;
+}
+
+.plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--hairline);
+  background: #eef0f2;
+}
+
+.plate figcaption {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 10px;
+  max-width: 900px;
+}
+
+/* ── 3 · how it works ─────────────────────────────────────────────────── */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 34px 72px;
+  counter-reset: step;
+}
+
+.steps li {
+  display: flex;
+  gap: 18px;
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  flex: none;
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--accent);
+  line-height: 1.62;
+}
+
+/* ── 4 · what was measured ────────────────────────────────────────────── */
+
+.criteria {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.criteria th {
+  font-weight: 400;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: left;
+  border-bottom: 1px solid var(--ink);
+  padding: 0 0 8px;
+}
+
+.criteria td {
+  border-bottom: 1px solid var(--hairline);
+  padding: 15px 0;
+  vertical-align: baseline;
+}
+
+.criteria td:nth-child(2) {
+  color: var(--ink-prose);
+  padding-right: 24px;
+}
+
+.criteria th:last-child,
+.criteria td:last-child {
+  text-align: right;
+}
+
+.criteria td:last-child {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+.criteria col.c1 {
+  width: 32%;
+}
+
+.criteria col.c2 {
+  width: 38%;
+}
+
+.criteria .id {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.criteria tr.failed td,
+.criteria tr.failed .id,
+.criteria tr.failed b {
+  color: var(--failed);
+}
+
+.notes {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 72px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.notes .failed,
+.notes .failed b {
+  color: var(--failed);
+}
+
+/* ── 5 · what it does not do ──────────────────────────────────────────── */
+
+.limits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 1000px;
+}
+
+.limits li {
+  border-bottom: 1px solid var(--hairline);
+  padding: 14px 0;
+}
+
+.limits li:first-child {
+  padding-top: 0;
+}
+
+/* ── 6 · questions ────────────────────────────────────────────────────── */
+
+.faq {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 72px;
+}
+
+.faq h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+/* ── 7 · footer ───────────────────────────────────────────────────────── */
+
+footer {
+  padding: 72px 0 44px;
+}
+
+footer .wrap > div {
+  border-top: 2px solid var(--ink);
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px 72px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+footer p {
+  max-width: 700px;
+}
+
+footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  line-height: 1.9;
+}
+
+/* ── narrow screens ───────────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  .three {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .three > div,
+  .three > div:first-child,
+  .three > div:last-child {
+    padding: 0;
+  }
+
+  .three > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--hairline);
+    padding-top: 28px;
+  }
+
+  .figures dl {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 24px;
+  }
+
+  .figures dl > div:nth-child(3n + 1) {
+    border-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --gutter: 0px;
+    --section-gap: 56px;
+    --side: 16px;
+  }
+
+  .hero {
+    padding-top: 40px;
+  }
+
+  .hero-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .hero .numeral {
+    font-size: 28px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  .lede {
+    font-size: 16.5px;
+  }
+
+  .section-head {
+    gap: 14px;
+  }
+
+  .section-head .numeral {
+    width: auto;
+  }
+
+  .section-head .numeral,
+  h2 {
+    font-size: 25px;
+  }
+
+  .body {
+    margin-top: 26px;
+  }
+
+  .figures-head {
+    padding: 14px 16px;
+  }
+
+  .figures dl {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 20px 0 22px;
+  }
+
+  .figures dl > div {
+    padding: 0 16px;
+  }
+
+  .figures dl > div:nth-child(3n + 1) {
+    border-left: 1px solid var(--hairline);
+  }
+
+  .figures dl > div:nth-child(2n + 1) {
+    border-left: 0;
+  }
+
+  .figures dd {
+    font-size: 26px;
+  }
+
+  .steps,
+  .notes,
+  .faq {
+    grid-template-columns: 1fr;
+  }
+
+  .steps {
+    gap: 24px;
+  }
+
+  .faq {
+    gap: 28px;
+  }
+
+  /* Three columns do not fit at phone width: the budget drops under the criterion. */
+  .criteria colgroup,
+  .criteria thead {
+    display: none;
+  }
+
+  .criteria tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 12px;
+    border-bottom: 1px solid var(--hairline);
+    padding: 12px 0;
+  }
+
+  .criteria tr:first-child {
+    border-top: 1px solid var(--ink);
+  }
+
+  .criteria td {
+    border: 0;
+    padding: 0;
+  }
+
+  .criteria td:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 13.5px;
+    color: var(--muted);
+    padding: 2px 0 0;
+  }
+
+  .criteria td:last-child {
+    white-space: normal;
+  }
+
+  footer .wrap > div {
+    flex-direction: column;
+  }
+
+  footer ul {
+    text-align: left;
+  }
+}

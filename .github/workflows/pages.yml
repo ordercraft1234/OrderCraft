@@ -1,8 +1,14 @@
-# Builds apps/web and publishes it to GitHub Pages on every push to main.
+# Publishes one GitHub Pages site with two directories on every push to main:
 #
-# The site is a project page, so it lives under https://<owner>.github.io/<repo>/ and
-# Vite needs that prefix as `base` — passed as BASE_PATH. A custom domain later means
-# setting the repository variable PAGES_BASE_PATH to "/" and nothing else.
+#   https://<owner>.github.io/<repo>/       the landing, apps/landing copied as it is
+#   https://<owner>.github.io/<repo>/app/   the application, apps/web built by Vite
+#
+# The site is a project page, so the application's assets need the `/<repo>/app/` prefix
+# as Vite's `base` — passed as BASE_PATH. Routes are hash-based, so no rewrite rule is
+# needed under either directory. Links handed out before the landing existed
+# (`/<repo>/#/p/<hash>`) are forwarded to `app/` by the landing's own index.html.
+# A custom domain later means setting the repository variable PAGES_BASE_PATH to
+# "/app/" and nothing else.
 #
 # Lint and typecheck run before the build; the test suite does not, on purpose: the
 # gate is red by measurement (SC-003, see README), and a deploy must not depend on a
@@ -39,15 +45,20 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm --filter @ordercraft/web build
         env:
-          BASE_PATH: ${{ vars.PAGES_BASE_PATH || format('/{0}/', github.event.repository.name) }}
+          BASE_PATH: ${{ vars.PAGES_BASE_PATH || format('/{0}/app/', github.event.repository.name) }}
           # Unset is a supported build, not a broken one: the app then computes runs in
           # the browser on the slot the repository ships, and says so on screen. Set the
           # repository variable API_URL to the deployed API and the site gains saving,
           # shareable links and stored runs.
           VITE_API_URL: ${{ vars.API_URL }}
+      # The landing has no build and no package.json, so the workspace never sees it.
+      - run: |
+          mkdir -p dist
+          cp -r apps/landing/. dist/
+          cp -r apps/web/dist dist/app
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/web/dist
+          path: dist
 
   deploy:
     needs: build

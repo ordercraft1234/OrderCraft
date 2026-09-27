@@ -18,8 +18,10 @@ this block", never "here is how you are protected".
 
 The kernel, the CLI and the four web screens run on a curated set of 53 real mainnet
 slots that live in this repository. The API, the Postgres schema and the shareable
-links are deployed: the site is at
-[ordercraft1234.github.io/OrderCraft](https://ordercraft1234.github.io/OrderCraft/)
+links are deployed: the application is at
+[ordercraft1234.github.io/OrderCraft/app/](https://ordercraft1234.github.io/OrderCraft/app/),
+the page in front of it at
+[ordercraft1234.github.io/OrderCraft](https://ordercraft1234.github.io/OrderCraft/),
 and it talks to `https://ordercraft-api.onrender.com`. Presets, batch runs and export
 are M3.
 
@@ -115,6 +117,7 @@ packages/fixtures   53 real slots (gzip), 42 label files (labels/), 20 cross-sig
 tools/slotctl       CLI: fetch · fill · scan · review · label · screen · cross · shape
 apps/api            Hono 4: /policies, /runs (idempotent on (hash, slot)), /slots, /slots/fetch
 apps/web            React 18 + Vite 5, hash router, four screens
+apps/landing        the static page in front of the app: no build, no dependencies
 design/             the M0 canvas sources (Claude Design artboards)
 ```
 
@@ -165,20 +168,23 @@ Two free accounts and one repository variable. Neither is needed to run the demo
 
 ### The web app — GitHub Pages
 
-`.github/workflows/pages.yml` builds `apps/web` on every push to `main` and publishes it
-to `https://ordercraft1234.github.io/OrderCraft/`. The workflow runs lint and typecheck
+`.github/workflows/pages.yml` publishes one site with two directories on every push to
+`main`: `apps/landing` copied as it is to `https://ordercraft1234.github.io/OrderCraft/`,
+and `apps/web` built into `https://ordercraft1234.github.io/OrderCraft/app/`. Links handed
+out before the landing existed (`…/OrderCraft/#/p/<hash>`) still work: the landing forwards
+any hash route to `app/` before it renders. The workflow runs lint and typecheck
 first, not the tests — the test suite is red by measurement (see above), and a deploy must
 not depend on that number. There is nothing to configure beyond the first run: GitHub
 enables Pages with the Actions source when `deploy-pages` runs for the first time; if it
 does not, set **Settings → Pages → Source** to *GitHub Actions* and re-run the workflow.
 
-Routes are hash-based (`#/compare`), so a project page under `/OrderCraft/` needs no
+Routes are hash-based (`#/compare`), so a project page under `/OrderCraft/app/` needs no
 rewrite rule — only the asset prefix, which Vite gets as `BASE_PATH`. A custom domain
-later means one repository variable, `PAGES_BASE_PATH=/`, and nothing in the code.
+later means one repository variable, `PAGES_BASE_PATH=/app/`, and nothing in the code.
 To check the Pages build locally:
 
 ```sh
-BASE_PATH=/OrderCraft/ pnpm --filter @ordercraft/web build   # MSYS_NO_PATHCONV=1 in Git Bash
+BASE_PATH=/OrderCraft/app/ pnpm --filter @ordercraft/web build   # MSYS_NO_PATHCONV=1 in Git Bash
 ```
 
 The API address is a repository **variable**, not a secret: it ends up in the bundle

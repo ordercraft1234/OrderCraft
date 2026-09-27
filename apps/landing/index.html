@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Links handed out before the landing existed point at the application's routes
+         under the site root (…/OrderCraft/#/p/<hash>). The application now lives in
+         app/, so any hash route is forwarded there before anything renders. -->
+    <script>
+      if (location.hash.startsWith('#/')) location.replace(`app/${location.hash}`)
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OrderCraft — what an ordering policy would do to a block</title>
+    <meta
+      name="description"
+      content="A visual builder for transaction-ordering policies with a simulator that replays them on recorded Solana mainnet slots. No integration with Jito BAM."
+    />
+    <link rel="canonical" href="https://ordercraft1234.github.io/OrderCraft/" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OrderCraft" />
+    <meta property="og:title" content="OrderCraft — what an ordering policy would do to a block" />
+    <meta
+      property="og:description"
+      content="Compose a policy from three primitives, run it on a Solana block that actually happened, and read what it moved, delayed, dropped and deferred."
+    />
+    <meta property="og:url" content="https://ordercraft1234.github.io/OrderCraft/" />
+    <meta property="og:image" content="https://ordercraft1234.github.io/OrderCraft/assets/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The OrderCraft mark beside the words: what your ordering policy would have done to a real block."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="wrap">
+        <a class="brand" href="./" aria-label="OrderCraft, home">
+          <img src="assets/logo.svg" width="30" height="30" alt="" />
+          OrderCraft
+        </a>
+        <div class="edition mono">Measurement report · v0.2.0 · September 2026</div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- 1 · hero -->
+      <section class="hero" aria-labelledby="s1">
+        <div class="hero-row">
+          <div class="numeral" aria-hidden="true">1</div>
+          <div>
+            <h1 id="s1">See what an ordering policy would have done to a real block.</h1>
+            <p class="lede">
+              OrderCraft is a visual builder for transaction-ordering policies with a simulator
+              that replays them on recorded Solana mainnet slots. Compose a policy from three
+              primitives, run it on a block that actually happened, and read what it moved,
+              delayed, dropped and deferred — before anyone writes a line of validator code.
+            </p>
+            <div class="actions">
+              <a class="button" href="app/#/">Open the builder →</a>
+              <a href="https://github.com/ordercraft1234/OrderCraft">Repository</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="figures">
+          <div class="figures-head mono">
+            slot 445553238 · 1,100 recorded · 1,042 included · policy d2fae9a2f6ea
+          </div>
+          <dl>
+            <div><dt>moved</dt><dd>334</dd></div>
+            <div><dt>delayed</dt><dd>4</dd></div>
+            <div><dt>dropped</dt><dd>32</dd></div>
+            <div><dt>deferred</dt><dd>26</dd></div>
+            <div><dt>reordered</dt><dd>32.0&thinsp;%</dd></div>
+            <div>
+              <dt>maximum added delay · p50 0&thinsp;ms</dt>
+              <dd>129<small>&thinsp;ms</small></dd>
+            </div>
+          </dl>
+        </div>
+        <p class="source">
+          One run of the policy the application opens with. Recomputed for this page on
+          2026-09-25; the browser, the API and this page agree to the digit.
+        </p>
+      </section>
+
+      <!-- 2 · what it does -->
+      <section aria-labelledby="s2">
+        <div class="section-head">
+          <div class="numeral" aria-hidden="true">2</div>
+          <h2 id="s2">What it does</h2>
+        </div>
+        <div class="body">
+          <div class="three">
+            <div>
+              <h3>Compose a policy</h3>
+              <p class="prose">
+                Three primitives and no more: a <b>speed bump</b> that delays a class of
+                transactions by a window, a <b>batch auction</b> that groups a window into one
+                execution price with a deterministic order inside it, and <b>allow/deny</b> over
+                named programs and signers. Ranges are checked before the run; a half-typed
+                policy does not compile, and the policy’s hash shows a dash until it does.
+              </p>
+            </div>
+            <div>
+              <h3>Run it on a block that happened</h3>
+              <p class="prose">
+                Fifty-three recorded mainnet slots ship inside the repository, so the demo needs
+                no RPC key, no account and no database. A run over a slot of up to 1,500
+                transactions takes <b class="mono">p50 1.5&thinsp;ms, p95 3.0&thinsp;ms</b>
+                against a three-second budget, and fifty repeats of the same run are identical
+                <b>fifty times out of fifty</b>.
+              </p>
+            </div>
+            <div>
+              <h3>Hand the result to someone else</h3>
+              <p class="prose">
+                A policy is addressed by the hash of its own body, so
+                <code>#/p/&lt;hash&gt;/compare</code> opens that policy and its run on any
+                machine. Asking for the same run twice returns the same run id instead of
+                computing it again — measured across two machines, not just inside one process.
+                A link is access: there is no sign-in, and nothing here is private.
+              </p>
+            </div>
+          </div>
+
+          <figure class="plate">
+            <img
+              src="assets/compare.webp"
+              width="1265"
+              height="910"
+              alt="The comparison screen of OrderCraft on slot 445553238: two columns of transactions, the recorded block and the block under the demo policy, joined by one ribbon per transaction, with the run's figures beneath."
+            />
+            <figcaption>
+              The comparison screen. Each ribbon is one transaction moving from the position it
+              held in the recorded block to the position your policy gives it; a column is 1,100
+              transactions drawn as texture, not as rows. Nothing on it is red: the detector
+              reports no sandwich on this slot, and the screen does not pretend otherwise.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 3 · how it works -->
+      <section aria-labelledby="s3">
+        <div class="section-head">
+          <div class="numeral" aria-hidden="true">3</div>
+          <h2 id="s3">How it works, and what it assumes</h2>
+        </div>
+        <div class="body">
+          <ol class="steps prose">
+            <li>
+              <p>
+                <b>A policy is a sequence of steps.</b> Each step shifts time, marks a batch or
+                drops a transaction. The order is decided once, at the end.
+              </p>
+            </li>
+            <li>
+              <p>
+                <b><code>apply</code> sorts once</b>, by
+                <code>(priority, time, original index, signature)</code>. The key ends in the
+                signature, so a tie is impossible by construction and the same input always
+                gives the same output.
+              </p>
+            </li>
+            <li>
+              <p>
+                <b>Arrival time is a model, not a measurement.</b> A slot records order, not
+                time, so <code>arrival(i) = floor(i × 400 / N)</code>. 400&thinsp;ms is the
+                protocol’s nominal slot; our own cache measures about <b>317&thinsp;ms</b> per
+                slot. The constant works as a scale, not a clock — the figures are the same under
+                both — and the result screen says so.
+              </p>
+            </li>
+            <li>
+              <p>
+                <b>The metrics are descriptive, not counterfactual.</b> No price is modelled and
+                no alternative execution is computed. <b>Deferred is not dropped</b>: a
+                transaction pushed past the slot boundary was not refused, it would not have made
+                the block on this scale, and the two are counted separately.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- 4 · what was measured -->
+      <section aria-labelledby="s4">
+        <div class="section-head">
+          <div class="numeral" aria-hidden="true">4</div>
+          <h2 id="s4">What was measured</h2>
+        </div>
+        <div class="body">
+          <table class="criteria">
+            <colgroup>
+              <col class="c1" />
+              <col class="c2" />
+              <col />
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col">Criterion</th>
+                <th scope="col">Budget</th>
+                <th scope="col">Measured</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Run time <span class="id">SC-001</span></td>
+                <td>slot ≤ 1,500 tx in under 3&thinsp;s, p95</td>
+                <td>p50 1.5 ms / p95 3.0 ms</td>
+              </tr>
+              <tr>
+                <td>Determinism <span class="id">SC-002</span></td>
+                <td>50 repeats identical</td>
+                <td>50 / 50</td>
+              </tr>
+              <tr>
+                <td>First screen <span class="id">SC-006</span></td>
+                <td>interactive under 2&thinsp;s on a 3G profile</td>
+                <td><b>1,207 ms</b></td>
+              </tr>
+              <tr>
+                <td>Clean clone <span class="id">SC-009</span></td>
+                <td>demo reproduced in under 10 min</td>
+                <td><b>~17 s</b></td>
+              </tr>
+              <tr>
+                <td>Run idempotence</td>
+                <td>a repeated run is not computed twice</td>
+                <td>same id, two machines</td>
+              </tr>
+              <tr class="failed">
+                <td>Detector recall <span class="id">SC-003</span></td>
+                <td>≥ 90 % on exhaustively labelled slots</td>
+                <td><b>recall 0 of 1 — failed</b></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ul class="notes">
+            <li>
+              <b>SC-006</b> — measured with Lighthouse 12 on its own mobile profile
+              (<span class="mono">1,638&thinsp;Kbit/s, RTT 150&thinsp;ms, CPU ×4</span>) against the
+              published site: performance <span class="mono">100</span>, total blocking time
+              <span class="mono">0&thinsp;ms</span>, desktop profile
+              <span class="mono">401&thinsp;ms</span>. The first screen has room because it does
+              not fetch the slot — <span class="mono">82&thinsp;KB</span> of bundle; the half
+              megabyte of recorded block arrives only on the screens that draw one.
+            </li>
+            <li>
+              <b>SC-009</b> — measured from a clean clone in a temporary directory with no
+              <code>.env</code>, no RPC key and no database: clone
+              <span class="mono">4&thinsp;s</span>, install <span class="mono">8&thinsp;s</span>,
+              dev server <span class="mono">3&thinsp;s</span>, walkthrough
+              <span class="mono">2&thinsp;s</span>.
+            </li>
+            <li>
+              <b>Idempotence</b> — the same run computed locally against the project’s Postgres
+              and asked for through the deployed API came back with the same id —
+              <span class="mono">0.71&thinsp;s</span> to compute,
+              <span class="mono">0.33&thinsp;s</span> to hand back. A unique key on
+              <code>(policy hash, slot)</code> holds it, not a process.
+            </li>
+            <li class="failed">
+              <b>SC-003 — the detector is silent on the only confirmed attack in our set.</b>
+              Forty-two slots were labelled exhaustively — <span class="mono">271</span> leg pairs
+              — and one sandwich was confirmed (<span class="mono">445694841 #341/344</span>,
+              three of three blind labellers). The detector does not report it, because the round
+              trip closed at a loss and the rule requires profit. Precision cannot be measured at
+              all: nothing was reported. Dropping the profit check would give recall 1 of 1 at
+              <span class="mono">13&thinsp;%</span> precision against a
+              <span class="mono">5&thinsp;%</span> ceiling, so the rule stands until the
+              denominator grows.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 5 · what it does not do -->
+      <section aria-labelledby="s5">
+        <div class="section-head">
+          <div class="numeral" aria-hidden="true">5</div>
+          <h2 id="s5">What it does not do</h2>
+        </div>
+        <div class="body">
+          <ul class="limits prose">
+            <li>
+              <b>There is no integration with Jito BAM, and there will not be one.</b> The plugin
+              framework is closed and has no public SDK. Nothing here demonstrates that a policy
+              works on a live validator, and no criterion claims it does.
+            </li>
+            <li>
+              <b>The detector finds nothing on the demo block.</b> The attack screen shows its
+              empty state, and that is the measured result rather than a missing feature — see
+              SC-003 above.
+            </li>
+            <li>
+              <b>Only sandwich.</b> Backrun arbitrage, JIT liquidity and liquidation races are not
+              detected at all.
+            </li>
+            <li>
+              <b>Nothing is deployed on chain and no funds are held.</b> The simulator works with
+              order and metadata; it does not reconstruct chain state and does not compute how a
+              transaction would have executed in another order.
+            </li>
+            <li>
+              <b>There are no accounts, so there is no privacy.</b> A link is access. Do not put
+              sensitive address lists in it.
+            </li>
+            <li>
+              <b>The labels are not a human gold standard.</b> They were written by blind model
+              agents, one slot each, with no access to the detector, its rule, the documentation
+              or the network. That caveat travels with every figure the label set produces.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 6 · questions -->
+      <section aria-labelledby="s6">
+        <div class="section-head">
+          <div class="numeral" aria-hidden="true">6</div>
+          <h2 id="s6">Questions</h2>
+        </div>
+        <div class="body faq">
+          <div>
+            <h3>Does this protect my users?</h3>
+            <p class="prose">
+              No. It shows what a policy would have done to a block that has already happened. It
+              is a test bench, not production ordering, and there is no path from here to a live
+              validator.
+            </p>
+          </div>
+          <div>
+            <h3>Do I need an RPC key, an account or a database?</h3>
+            <p class="prose">
+              No. Fifty-three recorded slots are in the repository;
+              <code>pnpm install &amp;&amp; pnpm dev</code> is the whole demo. Keys matter only if
+              you fetch slots of your own with the CLI.
+            </p>
+          </div>
+          <div>
+            <h3>Why does the test suite fail on purpose?</h3>
+            <p class="prose">
+              <code>pnpm gate</code> ends with 489 passed, 5 skipped and exactly one failure, and
+              that failure is SC-003. It is a measurement, not a broken build; softening the
+              threshold would make the number meaningless.
+            </p>
+          </div>
+          <div>
+            <h3>What is the 400&thinsp;ms?</h3>
+            <p class="prose">
+              The protocol’s nominal slot, used as the scale for modelled arrival times. Our cache
+              measures about 317&thinsp;ms per slot. The run’s figures are the same under either,
+              which is why the constant is allowed to stay nominal — and why the result screen
+              says it is a model.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 7 · footer -->
+    <footer>
+      <div class="wrap">
+        <div>
+          <p>
+            The API runs on a free plan and sleeps after fifteen quiet minutes; the first request
+            after a silence can take the better part of a minute, and the screens that wait say
+            why. The builder needs no API at all.
+          </p>
+          <ul>
+            <li><a href="https://github.com/ordercraft1234/OrderCraft">github.com/ordercraft1234/OrderCraft</a></li>
+            <li><a href="mailto:ordercraft@ukr.net">ordercraft@ukr.net</a></li>
+            <li>
+              <a href="https://github.com/ordercraft1234/OrderCraft/blob/main/LICENSE">MIT licence</a>
+            </li>
+            <li class="mono">v0.2.0 · 2026-09-25</li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
