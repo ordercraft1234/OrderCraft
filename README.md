@@ -239,3 +239,7 @@ does nothing without it.
   the formatter; their structure is checked by schema in the tests instead.
 - One task, one commit. The commit message says what was measured and why the
   decision went the way it did.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
