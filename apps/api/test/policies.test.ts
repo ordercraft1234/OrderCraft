@@ -51,7 +51,7 @@ describe('POST /policies', () => {
       await (
         await h.api('/policies', {
           method: 'POST',
-          json: { body: revised, policyId: first.policyId, presetId: 'fair-launch' },
+          json: { body: revised, policyId: first.policyId, presetId: 'anti-snipe-launch' },
         })
       ).json(),
     )
@@ -61,7 +61,19 @@ describe('POST /policies', () => {
     const shelf = policyViewSchema.parse(await (await h.api(`/policies/${first.policyId}`)).json())
     expect(shelf.versions).toHaveLength(2)
     expect(shelf.versions[0]?.hash).toBe(second.hash)
-    expect(shelf.versions[0]?.presetId).toBe('fair-launch')
+    expect(shelf.versions[0]?.presetId).toBe('anti-snipe-launch')
+  })
+
+  it('refuses an origin the preset library does not ship', async () => {
+    const response = await h.api('/policies', {
+      method: 'POST',
+      json: { body: { ...POLICY, name: 'from nowhere' }, presetId: 'fair-launch' },
+    })
+    expect(response.status).toBe(400)
+
+    const { error } = apiErrorSchema.parse(await response.json())
+    expect(error.code).toBe('INVALID_INPUT')
+    expect(error.details.issues).toMatchObject([{ path: ['presetId'] }])
   })
 
   it('refuses a shelf that does not exist', async () => {

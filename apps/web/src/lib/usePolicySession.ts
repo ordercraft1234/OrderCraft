@@ -1,8 +1,9 @@
-import { policyHash } from '@ordercraft/core'
+import { type Preset, policyHash } from '@ordercraft/core'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from './api.ts'
 import { demoDraft } from './demoPolicy.ts'
 import { type DraftResult, type PolicyDraft, policyToDraft, toPolicy } from './policyDraft.ts'
+import { isUnsaved } from './presetChoice.ts'
 
 /** What became of the attempt to open the policy an address named. */
 export type PolicyLoad =
@@ -19,7 +20,18 @@ export interface PolicySession {
   /** Whether this exact content is known to be stored, and so has a link. */
   stored: boolean
   load: PolicyLoad
+  /**
+   * The preset this policy started from, or `null` (FR-015). It survives editing — a
+   * policy far from its preset still came from it — and changes only when another
+   * preset is chosen or a link is opened, which brings the stored origin with it. It
+   * may name a preset this build does not ship, if the stored version says so.
+   */
+  origin: string | null
+  /** Whether replacing the draft now would lose something that exists only in this tab. */
+  unsaved: boolean
   edit: (draft: PolicyDraft) => void
+  /** Replaces the draft with the preset and records it as the origin. */
+  choosePreset: (preset: Preset) => void
   /** Called by whoever saved it — the builder's button, or the run that stored it first. */
   markStored: (hash: string) => void
 }
@@ -43,12 +55,16 @@ export interface PolicySession {
  */
 export function usePolicySession(linkHash: string | null): PolicySession {
   const [draft, setDraft] = useState<PolicyDraft>(demoDraft)
+  const [origin, setOrigin] = useState<string | null>(null)
   const [load, setLoad] = useState<PolicyLoad>({ status: 'idle' })
   const [known, setKnown] = useState<ReadonlySet<string>>(() => new Set())
   const handled = useRef<string | null>(null)
 
   const parsed = useMemo(() => toPolicy(draft), [draft])
   const draftHash = useMemo(() => (parsed.ok ? policyHash(parsed.policy) : null), [parsed])
+  // What the app itself last put on screen. Starts as the demo, whose hash is simply
+  // the first one the draft produces.
+  const [baselineHash, setBaselineHash] = useState<string | null>(draftHash)
 
   const markStored = useCallback((hash: string) => {
     handled.current = hash
@@ -85,6 +101,8 @@ export function usePolicySession(linkHash: string | null): PolicySession {
         // again rather than show whatever this tab happened to hold.
         handled.current = version.hash
         setDraft(policyToDraft(version.body))
+        setOrigin(version.presetId)
+        setBaselineHash(version.hash)
         setKnown((current) => new Set(current).add(version.hash))
         setLoad({ status: 'idle' })
       },
@@ -106,13 +124,25 @@ export function usePolicySession(linkHash: string | null): PolicySession {
     setLoad((current) => (current.status === 'failed' ? { status: 'idle' } : current))
   }, [])
 
+  const choosePreset = useCallback((preset: Preset) => {
+    setDraft(policyToDraft(preset.policy))
+    setOrigin(preset.id)
+    setBaselineHash(policyHash(preset.policy))
+    setLoad((current) => (current.status === 'failed' ? { status: 'idle' } : current))
+  }, [])
+
+  const stored = draftHash !== null && known.has(draftHash)
+
   return {
     draft,
     parsed,
     draftHash,
-    stored: draftHash !== null && known.has(draftHash),
+    stored,
     load,
+    origin,
+    unsaved: isUnsaved({ draftHash, baselineHash, stored }),
     edit,
+    choosePreset,
     markStored,
   }
 }

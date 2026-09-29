@@ -1,4 +1,4 @@
-import { policyHash } from '@ordercraft/core'
+import { PRESETS, policyHash } from '@ordercraft/core'
 import { describe, expect, it } from 'vitest'
 import {
   createPolicyRequestSchema,
@@ -18,10 +18,29 @@ describe('POST /policies', () => {
     const request = createPolicyRequestSchema.parse({
       body: POLICY,
       policyId: RUN_ID,
-      presetId: 'fair-launch',
+      presetId: 'anti-snipe-launch',
     })
     expect(request.policyId).toBe(RUN_ID)
-    expect(request.presetId).toBe('fair-launch')
+    expect(request.presetId).toBe('anti-snipe-launch')
+  })
+
+  it('accepts every preset the library ships', () => {
+    for (const preset of PRESETS) {
+      expect(
+        createPolicyRequestSchema.safeParse({ body: POLICY, presetId: preset.id }).success,
+      ).toBe(true)
+    }
+  })
+
+  /**
+   * An origin that names nothing would be stored and handed back to every screen that
+   * opens the link, which would then have no preset to compare against.
+   */
+  it('refuses a well-formed id of a preset that does not exist', () => {
+    const result = createPolicyRequestSchema.safeParse({ body: POLICY, presetId: 'fair-launch' })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0]?.path).toEqual(['presetId'])
+    expect(result.error?.issues[0]?.message).toContain('anti-snipe-launch')
   })
 
   it('has no name outside the body', () => {
@@ -69,6 +88,22 @@ describe('policy views', () => {
       createdAt: CREATED_AT,
     })
     expect(view.body).toEqual(POLICY)
+  })
+
+  /**
+   * Reading stays with the shape alone. The write side is where an unknown origin is
+   * refused; a stored value the library no longer recognises is still something the
+   * screen has to show honestly, not a link that fails to open.
+   */
+  it('a version read back keeps an origin the library does not ship', () => {
+    const view = policyVersionViewSchema.parse({
+      hash,
+      policyId: RUN_ID,
+      body: POLICY,
+      presetId: 'fair-launch',
+      createdAt: CREATED_AT,
+    })
+    expect(view.presetId).toBe('fair-launch')
   })
 
   it('a timestamp with an offset is refused', () => {

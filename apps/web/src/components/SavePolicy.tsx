@@ -1,6 +1,7 @@
 import type { Policy } from '@ordercraft/core'
 import { type ReactNode, useState } from 'react'
 import { ApiFailure, api } from '../lib/api.ts'
+import { recordable } from '../lib/presetChoice.ts'
 import { toHash } from '../lib/router.ts'
 import { policyLink } from '../lib/useLocation.ts'
 
@@ -14,9 +15,16 @@ interface SavePolicyProps {
   onStored: (hash: string) => void
   /** Why it cannot be saved yet, in the builder's own words, or `null`. */
   blocked: string | null
+  /** The preset the policy started from, recorded with the version when it is new. */
+  origin: string | null
 }
 
-type SaveState = { status: 'idle' } | { status: 'saving' } | { status: 'failed'; reason: string }
+type SaveState =
+  | { status: 'idle' }
+  | { status: 'saving' }
+  | { status: 'failed'; reason: string }
+  /** Saved, and whether the content was already there — its origin then predates us. */
+  | { status: 'saved'; created: boolean; origin: string | null }
 
 /**
  * Saving a policy, and the sentence that has to appear with the link (FR-020, T046).
@@ -26,7 +34,7 @@ type SaveState = { status: 'idle' } | { status: 'saving' } | { status: 'failed';
  * about to send to a colleague it is the one fact they need — there is no sign-in here,
  * and a link is the whole of the access control.
  */
-export function SavePolicy({ policy, hash, stored, onStored, blocked }: SavePolicyProps) {
+export function SavePolicy({ policy, hash, stored, onStored, blocked, origin }: SavePolicyProps) {
   const [state, setState] = useState<SaveState>({ status: 'idle' })
   // Bound to a local so the click handler below keeps the narrowing: an imported
   // binding is not narrowed inside a closure, however constant it is.
@@ -46,11 +54,12 @@ export function SavePolicy({ policy, hash, stored, onStored, blocked }: SavePoli
   const save = () => {
     if (policy === null) return
     setState({ status: 'saving' })
+    const recorded = recordable(origin)
 
-    client.savePolicy(policy).then(
+    client.savePolicy(policy, recorded).then(
       (saved) => {
         onStored(saved.hash)
-        setState({ status: 'idle' })
+        setState({ status: 'saved', created: saved.created, origin: recorded })
       },
       (error: unknown) => setState({ status: 'failed', reason: reasonOf(error) }),
     )
@@ -74,6 +83,13 @@ export function SavePolicy({ policy, hash, stored, onStored, blocked }: SavePoli
 
       {state.status === 'failed' ? (
         <div className="max-w-[620px] text-[12px] text-extracted">{state.reason}</div>
+      ) : null}
+
+      {stored && state.status === 'saved' && !state.created && state.origin !== null ? (
+        <div className="max-w-[620px] text-[12px] text-muted">
+          This exact policy was already stored, so the link keeps the origin its first save
+          recorded. The origin is not part of the hash; one content has one address.
+        </div>
       ) : null}
 
       {stored && hash !== null ? <Link hash={hash} /> : null}

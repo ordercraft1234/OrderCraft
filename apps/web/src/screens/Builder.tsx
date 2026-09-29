@@ -1,6 +1,8 @@
 import { POLICY_SCHEMA_VERSION, PRIMITIVES, validatePolicy } from '@ordercraft/core'
 import { DEMO_SLOT } from '@ordercraft/fixtures'
 import { useMemo } from 'react'
+import { PresetDiff } from '../components/PresetDiff.tsx'
+import { PresetLibrary } from '../components/PresetLibrary.tsx'
 import { SavePolicy } from '../components/SavePolicy.tsx'
 import { Screen } from '../components/Screen.tsx'
 import { fieldClass } from '../components/SelectorEditor.tsx'
@@ -34,7 +36,7 @@ interface BuilderProps {
 }
 
 export function Builder({ session }: BuilderProps) {
-  const { draft, parsed, draftHash: hash, stored, edit: setDraft, markStored } = session
+  const { draft, parsed, draftHash: hash, stored, edit: setDraft, markStored, origin } = session
 
   const validation = useMemo(() => (parsed.ok ? validatePolicy(parsed.policy) : null), [parsed])
 
@@ -59,6 +61,8 @@ export function Builder({ session }: BuilderProps) {
               </span>
             ))}
           </label>
+
+          <PresetDiff origin={origin} parsed={parsed} />
 
           <div className="flex flex-col">
             <div className="border-b border-hairline pb-2 text-[11px] uppercase tracking-[0.16em] text-muted">
@@ -111,6 +115,7 @@ export function Builder({ session }: BuilderProps) {
             stored={stored}
             onStored={markStored}
             blocked={reasonNotRunnable(errors.length, blockingIssues.length)}
+            origin={origin}
           />
         </div>
 
@@ -143,10 +148,11 @@ export function Builder({ session }: BuilderProps) {
             ))}
           </div>
 
-          <div className="text-[12px] text-muted">
-            Presets are not built yet — T036. Until then a policy starts from one step and is edited
-            by hand.
-          </div>
+          <PresetLibrary
+            origin={origin}
+            unsaved={session.unsaved}
+            onChoose={session.choosePreset}
+          />
         </div>
       </div>
     </Screen>

@@ -19,7 +19,7 @@ const number = new Intl.NumberFormat('en-US')
  * figures are the same either way and the screen prints which it was underneath.
  */
 export function Compare({ session }: { session: PolicySession }) {
-  const run = useRun(session.parsed, session.draftHash, session.markStored)
+  const run = useRun(session.parsed, session.draftHash, session.markStored, session.origin)
 
   if (run.status === 'loading') {
     return (

@@ -51,8 +51,12 @@ export class ApiFailure extends Error {
 export interface ApiClient {
   /** The base address, for printing in a message about it. */
   readonly url: string
-  /** Idempotent on the body's content: a hash already stored comes back `created: false`. */
-  savePolicy(body: Policy): Promise<CreatePolicyResponse>
+  /**
+   * Idempotent on the body's content: a hash already stored comes back `created: false`.
+   * `presetId` is the origin recorded with the version (FR-015); it is not part of the
+   * hash, so a content saved before keeps the origin its first save gave it.
+   */
+  savePolicy(body: Policy, presetId?: string | null): Promise<CreatePolicyResponse>
   readPolicyVersion(hash: string): Promise<PolicyVersionView>
   /** Idempotent on `(hash, slot)`: the second call returns the first run. */
   requestRun(hash: string, slot: number): Promise<Run>
@@ -97,11 +101,11 @@ export function createClient(url: string, send: typeof fetch = fetch): ApiClient
 
   return {
     url,
-    savePolicy: (body) =>
+    savePolicy: (body, presetId = null) =>
       call('/policies', createPolicyResponseSchema, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ body }),
+        body: JSON.stringify(presetId === null ? { body } : { body, presetId }),
       }),
     readPolicyVersion: (hash) => call(`/policies/hash/${hash}`, policyVersionViewSchema),
     requestRun: (hash, slot) =>

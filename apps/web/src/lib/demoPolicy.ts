@@ -15,6 +15,11 @@ import type { PolicyDraft } from './policyDraft.ts'
  * transactions against wSOL's 147, and a threshold on the thinner of the two would select
  * five transactions and call itself a policy.
  *
+ * **Renamed 2026-09-29 (T062)** from "Anti-snipe launch", which is now the name of a
+ * preset with a different class. The demo is not a preset — it denies three signers of
+ * one block — and under a preset's name it would claim an origin it does not have. The
+ * rename moved the hash and nothing else; the landing page names the new one.
+ *
  * Replacing the fixture invalidates these numbers. `demoPolicy.test.ts` runs the
  * policy against the shipped slot and fails when the class stops selecting anything.
  */
@@ -42,7 +47,7 @@ const BUSIEST = [
  */
 export function demoDraft(): PolicyDraft {
   return {
-    name: 'Anti-snipe launch',
+    name: 'Demo: large wSOL swaps, slot 445553238',
     steps: [
       {
         kind: 'speedBump',

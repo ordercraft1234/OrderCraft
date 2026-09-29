@@ -15,6 +15,7 @@ import { type Attack, hydrateOrdering } from '@ordercraft/shared'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { type ApiClient, ApiFailure, api } from './api.ts'
 import type { DraftResult } from './policyDraft.ts'
+import { recordable } from './presetChoice.ts'
 import { useDemoSlot } from './useDemoSlot.ts'
 
 /** One policy against one recorded block: the same four answers from either source. */
@@ -67,6 +68,7 @@ export function useRun(
   parsed: DraftResult,
   hash: string | null,
   onStored: (hash: string) => void,
+  origin: string | null,
 ): RunState {
   const slot = useDemoSlot()
   const policy = parsed.ok ? parsed.policy : null
@@ -78,6 +80,10 @@ export function useRun(
   // re-rendering cannot restart a run that is already in flight.
   const stored = useRef(onStored)
   stored.current = onStored
+  // The same for the origin: it is recorded with the version if this run is what
+  // stores it first, but choosing it again must not start the run over.
+  const recordedOrigin = useRef(origin)
+  recordedOrigin.current = origin
 
   useEffect(() => {
     if (policy === null || hash === null || bundle === null || !runnable) return
@@ -85,7 +91,7 @@ export function useRun(
     let live = true
     setState({ status: 'loading', stage: 'run' })
 
-    runFor(policy, hash, bundle).then(
+    runFor(policy, hash, bundle, recordable(recordedOrigin.current)).then(
       (data) => {
         if (!live) return
         if (data.source === 'api') stored.current(hash)
@@ -109,13 +115,20 @@ export function useRun(
   return state
 }
 
-function runFor(policy: Policy, hash: string, bundle: SlotBundle): Promise<RunData> {
+function runFor(
+  policy: Policy,
+  hash: string,
+  bundle: SlotBundle,
+  origin: string | null,
+): Promise<RunData> {
   const key = `${hash}:${bundle.slot}`
   const cached = runs.get(key)
   if (cached !== undefined) return cached
 
   const pending =
-    api === null ? Promise.resolve(localRun(policy, bundle)) : remoteRun(api, policy, hash, bundle)
+    api === null
+      ? Promise.resolve(localRun(policy, bundle))
+      : remoteRun(api, policy, hash, bundle, origin)
 
   runs.set(key, pending)
   pending.catch(() => runs.delete(key))
@@ -159,8 +172,9 @@ async function remoteRun(
   policy: Policy,
   hash: string,
   bundle: SlotBundle,
+  origin: string | null,
 ): Promise<RunData> {
-  const saved = await client.savePolicy(policy)
+  const saved = await client.savePolicy(policy, origin)
   if (saved.hash !== hash) {
     throw new ApiFailure(
       'MALFORMED',

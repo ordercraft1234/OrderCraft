@@ -17,6 +17,7 @@ export {
   MAX_SLOT,
   bigintString,
   integerString,
+  knownPresetId,
   policyHashHex,
   presetId,
   slotNumber,

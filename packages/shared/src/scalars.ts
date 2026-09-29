@@ -1,3 +1,4 @@
+import { PRESETS } from '@ordercraft/core'
 import { z } from 'zod'
 
 /**
@@ -38,14 +39,26 @@ export const uuid = z.string().uuid()
 export const timestamp = z.string().datetime({ message: 'expected an ISO-8601 timestamp in UTC' })
 
 /**
- * A preset's identifier in `packages/core/src/presets/`, once it exists (FR-015). The
- * shape is fixed here so that a version can already record where it came from.
+ * The shape of a preset's identifier (FR-015). This is what a stored version is read
+ * back with: the API answers with whatever origin it holds, and a screen shows an id
+ * the library does not recognise rather than refusing to open the link.
  */
 export const presetId = z
   .string()
   .min(1)
   .max(64)
   .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'expected a preset id: lower-case words joined by dashes')
+
+const SHIPPED_PRESETS = new Set(PRESETS.map((preset) => preset.id))
+
+/**
+ * An origin a new version may be recorded under: one of the presets in
+ * `packages/core/src/presets/`. Presets are never removed — their hashes are pinned — so
+ * an id accepted here stays meaningful for as long as the version exists.
+ */
+export const knownPresetId = presetId.refine((id) => SHIPPED_PRESETS.has(id), {
+  message: `expected one of the shipped presets: ${[...SHIPPED_PRESETS].join(', ')}`,
+})
 
 /** A signed integer written as a decimal string, so a bigint survives JSON. */
 export const integerString = z

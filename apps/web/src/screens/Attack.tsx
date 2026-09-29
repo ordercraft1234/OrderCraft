@@ -21,7 +21,7 @@ interface AttackProps {
 
 /** Artboard 3: one triple, before and after, on the detector from T025–T028. */
 export function Attack({ triple, session, policyHash }: AttackProps) {
-  const run = useRun(session.parsed, session.draftHash, session.markStored)
+  const run = useRun(session.parsed, session.draftHash, session.markStored, session.origin)
 
   if (run.status === 'loading') {
     return (

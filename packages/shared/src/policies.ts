@@ -1,6 +1,6 @@
 import { policySchema } from '@ordercraft/core'
 import { z } from 'zod'
-import { policyHashHex, presetId, timestamp, uuid } from './scalars.ts'
+import { knownPresetId, policyHashHex, presetId, timestamp, uuid } from './scalars.ts'
 
 /**
  * `POST /policies` (FR-005).
@@ -19,7 +19,7 @@ import { policyHashHex, presetId, timestamp, uuid } from './scalars.ts'
 export const createPolicyRequestSchema = z.object({
   body: policySchema,
   policyId: uuid.optional(),
-  presetId: presetId.optional(),
+  presetId: knownPresetId.optional(),
 })
 
 export type CreatePolicyRequest = z.infer<typeof createPolicyRequestSchema>

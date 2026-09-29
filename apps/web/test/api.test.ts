@@ -73,6 +73,21 @@ describe('savePolicy', () => {
     // the body and inside the hash (T030).
     expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ body: POLICY })
   })
+
+  it('records the preset the policy started from, and only when there is one', async () => {
+    const hash = policyHash(POLICY)
+    const { calls, send } = stub(() => json({ policyId: crypto.randomUUID(), hash, created: true }))
+    const client = createClient('https://api.example.com', send)
+
+    await client.savePolicy(POLICY, 'anti-snipe-launch')
+    await client.savePolicy(POLICY, null)
+
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({
+      body: POLICY,
+      presetId: 'anti-snipe-launch',
+    })
+    expect(JSON.parse(String(calls[1]?.init?.body))).toEqual({ body: POLICY })
+  })
 })
 
 describe('requestRun', () => {
