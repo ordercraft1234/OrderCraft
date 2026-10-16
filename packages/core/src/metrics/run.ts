@@ -1,14 +1,9 @@
 import type { Ordering } from '../order/apply.ts'
 import { arrivalMs } from '../primitives/placement.ts'
 import type { SlotBundle } from '../slot/schema.ts'
+import { type Percentiles, integerDivide, percentilesOf } from './percentile.ts'
 
-export interface Percentiles {
-  p10: number
-  p50: number
-  p90: number
-  p95: number
-  max: number
-}
+export type { Percentiles } from './percentile.ts'
 
 export interface RunMetrics {
   /** Transactions the block actually held. */
@@ -48,9 +43,7 @@ export function runMetrics(bundle: SlotBundle, ordering: Ordering): RunMetrics {
   const recorded = bundle.transactions.length
   const included = ordering.included
 
-  const delays = included
-    .map((placement) => placement.timeMs - arrivalMs(placement.index, recorded))
-    .sort((left, right) => left - right)
+  const delays = addedDelays(bundle, ordering)
 
   // "Moved" is measured against the included set, not the recorded block. Otherwise
   // dropping one transaction shifts every later one by a place and the metric reports
@@ -70,32 +63,18 @@ export function runMetrics(bundle: SlotBundle, ordering: Ordering): RunMetrics {
     moved,
     delayed: delays.filter((delay) => delay > 0).length,
     reorderedPerMille: included.length === 0 ? 0 : integerDivide(moved * 1000, included.length),
-    addedDelayMs: {
-      p10: percentile(delays, 10),
-      p50: percentile(delays, 50),
-      p90: percentile(delays, 90),
-      p95: percentile(delays, 95),
-      max: delays.at(-1) ?? 0,
-    },
+    addedDelayMs: percentilesOf(delays),
   }
 }
 
 /**
- * Nearest-rank percentile over an ascending array: the smallest value at or above the
- * `percent` position. No interpolation — the interpolated variant produces fractions,
- * and this package keeps time in whole milliseconds so that two machines cannot round
- * a report differently.
+ * The delay the policy added to each **included** transaction, ascending. A batch pools
+ * these across blocks, so this is the one place the subtraction is written.
  */
-function percentile(ascending: number[], percent: number): number {
-  if (ascending.length === 0) return 0
+export function addedDelays(bundle: SlotBundle, ordering: Ordering): number[] {
+  const recorded = bundle.transactions.length
 
-  const rank = integerDivide(percent * ascending.length + 99, 100)
-  const position = rank < 1 ? 0 : rank - 1
-
-  return ascending[position < ascending.length ? position : ascending.length - 1] ?? 0
-}
-
-/** Floor division without `Math`, which this package may not touch. */
-function integerDivide(value: number, by: number): number {
-  return (value - (value % by)) / by
+  return ordering.included
+    .map((placement) => placement.timeMs - arrivalMs(placement.index, recorded))
+    .sort((left, right) => left - right)
 }
