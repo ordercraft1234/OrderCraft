@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   SLOT_SCHEMA_VERSION,
   type SlotBundle,
+  hydrateSlotBundle,
   serializeSlotBundle,
   slotBundleSchema,
 } from '../src/slot/schema.ts'
@@ -68,6 +69,18 @@ describe('slotBundleSchema', () => {
 
     expect(back).toEqual(wire)
     expect(slotBundleSchema.parse(back)).toEqual(bundle)
+  })
+
+  it('hydrates written bundles to exactly what the schema gives, huge amounts included', () => {
+    const huge = { ...wire.transactions[0], fee: '18446744073709551615' }
+    const withHuge = { ...wire, transactions: [huge, ...wire.transactions.slice(1)] }
+
+    expect(hydrateSlotBundle(withHuge as Parameters<typeof hydrateSlotBundle>[0])).toStrictEqual(
+      slotBundleSchema.parse(withHuge),
+    )
+    expect(hydrateSlotBundle(serializeSlotBundle(slotBundleSchema.parse(wire)))).toStrictEqual(
+      slotBundleSchema.parse(wire),
+    )
   })
 
   it('keeps amounts that exceed Number.MAX_SAFE_INTEGER exact', () => {

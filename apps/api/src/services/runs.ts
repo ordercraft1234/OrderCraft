@@ -17,12 +17,19 @@ import {
   serializeExtractedValue,
   serializeOrdering,
 } from '@ordercraft/shared'
+import type { SlotSource } from '@ordercraft/shared'
 import { and, eq } from 'drizzle-orm'
 import { notFound } from '../errors.ts'
 import type { Phases } from './phases.ts'
 import type { SlotStore } from './slots.ts'
 
 type RunRow = typeof runs.$inferSelect
+
+export interface RunSlotHints {
+  phases?: Phases | undefined
+  source?: SlotSource | undefined
+  stored?: boolean | undefined
+}
 
 /** A stored run with the kernel values it was built from, for whoever aggregates it. */
 export interface SlotRun {
@@ -63,24 +70,30 @@ export async function createRun(
  * are rebuilt from the row rather than recomputed — so what a batch counts is exactly the
  * run anyone can open by `(hash, slot)`, and a batch over runs that exist computes nothing.
  *
- * `phases`, when given, collects where the time went: reading the slot, looking the run
- * up, the kernel, the insert.
+ * A batch knows two things up front for all its slots at once, and passes them in
+ * `hints` to save two queries a slot: where each slot lives, and whether its run was
+ * stored before the batch began. `stored: false` skips the lookup — a run that appears
+ * in the meantime is caught by the unique constraint and read back below. `phases`
+ * collects where the time went.
  */
 export async function runSlot(
   db: Db,
   store: SlotStore,
   version: { hash: string; body: Policy },
   slot: number,
-  phases?: Phases,
+  hints: RunSlotHints = {},
 ): Promise<SlotRun> {
+  const { phases } = hints
   const time = <T>(phase: string, work: () => T | Promise<T>): Promise<T> =>
     phases === undefined ? Promise.resolve(work()) : phases.time(phase, work)
 
-  const bundle = await time('read', () => store.read(db, slot))
+  const bundle = await time('read', () => store.read(db, slot, hints.source))
   const request = { hash: version.hash, slot }
 
-  const existing = await time('lookup', () => findRun(db, request))
-  if (existing !== undefined) return fromRow(existing, bundle)
+  if (hints.stored !== false) {
+    const existing = await time('lookup', () => findRun(db, request))
+    if (existing !== undefined) return fromRow(existing, bundle)
+  }
 
   const computed = await time('kernel', () => compute(version.body, bundle))
   const [inserted] = await time('insert', () =>

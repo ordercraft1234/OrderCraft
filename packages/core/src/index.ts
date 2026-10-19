@@ -48,7 +48,12 @@ export type { Preset } from './presets/library.ts'
 export { PROGRAMS, WSOL_MINT } from './presets/programs.ts'
 export { normalizeBlock, rawBlockSchema } from './slot/normalize.ts'
 export type { RawBlock } from './slot/normalize.ts'
-export { SLOT_SCHEMA_VERSION, serializeSlotBundle, slotBundleSchema } from './slot/schema.ts'
+export {
+  SLOT_SCHEMA_VERSION,
+  hydrateSlotBundle,
+  serializeSlotBundle,
+  slotBundleSchema,
+} from './slot/schema.ts'
 export type {
   NormalizedTransaction,
   SerializedSlotBundle,

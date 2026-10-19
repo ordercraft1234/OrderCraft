@@ -3,7 +3,13 @@ import { dirname, join } from 'node:path'
 import { gunzipSync, gzipSync } from 'node:zlib'
 import { sha256 } from '@noble/hashes/sha2'
 import { bytesToHex } from '@noble/hashes/utils'
-import { type SlotBundle, serializeSlotBundle, slotBundleSchema } from '@ordercraft/core'
+import {
+  type SerializedSlotBundle,
+  type SlotBundle,
+  hydrateSlotBundle,
+  serializeSlotBundle,
+  slotBundleSchema,
+} from '@ordercraft/core'
 
 export function slotPath(directory: string, slot: number): string {
   return join(directory, `${slot}.json.gz`)
@@ -35,5 +41,18 @@ function slotBytes(bundle: SlotBundle): Uint8Array {
 }
 
 export function readSlot(path: string): SlotBundle {
-  return slotBundleSchema.parse(JSON.parse(gunzipSync(readFileSync(path)).toString('utf8')))
+  return slotBundleSchema.parse(readJson(path))
+}
+
+/**
+ * A curated fixture, without the schema: the gate parses every fixture with it and
+ * checks that this gives the same bundle (`packages/fixtures/test/hydrate.test.ts`).
+ * Never for a file that came from outside the repository.
+ */
+export function readTrustedSlot(path: string): SlotBundle {
+  return hydrateSlotBundle(readJson(path) as SerializedSlotBundle)
+}
+
+function readJson(path: string): unknown {
+  return JSON.parse(gunzipSync(readFileSync(path)).toString('utf8'))
 }

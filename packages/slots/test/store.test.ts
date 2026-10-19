@@ -5,7 +5,7 @@ import { gunzipSync, gzipSync } from 'node:zlib'
 import { normalizeBlock } from '@ordercraft/core'
 import { afterAll, describe, expect, it } from 'vitest'
 import block from '../../../packages/core/test/fixtures/block-sample.json' with { type: 'json' }
-import { readSlot, slotContentHash, slotPath, writeSlot } from '../src/store.ts'
+import { readSlot, readTrustedSlot, slotContentHash, slotPath, writeSlot } from '../src/store.ts'
 
 const dir = mkdtempSync(join(tmpdir(), 'slotctl-'))
 const bundle = normalizeBlock(441394400, block)
@@ -22,6 +22,7 @@ describe('slot store', () => {
 
     expect(readFileSync(path).subarray(0, 2)).toEqual(Buffer.from([0x1f, 0x8b]))
     expect(readSlot(path)).toEqual(bundle)
+    expect(readTrustedSlot(path)).toStrictEqual(readSlot(path))
   })
 
   it('stores the bundle, not the raw RPC answer', () => {

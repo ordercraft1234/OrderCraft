@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import type { SlotBundle } from '@ordercraft/core'
 import { type Db, slots } from '@ordercraft/db'
 import type { SlotSource, SlotSummary } from '@ordercraft/shared'
-import { readSlot, slotContentHash, slotPath, writeSlot } from '@ordercraft/slots'
+import { readSlot, readTrustedSlot, slotContentHash, slotPath, writeSlot } from '@ordercraft/slots'
 import { eq, inArray } from 'drizzle-orm'
 import { notFound } from '../errors.ts'
 
@@ -120,16 +120,23 @@ export class SlotStore {
    * runs on the sample it was given instead of discovering holes in it halfway through.
    */
   async unreadable(db: Db, wanted: readonly number[]): Promise<number[]> {
-    const rows = await db
-      .select({ slot: slots.slot, source: slots.source })
-      .from(slots)
-      .where(inArray(slots.slot, [...wanted]))
-    const sourceOf = new Map(rows.map((row) => [row.slot, row.source]))
+    const sourceOf = await this.sources(db, wanted)
 
     return wanted.filter((slot) => {
       const source = sourceOf.get(slot)
       return source === undefined || !this.hasBytes(source, slot)
     })
+  }
+
+  /** Where each of `wanted` lives, in one query; a slot with no row is absent. */
+  async sources(db: Db, wanted: readonly number[]): Promise<Map<number, SlotSource>> {
+    if (wanted.length === 0) return new Map()
+    const rows = await db
+      .select({ slot: slots.slot, source: slots.source })
+      .from(slots)
+      .where(inArray(slots.slot, [...wanted]))
+
+    return new Map(rows.map((row) => [row.slot, row.source]))
   }
 
   /**
@@ -143,14 +150,20 @@ export class SlotStore {
     return readFileSync(slotPath(this.#dirFor(source), slot))
   }
 
-  /** The bundle, parsed and checked, for a run. */
-  async read(db: Db, slot: number): Promise<SlotBundle> {
+  /**
+   * The bundle, for a run. A live-fetched block is parsed with the schema; a fixture is
+   * not, because the gate has parsed every one of them already (`readTrustedSlot`). A
+   * caller that already knows the slot's source — a batch asks for all of them at once —
+   * passes it and saves the query.
+   */
+  async read(db: Db, slot: number, known?: SlotSource): Promise<SlotBundle> {
     const kept = this.#parsed.get(slot)
     if (kept !== undefined) return kept
 
-    const { source } = await this.summary(db, slot)
+    const source = known ?? (await this.summary(db, slot)).source
     this.#requireBytes(source, slot)
-    const bundle = readSlot(slotPath(this.#dirFor(source), slot))
+    const path = slotPath(this.#dirFor(source), slot)
+    const bundle = source === 'fixture' ? readTrustedSlot(path) : readSlot(path)
     this.#remember(bundle)
 
     return bundle

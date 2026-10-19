@@ -81,3 +81,40 @@ export function serializeSlotBundle(bundle: SlotBundle): SerializedSlotBundle {
     })),
   }
 }
+
+/**
+ * The inverse of `serializeSlotBundle`, and nothing more: strings back to bigints, with
+ * no check of any kind. For bundles this repository wrote and the gate has already
+ * parsed with `slotBundleSchema` — the curated fixtures, which ship inside the build. On
+ * a slow host the schema is most of the cost of reading a block, and checking a file
+ * the build already checked buys nothing. Anything from outside — an RPC answer, the
+ * live cache — still goes through the schema.
+ */
+export function hydrateSlotBundle(serialized: SerializedSlotBundle): SlotBundle {
+  return {
+    schemaVersion: serialized.schemaVersion,
+    slot: serialized.slot,
+    blockTime: serialized.blockTime,
+    transactions: serialized.transactions.map((transaction) => ({
+      index: transaction.index,
+      signature: transaction.signature,
+      signers: transaction.signers,
+      programs: transaction.programs,
+      accounts: transaction.accounts,
+      fee: BigInt(transaction.fee),
+      failed: transaction.failed,
+      computeUnits: transaction.computeUnits === null ? null : BigInt(transaction.computeUnits),
+      lamportDelta: Object.fromEntries(
+        Object.entries(transaction.lamportDelta).map(([account, delta]) => [
+          account,
+          BigInt(delta),
+        ]),
+      ),
+      tokenDelta: transaction.tokenDelta.map((delta) => ({
+        owner: delta.owner,
+        mint: delta.mint,
+        amount: BigInt(delta.amount),
+      })),
+    })),
+  }
+}

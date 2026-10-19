@@ -6,4 +6,4 @@
 
 export { RpcRefused, SLOT_MISSING_CODES, fetchBlock } from './rpc.ts'
 export type { RpcOptions } from './rpc.ts'
-export { readSlot, slotContentHash, slotPath, writeSlot } from './store.ts'
+export { readSlot, readTrustedSlot, slotContentHash, slotPath, writeSlot } from './store.ts'

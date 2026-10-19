@@ -129,6 +129,36 @@ async function events(id: string): Promise<BatchEvent[]> {
   return parseStream(await response.text())
 }
 
+/**
+ * Opens the stream and returns once its first event — the snapshot — has arrived, so the
+ * client is known to be attached before the test lets the worker go. The promise in
+ * `events` holds every event, the first included, once the stream ends.
+ */
+async function attach(id: string): Promise<{ events: Promise<BatchEvent[]> }> {
+  const response = await h.api(`/batches/${id}/events`)
+  expect(response.status).toBe(200)
+  const body = response.body
+  if (body === null) throw new Error('the event stream has no body')
+
+  const reader = body.pipeThrough(new TextDecoderStream()).getReader()
+  let text = ''
+  while (!text.includes('\n\n')) {
+    const { value, done } = await reader.read()
+    if (done) break
+    text += value
+  }
+
+  const rest = async (): Promise<BatchEvent[]> => {
+    for (;;) {
+      const { value, done } = await reader.read()
+      if (done) return parseStream(text)
+      text += value
+    }
+  }
+
+  return { events: rest() }
+}
+
 function parseStream(text: string): BatchEvent[] {
   return text
     .split('\n\n')
@@ -180,7 +210,7 @@ describe('a batch that runs to the end', () => {
 
     const line = logged.find((candidate) => candidate.startsWith(`batch ${id}:`))
     expect(line).toMatch(
-      /^batch \S+: done, 2\/2 slots in \d+ ms, slowest \d+ ms — turn \d+ · read \d+ · lookup \d+ · kernel \d+ · insert \d+ · summarise \d+ · count \d+$/,
+      /^batch \S+: done, 2\/2 slots in \d+ ms, slowest \d+ ms — prefetch \d+ · turn \d+ · read \d+ · kernel \d+ · insert \d+ · summarise \d+ · count \d+$/,
     )
   })
 
@@ -190,10 +220,10 @@ describe('a batch that runs to the end', () => {
     const id = await start(slots)
     await gate.reached
 
-    const stream = events(id)
+    const stream = await attach(id)
     gate.release()
 
-    expect(await stream).toEqual([
+    expect(await stream.events).toEqual([
       { event: 'progress', doneCount: 0, total: 3 },
       { event: 'progress', doneCount: 1, total: 3 },
       { event: 'progress', doneCount: 2, total: 3 },
@@ -226,6 +256,26 @@ describe('a batch that runs to the end', () => {
     expect(await countRuns()).toEqual([{ count: before }])
   })
 
+  it('a run stored after the batch began is read back, not stored twice', async () => {
+    const slots = await freshSlots(2)
+    gate.hold(1)
+    const id = await start(slots)
+    await gate.reached
+
+    // The batch looked its runs up once, at the start; this one arrives after that.
+    const direct = await h.api('/runs', { method: 'POST', json: { hash, slot: slots[1] } })
+    const { id: runId } = (await direct.json()) as { id: string }
+    gate.release()
+    await events(id)
+
+    expect((await view(id)).report).toEqual(expectedReport(slots))
+    const rows = await h.db
+      .select({ id: runs.id })
+      .from(runs)
+      .where(and(eq(runs.policyHash, hash), eq(runs.slot, slots[1] ?? 0)))
+    expect(rows).toEqual([{ id: runId }])
+  })
+
   it('keeps running when the client goes away', async () => {
     const slots = await freshSlots(2)
     gate.hold(1)
@@ -248,14 +298,14 @@ describe('cancelling (FR-017)', () => {
     const id = await start(slots)
     await gate.reached
 
-    const stream = events(id)
+    const stream = await attach(id)
     const cancelled = h.api(`/batches/${id}/cancel`, { method: 'POST' })
     gate.release()
 
     const response = await cancelled
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ status: 'cancelled' })
-    expect(await stream).toEqual([
+    expect(await stream.events).toEqual([
       { event: 'progress', doneCount: 2, total: 5 },
       { event: 'progress', doneCount: 3, total: 5 },
       { event: 'cancelled' },
@@ -403,10 +453,10 @@ describe('stopping early without being asked', () => {
     await gate.reached
 
     rmSync(slotPath(h.dirs.cache, cached))
-    const stream = events(id)
+    const stream = await attach(id)
     gate.release()
 
-    const ending = (await stream).at(-1)
+    const ending = (await stream.events).at(-1)
     expect(ending).toMatchObject({ event: 'failed' })
     expect(ending?.event === 'failed' && ending.message).toMatch(new RegExp(`slot ${slots[1]}`))
 

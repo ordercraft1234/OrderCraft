@@ -235,6 +235,12 @@ export class BatchRunner {
     let slowest = 0
 
     try {
+      // Two queries for the whole batch instead of two for every slot.
+      const sources = await phases.time('prefetch', () =>
+        this.#store.sources(this.#db, active.slots),
+      )
+      const stored = await phases.time('prefetch', () => this.#storedSlots(active))
+
       for (const [position, slot] of active.slots.entries()) {
         const slotStarted = performance.now()
         // A turn of the event loop between slots, so that a cancel request and the
@@ -249,7 +255,11 @@ export class BatchRunner {
         // it is counted — its run is stored either way.
         await this.#beforeSlot?.(position)
 
-        const run = await runSlot(this.#db, this.#store, active.version, slot, phases)
+        const run = await runSlot(this.#db, this.#store, active.version, slot, {
+          phases,
+          source: sources.get(slot),
+          stored: stored.has(slot),
+        })
         const entry = await phases.time('summarise', () =>
           batchEntry(run.bundle, run.ordering, run.outcomes),
         )
@@ -291,6 +301,16 @@ export class BatchRunner {
     )
 
     return status
+  }
+
+  /** The slots of the batch whose run under its policy exists already. */
+  async #storedSlots(active: Active): Promise<Set<number>> {
+    const rows = await this.#db
+      .select({ slot: runs.slot })
+      .from(runs)
+      .where(and(eq(runs.policyHash, active.version.hash), inArray(runs.slot, active.slots)))
+
+    return new Set(rows.map((row) => row.slot))
   }
 
   /** The report over a batch's entries and its final state, in one write. */
