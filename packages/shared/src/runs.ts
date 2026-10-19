@@ -82,7 +82,7 @@ export const attackSchema = z.object({
 export type Attack = z.infer<typeof attackSchema>
 export type SerializedAttack = z.input<typeof attackSchema>
 
-const brokenReason = z.enum([
+export const brokenReason = z.enum([
   'legLeftBlock',
   'victimsLeftBlock',
   'sameBatch',
@@ -96,7 +96,8 @@ export const tripleOutcomeSchema = z.object({
   by: primitiveKind.nullable(),
 })
 
-const percentilesSchema = z.object({
+/** `Percentiles` as the kernel reports them: nearest rank, whole numbers. */
+export const percentilesSchema = z.object({
   p10: z.number().int().nonnegative(),
   p50: z.number().int().nonnegative(),
   p90: z.number().int().nonnegative(),

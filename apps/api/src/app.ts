@@ -4,9 +4,11 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { handleError } from './errors.ts'
+import { batchRoutes } from './routes/batches.ts'
 import { policyRoutes } from './routes/policies.ts'
 import { runRoutes } from './routes/runs.ts'
 import { slotRoutes } from './routes/slots.ts'
+import { BatchRunner } from './services/batches.ts'
 import type { SlotFetcher } from './services/fetch.ts'
 import type { SlotStore } from './services/slots.ts'
 
@@ -17,6 +19,11 @@ export interface AppOptions {
   webOrigin: string
   /** Live fetching; absent while the server has no RPC address (FR-023). */
   fetcher?: SlotFetcher | undefined
+  /**
+   * The batch workers. The server builds its own so that it can recover orphaned
+   * batches before it listens; tests build one with a gate in it.
+   */
+  batches?: BatchRunner | undefined
   /** The rate limiter's clock, for tests. */
   now?: (() => number) | undefined
   /** Off in tests: the request log is noise there. */
@@ -43,6 +50,7 @@ export function createApp(options: AppOptions) {
       slotRoutes(options.db, options.store, { fetcher: options.fetcher, now: options.now }),
     )
     .route('/runs', runRoutes(options.db, options.store))
+    .route('/batches', batchRoutes(options.batches ?? new BatchRunner(options.db, options.store)))
 
   app.route('/api', api)
 

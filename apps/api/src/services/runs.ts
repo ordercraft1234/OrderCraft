@@ -1,6 +1,8 @@
 import {
+  type Ordering,
   type Policy,
   type SlotBundle,
+  type TripleOutcome,
   apply,
   extractedValue,
   findSandwiches,
@@ -11,6 +13,7 @@ import { type Db, policyVersions, runs } from '@ordercraft/db'
 import {
   type CreateRunRequest,
   type SerializedRun,
+  hydrateOrdering,
   serializeExtractedValue,
   serializeOrdering,
 } from '@ordercraft/shared'
@@ -19,6 +22,14 @@ import { notFound } from '../errors.ts'
 import type { SlotStore } from './slots.ts'
 
 type RunRow = typeof runs.$inferSelect
+
+/** A stored run with the kernel values it was built from, for whoever aggregates it. */
+export interface SlotRun {
+  row: RunRow
+  bundle: SlotBundle
+  ordering: Ordering
+  outcomes: TripleOutcome[]
+}
 
 /**
  * `POST /runs` (FR-029): one run per `(policyHash, slot)`. The pair is looked up
@@ -41,20 +52,52 @@ export async function createRun(
   })
   if (version === undefined) throw notFound('policy version', { hash: request.hash })
 
-  const bundle = await store.read(db, request.slot)
-  const computed = compute(version.body, bundle)
+  return toWire((await runSlot(db, store, version, request.slot)).row)
+}
 
+/**
+ * The run of `version` on `slot`, computed and stored if it is not stored yet, with the
+ * kernel's ordering and outcomes beside the row. A batch needs those to summarise the run
+ * (`batchEntry` reads arrival times off the bundle), and when the run already exists they
+ * are rebuilt from the row rather than recomputed — so what a batch counts is exactly the
+ * run anyone can open by `(hash, slot)`, and a batch over runs that exist computes nothing.
+ */
+export async function runSlot(
+  db: Db,
+  store: SlotStore,
+  version: { hash: string; body: Policy },
+  slot: number,
+): Promise<SlotRun> {
+  const bundle = await store.read(db, slot)
+  const request = { hash: version.hash, slot }
+
+  const existing = await findRun(db, request)
+  if (existing !== undefined) return fromRow(existing, bundle)
+
+  const computed = compute(version.body, bundle)
   const [inserted] = await db
     .insert(runs)
-    .values({ policyHash: request.hash, slot: request.slot, ...computed })
+    .values({ policyHash: version.hash, slot, ...computed.row })
     .onConflictDoNothing()
     .returning()
-  if (inserted !== undefined) return toWire(inserted)
+  if (inserted !== undefined) {
+    return { row: inserted, bundle, ordering: computed.ordering, outcomes: computed.outcomes }
+  }
 
   const winner = await findRun(db, request)
-  if (winner === undefined) throw new Error(`run (${request.hash}, ${request.slot}) vanished`)
+  if (winner === undefined) throw new Error(`run (${version.hash}, ${slot}) vanished`)
 
-  return toWire(winner)
+  return fromRow(winner, bundle)
+}
+
+/** The kernel values of a stored run, signatures put back from its slot. */
+function fromRow(row: RunRow, bundle: SlotBundle): SlotRun {
+  return {
+    row,
+    bundle,
+    ordering: hydrateOrdering(row.result.ordering, bundle),
+    outcomes: row.result.outcomes,
+  }
 }
 
 export async function getRun(db: Db, id: string): Promise<SerializedRun> {
@@ -72,22 +115,28 @@ export async function getRun(db: Db, id: string): Promise<SerializedRun> {
 function compute(
   policy: Policy,
   bundle: SlotBundle,
-): Pick<RunRow, 'baseline' | 'result' | 'metrics'> {
+): {
+  row: Pick<RunRow, 'baseline' | 'result' | 'metrics'>
+  ordering: Ordering
+  outcomes: TripleOutcome[]
+} {
   const sandwiches = findSandwiches(bundle)
   const ordering = apply(policy, bundle)
+  const outcomes = sandwiches.map((sandwich) => tripleOutcome(sandwich, ordering))
 
   return {
-    baseline: {
-      attacks: sandwiches.map((sandwich) => ({
-        ...sandwich,
-        extracted: serializeExtractedValue(extractedValue(bundle, sandwich)),
-      })),
+    row: {
+      baseline: {
+        attacks: sandwiches.map((sandwich) => ({
+          ...sandwich,
+          extracted: serializeExtractedValue(extractedValue(bundle, sandwich)),
+        })),
+      },
+      result: { ordering: serializeOrdering(ordering), outcomes },
+      metrics: runMetrics(bundle, ordering),
     },
-    result: {
-      ordering: serializeOrdering(ordering),
-      outcomes: sandwiches.map((sandwich) => tripleOutcome(sandwich, ordering)),
-    },
-    metrics: runMetrics(bundle, ordering),
+    ordering,
+    outcomes,
   }
 }
 

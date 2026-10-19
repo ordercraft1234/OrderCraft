@@ -1,4 +1,5 @@
 import type {
+  BatchReport,
   ExtractedValue,
   Placement,
   RunMetrics,
@@ -7,6 +8,7 @@ import type {
 } from '@ordercraft/core'
 import { describe, expectTypeOf, it } from 'vitest'
 import type { z } from 'zod'
+import type { batchReportSchema } from '../src/batches.ts'
 import type { ApiError } from '../src/error.ts'
 import type {
   Attack,
@@ -41,6 +43,10 @@ describe('wire types match the kernel', () => {
 
   it('PlacementWire is a Placement without its signature', () => {
     expectTypeOf<PlacementWire>().toEqualTypeOf<Omit<Placement, 'signature'>>()
+  })
+
+  it('BatchReport', () => {
+    expectTypeOf<z.infer<typeof batchReportSchema>>().toEqualTypeOf<BatchReport>()
   })
 
   it('ApiError has no optional field', () => {

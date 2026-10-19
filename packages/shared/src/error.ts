@@ -7,7 +7,10 @@ import { z } from 'zod'
  *   issues.
  * - `NOT_FOUND` — the policy, version, slot, run or batch named does not exist.
  * - `RPC_DISABLED` — `/slots/fetch` was called while `SOLANA_RPC_URL` is unset (FR-023).
- * - `RATE_LIMITED` — more than the allowed fetches per minute from one address.
+ * - `CONFLICT` — the request asks for something the resource's state no longer allows:
+ *   cancelling a batch that has already finished or failed.
+ * - `RATE_LIMITED` — more than the allowed fetches per minute from one address, or a
+ *   batch started while the server is already running as many as it takes.
  * - `RPC_FAILED` — the upstream RPC answered with an error or something the schema
  *   rejected; the slot is not cached.
  * - `INTERNAL` — anything the server did not expect. The message is generic on purpose.
@@ -15,6 +18,7 @@ import { z } from 'zod'
 export const ERROR_STATUS = {
   INVALID_INPUT: 400,
   NOT_FOUND: 404,
+  CONFLICT: 409,
   RPC_DISABLED: 403,
   RATE_LIMITED: 429,
   RPC_FAILED: 502,

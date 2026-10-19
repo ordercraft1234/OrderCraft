@@ -1,4 +1,4 @@
-import type { Policy } from '@ordercraft/core'
+import type { BatchReport, Policy } from '@ordercraft/core'
 import type { SerializedRun } from '@ordercraft/shared'
 import { sql } from 'drizzle-orm'
 import {
@@ -106,8 +106,8 @@ export const runs = pgTable(
 /**
  * A batch names its slots and counts what is done; the runs themselves are rows in
  * `runs`, reachable by `(policy_hash, slot)`, which is why cancelling loses nothing
- * (FR-017). `report` is the aggregate over finished runs and is filled by the task
- * that defines it in the kernel (T038); until then it stays null.
+ * (FR-017). `report` is the kernel's aggregate over the runs the batch finished, written
+ * once when the batch stops — done, cancelled or failed — and null while it runs.
  */
 export const batches = pgTable(
   'batches',
@@ -119,7 +119,7 @@ export const batches = pgTable(
     slots: jsonb('slots').$type<number[]>().notNull(),
     status: batchStatus('status').notNull().default('running'),
     doneCount: integer('done_count').notNull().default(0),
-    report: jsonb('report').$type<Record<string, unknown>>(),
+    report: jsonb('report').$type<BatchReport>(),
     createdAt: createdAt(),
   },
   (table) => [check('batches_done_count_is_nonnegative', sql`${table.doneCount} >= 0`)],

@@ -15,6 +15,7 @@ import { writeSlot } from '@ordercraft/slots'
 import type { RpcOptions } from '@ordercraft/slots'
 import { drizzle } from 'drizzle-orm/pglite'
 import { type App, createApp } from '../src/app.ts'
+import { BatchRunner, type BatchRunnerOptions } from '../src/services/batches.ts'
 import { SlotFetcher } from '../src/services/fetch.ts'
 import { SlotStore } from '../src/services/slots.ts'
 
@@ -56,12 +57,14 @@ export interface HarnessOptions {
   /** Turns `/slots/fetch` on, against whatever `fetchImpl` answers. */
   rpc?: RpcOptions
   now?: () => number
+  batches?: BatchRunnerOptions
 }
 
 export interface Harness {
   app: App
   db: Db
   store: SlotStore
+  batches: BatchRunner
   dirs: { fixtures: string; labels: string; cache: string }
   /** `app.request` against `/api`, with JSON in and the parsed body out. */
   api(path: string, init?: RequestInit & { json?: unknown }): Promise<Response>
@@ -93,12 +96,14 @@ export async function openHarness(options: HarnessOptions = {}): Promise<Harness
   const store = new SlotStore(dirs)
   await store.syncFixtures(db)
 
+  const batches = new BatchRunner(db, store, options.batches)
   const app = createApp({
     db,
     store,
     webOrigin: WEB_ORIGIN,
     fetcher: options.rpc === undefined ? undefined : new SlotFetcher(options.rpc),
     now: options.now,
+    batches,
     log: false,
   })
 
@@ -106,6 +111,7 @@ export async function openHarness(options: HarnessOptions = {}): Promise<Harness
     app,
     db,
     store,
+    batches,
     dirs,
     api(path, init = {}) {
       const { json, ...rest } = init

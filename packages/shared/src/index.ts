@@ -57,6 +57,7 @@ export {
   extractedValueSchema,
   hydrateOrdering,
   orderingSchema,
+  percentilesSchema,
   placementSchema,
   runIdParamSchema,
   runMetricsSchema,
@@ -80,10 +81,17 @@ export {
   MAX_BATCH_SLOTS,
   batchEventSchema,
   batchIdParamSchema,
+  batchReportSchema,
   batchStatus,
   batchViewSchema,
   cancelBatchResponseSchema,
   createBatchRequestSchema,
   createBatchResponseSchema,
 } from './batches.ts'
-export type { BatchEvent, BatchStatus, BatchView, CreateBatchRequest } from './batches.ts'
+export type {
+  BatchEvent,
+  BatchStatus,
+  BatchView,
+  CreateBatchRequest,
+  SerializedBatchReport,
+} from './batches.ts'

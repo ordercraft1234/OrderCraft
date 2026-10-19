@@ -1,15 +1,26 @@
-import { policyHash } from '@ordercraft/core'
+import { apply, batchEntry, batchReport, policyHash } from '@ordercraft/core'
 import { describe, expect, it } from 'vitest'
 import {
   MAX_BATCH_SLOTS,
   batchEventSchema,
+  batchReportSchema,
   batchViewSchema,
   createBatchRequestSchema,
 } from '../src/batches.ts'
 import { ERROR_STATUS, apiError, apiErrorSchema, errorCode } from '../src/error.ts'
-import { CREATED_AT, POLICY, RUN_ID, SLOT } from './helpers.ts'
+import { CREATED_AT, POLICY, RUN_ID, SLOT, bundleOf } from './helpers.ts'
 
 const hash = policyHash(POLICY)
+
+/** The kernel's report over two quiet blocks — the shape the server stores and sends. */
+function reportOver(slots: number[]) {
+  const entries = slots.map((slot) => {
+    const bundle = { ...bundleOf(5), slot }
+    return batchEntry(bundle, apply(POLICY, bundle), [])
+  })
+
+  return batchReport(hash, entries)
+}
 
 describe('POST /batches', () => {
   it('takes a hash and a set of slots', () => {
@@ -40,11 +51,46 @@ describe('GET /batches/:id', () => {
     slots: [SLOT, SLOT + 1, SLOT + 2],
     status: 'running',
     doneCount: 2,
+    report: null,
     createdAt: CREATED_AT,
   }
 
   it('reports progress against the slots asked for', () => {
     expect(batchViewSchema.parse(view).doneCount).toBe(2)
+  })
+
+  it('carries the report once the batch has stopped, and only then', () => {
+    const report = reportOver([SLOT, SLOT + 1])
+    for (const status of ['done', 'cancelled', 'failed']) {
+      expect(batchViewSchema.safeParse({ ...view, status, report }).success).toBe(true)
+      expect(batchViewSchema.safeParse({ ...view, status }).success).toBe(false)
+    }
+    const running = batchViewSchema.safeParse({ ...view, report })
+    expect(running.success).toBe(false)
+    expect(running.error?.issues[0]?.path).toEqual(['report'])
+  })
+
+  it('a cancelled batch with nothing finished reports an empty sample', () => {
+    const report = reportOver([])
+    expect(report.addedDelayMs).toBeNull()
+    expect(
+      batchViewSchema.safeParse({ ...view, status: 'cancelled', doneCount: 0, report }).success,
+    ).toBe(true)
+  })
+
+  it('refuses a report about other runs than the ones the view counts', () => {
+    const stopped = { ...view, status: 'cancelled' }
+    const paths = (candidate: unknown) =>
+      batchViewSchema.safeParse(candidate).error?.issues.map((issue) => issue.path.join('.'))
+
+    expect(paths({ ...stopped, report: reportOver([SLOT]) })).toEqual(['report.blocks'])
+    expect(paths({ ...stopped, report: reportOver([SLOT, SLOT + 7]) })).toEqual(['report.slots'])
+    expect(
+      paths({
+        ...stopped,
+        report: { ...reportOver([SLOT, SLOT + 1]), policyHash: 'a'.repeat(64) },
+      }),
+    ).toEqual(['report.policyHash'])
   })
 
   it('cannot have finished more than it was given', () => {
@@ -54,10 +100,55 @@ describe('GET /batches/:id', () => {
   })
 
   it('knows four states and no other', () => {
-    for (const status of ['running', 'done', 'cancelled', 'failed']) {
-      expect(batchViewSchema.safeParse({ ...view, status }).success).toBe(true)
+    const report = reportOver([SLOT, SLOT + 1])
+    expect(batchViewSchema.safeParse(view).success).toBe(true)
+    for (const status of ['done', 'cancelled', 'failed']) {
+      expect(batchViewSchema.safeParse({ ...view, status, report }).success).toBe(true)
     }
     expect(batchViewSchema.safeParse({ ...view, status: 'paused' }).success).toBe(false)
+  })
+})
+
+describe('batch report', () => {
+  it('parses what the kernel builds, unchanged', () => {
+    const report = reportOver([SLOT, SLOT + 1])
+    expect(batchReportSchema.parse(JSON.parse(JSON.stringify(report)))).toEqual(report)
+  })
+
+  it('refuses parts that do not add up to their totals', () => {
+    const report = reportOver([SLOT, SLOT + 1])
+    const paths = (candidate: unknown) =>
+      batchReportSchema.safeParse(candidate).error?.issues.map((issue) => issue.path.join('.'))
+
+    expect(paths({ ...report, blocks: 3 })).toEqual(['slots'])
+    expect(paths({ ...report, slots: [SLOT + 1, SLOT] })).toEqual(['slots'])
+    expect(
+      paths({
+        ...report,
+        transactions: { ...report.transactions, dropped: report.transactions.dropped + 1 },
+      }),
+    ).toEqual(['transactions'])
+    expect(paths({ ...report, triples: { ...report.triples, found: 1 } })).toEqual(['triples'])
+    expect(
+      paths({
+        ...report,
+        triples: {
+          ...report.triples,
+          byPrimitive: { ...report.triples.byPrimitive, speedBump: 1 },
+        },
+      }),
+    ).toEqual(['triples.byPrimitive'])
+    expect(paths({ ...report, unchangedBlocks: 3 })).toEqual(['unchangedBlocks'])
+  })
+
+  it('counts broken triples under every primitive the kernel knows and no other', () => {
+    const { byPrimitive, byReason } = batchReportSchema.parse(reportOver([SLOT])).triples
+    expect(Object.keys(byPrimitive).sort()).toEqual(
+      ['allowDeny', 'batchAuction', 'speedBump', 'unattributed'].sort(),
+    )
+    expect(Object.keys(byReason).sort()).toEqual(
+      ['legLeftBlock', 'orderChanged', 'sameBatch', 'victimsLeftBlock'].sort(),
+    )
   })
 })
 

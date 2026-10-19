@@ -5,7 +5,7 @@ import type { SlotBundle } from '@ordercraft/core'
 import { type Db, slots } from '@ordercraft/db'
 import type { SlotSource, SlotSummary } from '@ordercraft/shared'
 import { readSlot, slotContentHash, slotPath, writeSlot } from '@ordercraft/slots'
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { notFound } from '../errors.ts'
 
 export interface SlotDirs {
@@ -112,6 +112,24 @@ export class SlotStore {
    */
   hasBytes(source: SlotSource, slot: number): boolean {
     return existsSync(slotPath(this.#dirFor(source), slot))
+  }
+
+  /**
+   * The slots of `wanted` that cannot be read right now — no row, or a row with nothing on
+   * disk behind it — in the order asked. A batch checks this before it starts, so that it
+   * runs on the sample it was given instead of discovering holes in it halfway through.
+   */
+  async unreadable(db: Db, wanted: readonly number[]): Promise<number[]> {
+    const rows = await db
+      .select({ slot: slots.slot, source: slots.source })
+      .from(slots)
+      .where(inArray(slots.slot, [...wanted]))
+    const sourceOf = new Map(rows.map((row) => [row.slot, row.source]))
+
+    return wanted.filter((slot) => {
+      const source = sourceOf.get(slot)
+      return source === undefined || !this.hasBytes(source, slot)
+    })
   }
 
   /**
