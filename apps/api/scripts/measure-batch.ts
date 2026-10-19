@@ -64,6 +64,7 @@ async function fill(from: number, have: number[]): Promise<void> {
   const present = new Set(have)
   let slot = from
   let loaded = have.length
+  let retries = 0
 
   while (loaded < count) {
     if (present.has(slot)) {
@@ -81,7 +82,14 @@ async function fill(from: number, have: number[]): Promise<void> {
       slot += 1
       continue
     }
+    // The upstream node fails a request now and then; the same slot loads on a retry.
+    if (response.status === 502 && retries < 3) {
+      retries += 1
+      await new Promise((resolve) => setTimeout(resolve, 2_000))
+      continue
+    }
     if (!response.ok) throw new Error(`POST /slots/fetch ${slot}: ${response.status}`)
+    retries = 0
 
     loaded += 1
     console.log(`fill: ${slot} loaded (${loaded}/${count})`)
