@@ -96,7 +96,7 @@ export async function openHarness(options: HarnessOptions = {}): Promise<Harness
   const store = new SlotStore(dirs)
   await store.syncFixtures(db)
 
-  const batches = new BatchRunner(db, store, options.batches)
+  const batches = new BatchRunner(db, store, { log: () => {}, ...options.batches })
   const app = createApp({
     db,
     store,

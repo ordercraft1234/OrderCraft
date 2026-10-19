@@ -66,10 +66,13 @@ let h: Harness
 const gate = new Gate()
 const hash = policyHash(POLICY)
 const written = new Map<number, SlotBundle>()
+const logged: string[] = []
 let nextSlot = 441_394_500
 
 beforeAll(async () => {
-  h = await openHarness({ batches: { beforeSlot: gate.beforeSlot } })
+  h = await openHarness({
+    batches: { beforeSlot: gate.beforeSlot, log: (line) => logged.push(line) },
+  })
   await h.api('/policies', { method: 'POST', json: { body: POLICY } })
 }, 60_000)
 
@@ -168,6 +171,17 @@ describe('a batch that runs to the end', () => {
     expect(batch.report).toEqual(expectedReport(slots))
     expect(batch.report?.triples).toMatchObject({ found: 2, broken: 2 })
     expect(await storedRuns(slots)).toEqual(slots)
+  })
+
+  it('leaves one log line saying where its time went, phase by phase', async () => {
+    const slots = await freshSlots(2)
+    const id = await start(slots)
+    await events(id)
+
+    const line = logged.find((candidate) => candidate.startsWith(`batch ${id}:`))
+    expect(line).toMatch(
+      /^batch \S+: done, 2\/2 slots in \d+ ms, slowest \d+ ms — turn \d+ · read \d+ · lookup \d+ · kernel \d+ · insert \d+ · summarise \d+ · count \d+$/,
+    )
   })
 
   it('streams one progress per slot to a client that is there from the start', async () => {

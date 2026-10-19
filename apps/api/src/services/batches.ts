@@ -9,6 +9,7 @@ import {
 } from '@ordercraft/shared'
 import { and, eq, inArray } from 'drizzle-orm'
 import { HttpError, notFound } from '../errors.ts'
+import { Phases } from './phases.ts'
 import { runSlot } from './runs.ts'
 import type { SlotStore } from './slots.ts'
 
@@ -27,6 +28,11 @@ export interface BatchRunnerOptions {
    * that need a batch to stand still with a slot in flight. Absent in the server.
    */
   beforeSlot?: ((position: number) => Promise<void>) | undefined
+  /**
+   * Where the one line per stopped batch goes — its time, split by phase. The console
+   * by default, which on the host is the service log.
+   */
+  log?: ((line: string) => void) | undefined
 }
 
 interface Active {
@@ -64,6 +70,7 @@ export class BatchRunner {
   readonly #store: SlotStore
   readonly #maxActive: number
   readonly #beforeSlot: ((position: number) => Promise<void>) | undefined
+  readonly #log: (line: string) => void
   readonly #active = new Map<string, Active>()
   /** Batches between the limit check and their entry in `#active`. */
   #starting = 0
@@ -73,6 +80,7 @@ export class BatchRunner {
     this.#store = store
     this.#maxActive = options.maxActive ?? 1
     this.#beforeSlot = options.beforeSlot
+    this.#log = options.log ?? ((line) => console.log(line))
   }
 
   /**
@@ -222,12 +230,16 @@ export class BatchRunner {
   async #work(active: Active): Promise<Stopped> {
     let status: Stopped = 'done'
     let message = STOPPED_EARLY
+    const phases = new Phases()
+    const started = performance.now()
+    let slowest = 0
 
     try {
       for (const [position, slot] of active.slots.entries()) {
+        const slotStarted = performance.now()
         // A turn of the event loop between slots, so that a cancel request and the
         // progress stream are served even when every read below hits memory.
-        await new Promise((resolve) => setImmediate(resolve))
+        await phases.time('turn', () => new Promise((resolve) => setImmediate(resolve)))
         if (active.cancelRequested) {
           status = 'cancelled'
           break
@@ -237,14 +249,20 @@ export class BatchRunner {
         // it is counted — its run is stored either way.
         await this.#beforeSlot?.(position)
 
-        const run = await runSlot(this.#db, this.#store, active.version, slot)
-        active.entries.push(batchEntry(run.bundle, run.ordering, run.outcomes))
-        await this.#db
-          .update(batches)
-          .set({ doneCount: active.entries.length })
-          .where(eq(batches.id, active.id))
+        const run = await runSlot(this.#db, this.#store, active.version, slot, phases)
+        const entry = await phases.time('summarise', () =>
+          batchEntry(run.bundle, run.ordering, run.outcomes),
+        )
+        active.entries.push(entry)
+        await phases.time('count', () =>
+          this.#db
+            .update(batches)
+            .set({ doneCount: active.entries.length })
+            .where(eq(batches.id, active.id)),
+        )
 
         emit(active, progressOf(active))
+        slowest = Math.max(slowest, performance.now() - slotStarted)
       }
     } catch (error) {
       status = 'failed'
@@ -267,6 +285,10 @@ export class BatchRunner {
 
     this.#active.delete(active.id)
     emit(active, ending(status, message))
+    this.#log(
+      `batch ${active.id}: ${status}, ${active.entries.length}/${active.slots.length} slots ` +
+        `in ${Math.round(performance.now() - started)} ms, slowest ${Math.round(slowest)} ms — ${phases}`,
+    )
 
     return status
   }

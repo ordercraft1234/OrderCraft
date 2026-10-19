@@ -19,6 +19,7 @@ import {
 } from '@ordercraft/shared'
 import { and, eq } from 'drizzle-orm'
 import { notFound } from '../errors.ts'
+import type { Phases } from './phases.ts'
 import type { SlotStore } from './slots.ts'
 
 type RunRow = typeof runs.$inferSelect
@@ -61,25 +62,34 @@ export async function createRun(
  * (`batchEntry` reads arrival times off the bundle), and when the run already exists they
  * are rebuilt from the row rather than recomputed — so what a batch counts is exactly the
  * run anyone can open by `(hash, slot)`, and a batch over runs that exist computes nothing.
+ *
+ * `phases`, when given, collects where the time went: reading the slot, looking the run
+ * up, the kernel, the insert.
  */
 export async function runSlot(
   db: Db,
   store: SlotStore,
   version: { hash: string; body: Policy },
   slot: number,
+  phases?: Phases,
 ): Promise<SlotRun> {
-  const bundle = await store.read(db, slot)
+  const time = <T>(phase: string, work: () => T | Promise<T>): Promise<T> =>
+    phases === undefined ? Promise.resolve(work()) : phases.time(phase, work)
+
+  const bundle = await time('read', () => store.read(db, slot))
   const request = { hash: version.hash, slot }
 
-  const existing = await findRun(db, request)
+  const existing = await time('lookup', () => findRun(db, request))
   if (existing !== undefined) return fromRow(existing, bundle)
 
-  const computed = compute(version.body, bundle)
-  const [inserted] = await db
-    .insert(runs)
-    .values({ policyHash: version.hash, slot, ...computed.row })
-    .onConflictDoNothing()
-    .returning()
+  const computed = await time('kernel', () => compute(version.body, bundle))
+  const [inserted] = await time('insert', () =>
+    db
+      .insert(runs)
+      .values({ policyHash: version.hash, slot, ...computed.row })
+      .onConflictDoNothing()
+      .returning(),
+  )
   if (inserted !== undefined) {
     return { row: inserted, bundle, ordering: computed.ordering, outcomes: computed.outcomes }
   }
