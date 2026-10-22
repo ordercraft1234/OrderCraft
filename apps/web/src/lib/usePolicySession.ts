@@ -1,4 +1,4 @@
-import { type Preset, policyHash } from '@ordercraft/core'
+import { type Policy, type Preset, policyHash } from '@ordercraft/core'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from './api.ts'
 import { demoDraft } from './demoPolicy.ts'
@@ -32,6 +32,12 @@ export interface PolicySession {
   edit: (draft: PolicyDraft) => void
   /** Replaces the draft with the preset and records it as the origin. */
   choosePreset: (preset: Preset) => void
+  /**
+   * Replaces the draft with an imported policy file (FR-018). The file's origin comes
+   * with it, or none: a file is a whole policy, and keeping the origin of whatever was
+   * on screen before would label it with somebody else's starting point.
+   */
+  openFile: (file: { policy: Policy; hash: string; presetId?: string }) => void
   /** Called by whoever saved it — the builder's button, or the run that stored it first. */
   markStored: (hash: string) => void
 }
@@ -131,6 +137,13 @@ export function usePolicySession(linkHash: string | null): PolicySession {
     setLoad((current) => (current.status === 'failed' ? { status: 'idle' } : current))
   }, [])
 
+  const openFile = useCallback((file: { policy: Policy; hash: string; presetId?: string }) => {
+    setDraft(policyToDraft(file.policy))
+    setOrigin(file.presetId ?? null)
+    setBaselineHash(file.hash)
+    setLoad((current) => (current.status === 'failed' ? { status: 'idle' } : current))
+  }, [])
+
   const stored = draftHash !== null && known.has(draftHash)
 
   return {
@@ -143,6 +156,7 @@ export function usePolicySession(linkHash: string | null): PolicySession {
     unsaved: isUnsaved({ draftHash, baselineHash, stored }),
     edit,
     choosePreset,
+    openFile,
     markStored,
   }
 }

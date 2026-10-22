@@ -1,6 +1,7 @@
 import { POLICY_SCHEMA_VERSION, PRIMITIVES, validatePolicy } from '@ordercraft/core'
 import { DEMO_SLOT } from '@ordercraft/fixtures'
 import { useMemo } from 'react'
+import { PolicyFile } from '../components/PolicyFile.tsx'
 import { PresetDiff } from '../components/PresetDiff.tsx'
 import { PresetLibrary } from '../components/PresetLibrary.tsx'
 import { SavePolicy } from '../components/SavePolicy.tsx'
@@ -116,6 +117,14 @@ export function Builder({ session }: BuilderProps) {
             onStored={markStored}
             blocked={reasonNotRunnable(errors.length, blockingIssues.length)}
             origin={origin}
+          />
+
+          <PolicyFile
+            policy={parsed.ok ? parsed.policy : null}
+            blocked={reasonNotRunnable(errors.length, blockingIssues.length)}
+            origin={origin}
+            unsaved={session.unsaved}
+            onOpen={session.openFile}
           />
         </div>
 
