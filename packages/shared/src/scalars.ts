@@ -1,5 +1,8 @@
-import { PRESETS } from '@ordercraft/core'
+import { PRESETS, policyHashHex, presetId } from '@ordercraft/core'
 import { z } from 'zod'
+
+/** Defined beside the policy schema, because a policy file carries both (FR-018). */
+export { policyHashHex, presetId }
 
 /**
  * Upper bound on a slot number the API will look at.
@@ -28,26 +31,10 @@ export const slotSegment = z
   .transform(Number)
   .pipe(slotNumber)
 
-/** The content address `policyHash` produces: 64 lower-case hex characters. */
-export const policyHashHex = z
-  .string()
-  .regex(/^[0-9a-f]{64}$/, 'expected a policy hash: 64 lower-case hex characters')
-
 export const uuid = z.string().uuid()
 
 /** RFC 3339 in UTC, the way `Date#toISOString` writes it. Offsets are not accepted. */
 export const timestamp = z.string().datetime({ message: 'expected an ISO-8601 timestamp in UTC' })
-
-/**
- * The shape of a preset's identifier (FR-015). This is what a stored version is read
- * back with: the API answers with whatever origin it holds, and a screen shows an id
- * the library does not recognise rather than refusing to open the link.
- */
-export const presetId = z
-  .string()
-  .min(1)
-  .max(64)
-  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'expected a preset id: lower-case words joined by dashes')
 
 const SHIPPED_PRESETS = new Set(PRESETS.map((preset) => preset.id))
 

@@ -15,3 +15,19 @@ export const base58 = z
 export const unsignedIntegerString = z
   .string()
   .regex(/^(0|[1-9][0-9]*)$/, 'expected a non-negative decimal integer written as a string')
+
+/** The content address `policyHash` produces: 64 lower-case hex characters. */
+export const policyHashHex = z
+  .string()
+  .regex(/^[0-9a-f]{64}$/, 'expected a policy hash: 64 lower-case hex characters')
+
+/**
+ * The shape of a preset's identifier (FR-015). This is what a stored version is read
+ * back with: the API answers with whatever origin it holds, and a screen shows an id
+ * the library does not recognise rather than refusing to open the link.
+ */
+export const presetId = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'expected a preset id: lower-case words joined by dashes')

@@ -1,4 +1,4 @@
-export { base58, unsignedIntegerString } from './common/scalars.ts'
+export { base58, policyHashHex, presetId, unsignedIntegerString } from './common/scalars.ts'
 export { LABELS_SCHEMA_VERSION, accuracyAgainst, slotLabelsSchema } from './detect/labels.ts'
 export type { Accuracy, SlotLabels } from './detect/labels.ts'
 export { tripleOutcome } from './detect/broken.ts'
@@ -21,6 +21,14 @@ export { apply } from './order/apply.ts'
 export type { Ordering } from './order/apply.ts'
 export { canonicalize, policyHash } from './policy/compile.ts'
 export type { CanonicalValue } from './policy/compile.ts'
+export {
+  POLICY_FILE_FORMAT,
+  POLICY_FILE_NOTICE,
+  POLICY_FILE_VERSION,
+  exportPolicy,
+  importPolicy,
+} from './policy/export.ts'
+export type { PolicyImport, PolicyImportError, PolicyImportErrorCode } from './policy/export.ts'
 export { POLICY_SCHEMA_VERSION, PRIMITIVES, policySchema, selectorSchema } from './policy/schema.ts'
 export type { Policy, PolicyStep, PrimitiveKind, Selector } from './policy/schema.ts'
 export { validatePolicy } from './policy/validate.ts'
