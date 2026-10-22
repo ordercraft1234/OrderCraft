@@ -106,6 +106,96 @@ describe('requestRun', () => {
   })
 })
 
+describe('batches', () => {
+  const HASH = 'a'.repeat(64)
+  const ID = '0f8b2c1e-3d4a-4b5c-8d9e-0a1b2c3d4e5f'
+
+  it('lists the slots of one source', async () => {
+    const { calls, send } = stub(() =>
+      json([{ slot: 445553238, source: 'fixture', txCount: 1422, hasLabels: true }]),
+    )
+
+    const slots = await createClient('https://api.example.com', send).listSlots('fixture')
+
+    expect(slots.map((slot) => slot.slot)).toEqual([445553238])
+    expect(calls[0]?.url).toBe('https://api.example.com/api/slots?source=fixture')
+  })
+
+  it('starts a batch on the policy and the slots it names', async () => {
+    const { calls, send } = stub(() => json({ batchId: ID }, 201))
+
+    const started = await createClient('https://api.example.com', send).startBatch(
+      HASH,
+      [445553238, 445553239],
+    )
+
+    expect(started).toEqual({ batchId: ID })
+    expect(calls[0]?.url).toBe('https://api.example.com/api/batches')
+    expect(calls[0]?.init?.method).toBe('POST')
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({
+      hash: HASH,
+      slots: [445553238, 445553239],
+    })
+  })
+
+  it('reads a batch through the contract', async () => {
+    const view = {
+      id: ID,
+      policyHash: HASH,
+      slots: [445553238],
+      status: 'running',
+      doneCount: 0,
+      report: null,
+      createdAt: '2026-10-22T10:00:00.000Z',
+    }
+    const { calls, send } = stub(() => json(view))
+
+    expect(await createClient('https://api.example.com', send).readBatch(ID)).toEqual(view)
+    expect(calls[0]?.url).toBe(`https://api.example.com/api/batches/${ID}`)
+  })
+
+  /** A running batch with a report contradicts the contract, and a screen would draw it. */
+  it('refuses a batch view whose report contradicts its status', async () => {
+    const { send } = stub(() =>
+      json({
+        id: ID,
+        policyHash: HASH,
+        slots: [445553238],
+        status: 'done',
+        doneCount: 1,
+        report: null,
+        createdAt: '2026-10-22T10:00:00.000Z',
+      }),
+    )
+
+    const failure = await createClient('https://api.example.com', send)
+      .readBatch(ID)
+      .catch((error: unknown) => error)
+
+    expect((failure as ApiFailure).code).toBe('MALFORMED')
+  })
+
+  it('cancels by posting to the batch, and carries a conflict as one', async () => {
+    const { calls, send } = stub(() =>
+      json(apiError('CONFLICT', 'the batch has already stopped: it is done'), 409),
+    )
+
+    const failure = await createClient('https://api.example.com', send)
+      .cancelBatch(ID)
+      .catch((error: unknown) => error)
+
+    expect(calls[0]?.url).toBe(`https://api.example.com/api/batches/${ID}/cancel`)
+    expect(calls[0]?.init?.method).toBe('POST')
+    expect((failure as ApiFailure).code).toBe('CONFLICT')
+  })
+
+  it('names the event stream under the same address', () => {
+    expect(createClient('https://api.example.com').batchEventsUrl(ID)).toBe(
+      `https://api.example.com/api/batches/${ID}/events`,
+    )
+  })
+})
+
 describe('when the API says no', () => {
   it('carries the server’s own code and words', async () => {
     const { send } = stub(() => json(apiError('RATE_LIMITED', 'ten a minute, and no more'), 429))

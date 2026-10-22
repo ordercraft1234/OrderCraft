@@ -1,11 +1,18 @@
 import type { Policy } from '@ordercraft/core'
 import {
+  type BatchView,
   type CreatePolicyResponse,
   type ErrorCode,
   type PolicyVersionView,
   type Run,
+  type SlotSource,
+  type SlotSummary,
   apiErrorSchema,
+  batchViewSchema,
+  cancelBatchResponseSchema,
+  createBatchResponseSchema,
   createPolicyResponseSchema,
+  listSlotsResponseSchema,
   policyVersionViewSchema,
   runSchema,
 } from '@ordercraft/shared'
@@ -60,6 +67,21 @@ export interface ApiClient {
   readPolicyVersion(hash: string): Promise<PolicyVersionView>
   /** Idempotent on `(hash, slot)`: the second call returns the first run. */
   requestRun(hash: string, slot: number): Promise<Run>
+  /** The slots the server holds, ascending as the server lists them. */
+  listSlots(source: SlotSource): Promise<SlotSummary[]>
+  /**
+   * Starts a batch (FR-016). `RATE_LIMITED` while the server is running another one,
+   * `NOT_FOUND` when the policy is not stored or a slot's file is not on disk.
+   */
+  startBatch(hash: string, slots: readonly number[]): Promise<{ batchId: string }>
+  readBatch(id: string): Promise<BatchView>
+  /**
+   * Answers once the worker has stopped (FR-017). `CONFLICT` when the batch finished
+   * first — its report is then the whole one, which is not a failure to show.
+   */
+  cancelBatch(id: string): Promise<void>
+  /** `GET /batches/:id/events`, for an `EventSource` rather than for `fetch`. */
+  batchEventsUrl(id: string): string
 }
 
 /**
@@ -114,6 +136,18 @@ export function createClient(url: string, send: typeof fetch = fetch): ApiClient
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ hash, slot }),
       }),
+    listSlots: (source) => call(`/slots?source=${source}`, listSlotsResponseSchema),
+    startBatch: (hash, slots) =>
+      call('/batches', createBatchResponseSchema, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ hash, slots }),
+      }),
+    readBatch: (id) => call(`/batches/${id}`, batchViewSchema),
+    cancelBatch: async (id) => {
+      await call(`/batches/${id}/cancel`, cancelBatchResponseSchema, { method: 'POST' })
+    },
+    batchEventsUrl: (id) => `${url}/api/batches/${id}/events`,
   }
 }
 

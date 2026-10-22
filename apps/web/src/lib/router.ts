@@ -1,5 +1,5 @@
 /**
- * The whole router. Four screens, one parameter and one prefix do not need a routing
+ * The whole router. Four screens, two parameters and one prefix do not need a routing
  * library, and a hash route keeps the app deployable as static files with no server
  * rewrite rule — which is what GitHub Pages gives and all it gives.
  *
@@ -13,7 +13,12 @@ export type Route =
   | { name: 'compare' }
   /** One triple, before and after. `triple` is 1-based — it is a label on screen. */
   | { name: 'attack'; triple: number }
-  | { name: 'report' }
+  /**
+   * The batch report. `batchId` is `null` on the screen that starts a batch, and names
+   * one once it has started, so that a reload during the run comes back to its
+   * progress and a finished report can be sent to somebody as a link.
+   */
+  | { name: 'report'; batchId: string | null }
   | { name: 'notFound'; path: string }
 
 /**
@@ -35,11 +40,18 @@ export const NAVIGATION: ReadonlyArray<{ route: Route; label: string }> = [
   { route: { name: 'builder' }, label: 'Policy' },
   { route: { name: 'compare' }, label: 'Comparison' },
   { route: { name: 'attack', triple: 1 }, label: 'Attack' },
-  { route: { name: 'report' }, label: 'Report' },
+  { route: { name: 'report', batchId: null }, label: 'Report' },
 ]
 
 /** What `policyHash` produces: 64 lower-case hex characters, as `@ordercraft/shared` says. */
 const POLICY_HASH = /^[0-9a-f]{64}$/
+
+/**
+ * A batch id as Postgres writes a `uuid`: lower-case, hyphenated. The API would answer
+ * 400 to anything else, and a route that accepted it would only move that refusal to a
+ * screen further on.
+ */
+const BATCH_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 /**
  * `#/p/<hash>/attack/3` → that triple, of that stored policy. Anything unrecognised
@@ -79,7 +91,7 @@ export function toHash(route: Route, policyHash: string | null = null): string {
     case 'attack':
       return `#${prefix}/attack/${route.triple}`
     case 'report':
-      return `#${prefix}/report`
+      return `#${prefix}/report${route.batchId === null ? '' : `/${route.batchId}`}`
     case 'notFound':
       return `#${route.path}`
   }
@@ -97,7 +109,10 @@ function routeOf(segments: string[], path: string): Route {
   if (rest.length > 0) return { name: 'notFound', path }
 
   if (head === 'compare' && second === undefined) return { name: 'compare' }
-  if (head === 'report' && second === undefined) return { name: 'report' }
+  if (head === 'report' && second === undefined) return { name: 'report', batchId: null }
+  if (head === 'report' && second !== undefined && BATCH_ID.test(second)) {
+    return { name: 'report', batchId: second }
+  }
 
   if (head === 'attack' && second !== undefined) {
     const triple = positiveInteger(second)

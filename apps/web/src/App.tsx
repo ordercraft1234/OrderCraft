@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, Suspense, lazy } from 'react'
 import { Frame } from './components/Frame.tsx'
 import { Screen } from './components/Screen.tsx'
 import type { Route } from './lib/router.ts'
@@ -8,7 +8,15 @@ import { Attack } from './screens/Attack.tsx'
 import { Builder } from './screens/Builder.tsx'
 import { Compare } from './screens/Compare.tsx'
 import { NotFound } from './screens/NotFound.tsx'
-import { Report } from './screens/Report.tsx'
+
+/**
+ * The report screen is the one that draws charts, and the charting library is most of
+ * its weight. Loading it on the way to the report keeps it off the first screen, whose
+ * budget is SC-006: interactive under 2 s on 3G.
+ */
+const Report = lazy(() =>
+  import('./screens/Report.tsx').then(({ Report }) => ({ default: Report })),
+)
 
 /**
  * The policy lives here rather than inside the builder, because three screens need the
@@ -79,7 +87,17 @@ function ScreenFor({ route, session, policyHash }: ScreenForProps) {
     case 'attack':
       return <Attack triple={route.triple} session={session} policyHash={policyHash} />
     case 'report':
-      return <Report />
+      return (
+        <Suspense
+          fallback={
+            <Screen title="Across many blocks" subtitle="Loading the report screen">
+              {null}
+            </Screen>
+          }
+        >
+          <Report batchId={route.batchId} session={session} />
+        </Suspense>
+      )
     case 'notFound':
       return <NotFound path={route.path} />
   }

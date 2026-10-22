@@ -20,3 +20,17 @@
     line-height: 1.5;
   }
 }
+
+@layer components {
+  /* The axis of a report strip (`DistributionStrip`). Recharts writes its own grey into
+     the SVG attributes; a class wins over an attribute, so the palette stays the one
+     source here too. */
+  .distribution .recharts-cartesian-axis-line,
+  .distribution .recharts-cartesian-axis-tick-line {
+    @apply stroke-hairline;
+  }
+
+  .distribution .recharts-cartesian-axis-tick-value {
+    @apply fill-muted;
+  }
+}

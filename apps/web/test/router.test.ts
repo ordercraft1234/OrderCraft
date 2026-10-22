@@ -4,6 +4,9 @@ import { NAVIGATION, type Route, isCurrent, parseLocation, toHash } from '../src
 /** A well-formed content address; the digits are not meaningful, only the shape is. */
 const HASH = 'a'.repeat(64)
 
+/** A batch id in the shape Postgres writes one. */
+const BATCH = '0f8b2c1e-3d4a-4b5c-8d9e-0a1b2c3d4e5f'
+
 /** The route half of a location, for the cases where the prefix is not what is under test. */
 function routeOf(hash: string): Route {
   return parseLocation(hash).route
@@ -18,7 +21,22 @@ describe('parseLocation', () => {
 
   it('reads the flat screens', () => {
     expect(routeOf('#/compare')).toEqual({ name: 'compare' })
-    expect(routeOf('#/report')).toEqual({ name: 'report' })
+    expect(routeOf('#/report')).toEqual({ name: 'report', batchId: null })
+  })
+
+  it('reads the batch a report route names', () => {
+    expect(routeOf(`#/report/${BATCH}`)).toEqual({ name: 'report', batchId: BATCH })
+  })
+
+  /** The API answers 400 to an id that is not a uuid, so the route does not pretend to have one. */
+  it('refuses a batch segment that is not a uuid', () => {
+    for (const segment of ['1', BATCH.toUpperCase(), BATCH.replaceAll('-', ''), `${BATCH}0`]) {
+      expect(routeOf(`#/report/${segment}`)).toEqual({
+        name: 'notFound',
+        path: `/report/${segment}`,
+      })
+    }
+    expect(routeOf(`#/report/${BATCH}/extra`).name).toBe('notFound')
   })
 
   it('reads the triple index of an attack route', () => {
@@ -46,7 +64,7 @@ describe('parseLocation', () => {
   })
 
   it('accepts a path with no leading slash', () => {
-    expect(routeOf('#report')).toEqual({ name: 'report' })
+    expect(routeOf('#report')).toEqual({ name: 'report', batchId: null })
   })
 })
 
@@ -63,6 +81,10 @@ describe('the policy prefix', () => {
     expect(parseLocation(`#/p/${HASH}/attack/2`)).toEqual({
       policyHash: HASH,
       route: { name: 'attack', triple: 2 },
+    })
+    expect(parseLocation(`#/p/${HASH}/report/${BATCH}`)).toEqual({
+      policyHash: HASH,
+      route: { name: 'report', batchId: BATCH },
     })
   })
 
@@ -97,7 +119,8 @@ describe('toHash', () => {
     { name: 'builder' },
     { name: 'compare' },
     { name: 'attack', triple: 3 },
-    { name: 'report' },
+    { name: 'report', batchId: null },
+    { name: 'report', batchId: BATCH },
   ]
 
   it('round-trips every route, with and without a policy', () => {
@@ -125,6 +148,12 @@ describe('toHash', () => {
 describe('isCurrent', () => {
   it('marks the attack entry current whichever triple is open', () => {
     expect(isCurrent({ name: 'attack', triple: 5 }, { name: 'attack', triple: 1 })).toBe(true)
+  })
+
+  it('marks the report entry current on a batch', () => {
+    expect(isCurrent({ name: 'report', batchId: BATCH }, { name: 'report', batchId: null })).toBe(
+      true,
+    )
   })
 
   it('does not mark a different screen current', () => {
