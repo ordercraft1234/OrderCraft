@@ -44,3 +44,20 @@ export async function readPolicyFile(file: PickedFile): Promise<PolicyImport> {
 
   return importPolicy(await file.text())
 }
+
+export interface DownloadFile {
+  name: string
+  text: string
+  type: string
+}
+
+/**
+ * The TypeScript stub (FR-019): the same file for every policy, since it describes the
+ * format rather than one policy. Loaded on demand — its text is not part of what the
+ * builder needs to become interactive (SC-006). Plain text, so a browser saves it
+ * instead of guessing at a media type for `.ts`.
+ */
+export async function loadStubFile(): Promise<DownloadFile> {
+  const { POLICY_STUB_FILE_NAME, POLICY_STUB_SOURCE } = await import('@ordercraft/core/stub-source')
+  return { name: POLICY_STUB_FILE_NAME, text: POLICY_STUB_SOURCE, type: 'text/plain' }
+}

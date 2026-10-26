@@ -6,12 +6,14 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./stub-source": "./src/policy/stub-source.ts"
   },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "stub:source": "node scripts/write-stub-source.ts && biome format --write src/policy/stub-source.ts"
   },
   "dependencies": {
     "@noble/hashes": "^1.6.1",

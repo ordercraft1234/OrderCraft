@@ -1,6 +1,6 @@
 import { POLICY_FILE_NOTICE, type Policy, type PolicyImport, exportPolicy } from '@ordercraft/core'
 import { type ChangeEvent, useState } from 'react'
-import { fileNameFor, readPolicyFile } from '../lib/policyFile.ts'
+import { type DownloadFile, fileNameFor, loadStubFile, readPolicyFile } from '../lib/policyFile.ts'
 
 type Opened = Extract<PolicyImport, { ok: true }>
 
@@ -29,7 +29,9 @@ type FileState =
  *
  * Export is offered under the same condition as saving: a policy that would order
  * nothing meaningful is not an artifact worth carrying into somebody's repository.
- * Import over an unsaved draft asks first, as choosing a preset does.
+ * Import over an unsaved draft asks first, as choosing a preset does. The TypeScript stub
+ * is the other half of the export (FR-019): one file per format version, for the
+ * integrator who implements the ordering.
  */
 export function PolicyFile({ policy, blocked, origin, unsaved, onOpen }: PolicyFileProps) {
   const [state, setState] = useState<FileState>({ status: 'idle' })
@@ -38,11 +40,23 @@ export function PolicyFile({ policy, blocked, origin, unsaved, onOpen }: PolicyF
     if (policy === null) return
     try {
       const text = exportPolicy(policy, origin === null ? {} : { presetId: origin })
-      offerDownload(text, fileNameFor(policy.name))
+      offerDownload({ name: fileNameFor(policy.name), text, type: 'application/json' })
       setState({ status: 'idle' })
     } catch (error) {
       setState({ status: 'failed', reason: error instanceof Error ? error.message : String(error) })
     }
+  }
+
+  // The stub describes the format, not this policy, so it is offered whatever the draft.
+  const downloadStub = () => {
+    loadStubFile().then(
+      (file) => {
+        offerDownload(file)
+        setState({ status: 'idle' })
+      },
+      (error: unknown) =>
+        setState({ status: 'failed', reason: `The stub did not load: ${String(error)}` }),
+    )
   }
 
   const pick = (event: ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +106,20 @@ export function PolicyFile({ policy, blocked, origin, unsaved, onOpen }: PolicyF
         </span>
       </div>
 
+      <div className="flex flex-wrap items-baseline gap-3">
+        <button
+          type="button"
+          onClick={downloadStub}
+          className="text-[12px] underline underline-offset-4"
+        >
+          Download TypeScript stub
+        </button>
+        <span className="text-[11px] text-muted">
+          Types, a validator for the file and the signature of the ordering function you implement —
+          the same for every policy
+        </span>
+      </div>
+
       {state.status === 'failed' ? (
         <div className="max-w-[620px] break-words text-[12px] text-extracted">{state.reason}</div>
       ) : null}
@@ -127,8 +155,8 @@ export function PolicyFile({ policy, blocked, origin, unsaved, onOpen }: PolicyF
   )
 }
 
-function offerDownload(text: string, name: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
+function offerDownload({ name, text, type }: DownloadFile) {
+  const url = URL.createObjectURL(new Blob([text], { type }))
   const anchor = document.createElement('a')
   anchor.href = url
   anchor.download = name

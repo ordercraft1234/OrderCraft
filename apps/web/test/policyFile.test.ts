@@ -1,8 +1,21 @@
-import { PRESETS, type Policy, exportPolicy, importPolicy, policyHash } from '@ordercraft/core'
+import { stripTypeScriptTypes } from 'node:module'
+import {
+  POLICY_FILE_NOTICE,
+  PRESETS,
+  type Policy,
+  exportPolicy,
+  importPolicy,
+  policyHash,
+} from '@ordercraft/core'
 import { describe, expect, it } from 'vitest'
 import { demoDraft } from '../src/lib/demoPolicy.ts'
 import { policyToDraft, toPolicy } from '../src/lib/policyDraft.ts'
-import { MAX_POLICY_FILE_BYTES, fileNameFor, readPolicyFile } from '../src/lib/policyFile.ts'
+import {
+  MAX_POLICY_FILE_BYTES,
+  fileNameFor,
+  loadStubFile,
+  readPolicyFile,
+} from '../src/lib/policyFile.ts'
 
 /**
  * US5's independent test, short of the click: export what the builder holds, import the
@@ -81,5 +94,29 @@ describe('fileNameFor', () => {
 
   it('keeps a long name to a length every file system takes', () => {
     expect(fileNameFor('a'.repeat(80))).toBe(`${'a'.repeat(60)}.ordercraft.json`)
+  })
+})
+
+describe('the TypeScript stub, the second half of the export (FR-019)', () => {
+  it('is offered as a .ts file that says it is not a Jito BAM config', async () => {
+    const stub = await loadStubFile()
+
+    expect(stub.name).toBe('ordercraft-policy.v1.ts')
+    expect(stub.type).toBe('text/plain')
+    expect(stub.text).toContain(POLICY_FILE_NOTICE)
+    expect(stub.text).toContain('export type OrderBlock')
+  })
+
+  it('reads every file the builder exports, with the hash the builder shows', async () => {
+    const { text } = await loadStubFile()
+    const url = `data:text/javascript,${encodeURIComponent(stripTypeScriptTypes(text))}`
+    const stub = (await import(/* @vite-ignore */ url)) as {
+      readPolicyFile(text: string): Promise<{ ok: boolean; hash?: string }>
+    }
+
+    for (const [, policy, origin] of builderPolicies()) {
+      const file = exportPolicy(policy, origin === null ? {} : { presetId: origin })
+      expect(await stub.readPolicyFile(file)).toMatchObject({ ok: true, hash: policyHash(policy) })
+    }
   })
 })
