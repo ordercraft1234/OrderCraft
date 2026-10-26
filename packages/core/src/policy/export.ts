@@ -104,7 +104,9 @@ export function importPolicy(text: string): PolicyImport {
   const file = policyFileSchema.safeParse(raw)
   if (!file.success) return refuse('invalid-file', `the file is malformed: ${describe(file.error)}`)
 
-  const rawPolicy = file.data.policy
+  // The parsed text, not the record Zod built from it: building assigns every key, and
+  // assigning `__proto__` sets a prototype instead of keeping the key.
+  const rawPolicy = raw.policy as Record<string, unknown>
   if (isNewer(rawPolicy.schemaVersion, POLICY_SCHEMA_VERSION)) {
     return refuse(
       'newer-version',
@@ -172,7 +174,9 @@ function droppedKey(raw: unknown, parsed: unknown, path: string): string | null 
 
   for (const [key, item] of Object.entries(raw)) {
     const at = `${path}.${key}`
-    if (!(key in parsed)) return at
+    // Own keys only: `in` finds `toString` or `constructor` on every object, and would
+    // let a key by that name vanish while the rest of the policy still matched its hash.
+    if (!Object.hasOwn(parsed, key)) return at
     const found = droppedKey(item, parsed[key], at)
     if (found !== null) return found
   }

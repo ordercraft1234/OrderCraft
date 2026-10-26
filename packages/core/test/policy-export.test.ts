@@ -8,102 +8,7 @@ import {
 } from '../src/policy/export.ts'
 import type { Policy } from '../src/policy/schema.ts'
 import { PRESETS } from '../src/presets/library.ts'
-import { PROGRAMS, WSOL_MINT } from '../src/presets/programs.ts'
-
-const SPEED_BUMP: Policy = {
-  schemaVersion: 1,
-  name: 'One speed bump',
-  steps: [{ kind: 'speedBump', delayMs: 120, appliesTo: { match: 'all' } }],
-}
-
-/** Every selector branch, both rule effects, and the edges of every range. */
-const EDGES: Array<[string, Policy]> = [
-  ['the smallest policy', SPEED_BUMP],
-  [
-    'every selector branch',
-    {
-      schemaVersion: 1,
-      name: 'Every selector',
-      steps: [
-        {
-          kind: 'speedBump',
-          delayMs: 0,
-          appliesTo: { match: 'program', programs: [PROGRAMS.pumpFun] },
-        },
-        {
-          kind: 'speedBump',
-          delayMs: 400,
-          appliesTo: { match: 'signer', signers: [PROGRAMS.humidiFi, PROGRAMS.zeroFi] },
-        },
-        {
-          kind: 'batchAuction',
-          windowMs: 50,
-          appliesTo: { match: 'account', accounts: [WSOL_MINT] },
-        },
-        {
-          kind: 'allowDeny',
-          rules: [
-            {
-              effect: 'prioritise',
-              match: { match: 'tokenDeltaAbove', mint: WSOL_MINT, amount: '0' },
-            },
-            {
-              effect: 'deny',
-              match: { match: 'tokenDeltaAbove', mint: WSOL_MINT, amount: '18446744073709551615' },
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  [
-    'twelve steps',
-    {
-      schemaVersion: 1,
-      name: 'Twelve steps',
-      steps: Array.from({ length: 12 }, (_, index) => ({
-        kind: 'speedBump' as const,
-        delayMs: index * 30,
-        appliesTo: { match: 'all' as const },
-      })),
-    },
-  ],
-  [
-    'twenty rules',
-    {
-      schemaVersion: 1,
-      name: 'Twenty rules',
-      steps: [
-        {
-          kind: 'allowDeny',
-          rules: Array.from({ length: 20 }, () => ({
-            effect: 'prioritise' as const,
-            match: { match: 'program' as const, programs: [PROGRAMS.tesseraV] },
-          })),
-        },
-      ],
-    },
-  ],
-  [
-    'a name JSON has to escape',
-    {
-      schemaVersion: 1,
-      name: 'Ціна «до» і "після"\\\n\t☃ 𝄞',
-      steps: [{ kind: 'batchAuction', windowMs: 400, appliesTo: { match: 'all' } }],
-    },
-  ],
-]
-
-/** Keys reversed at every depth: what another tool may write when it saves the file. */
-function reverseKeys(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(reverseKeys)
-  if (value === null || typeof value !== 'object') return value
-  return Object.fromEntries(
-    Object.entries(value)
-      .reverse()
-      .map(([key, item]) => [key, reverseKeys(item)]),
-  )
-}
+import { EDGES, SPEED_BUMP, generatedPolicies, reverseKeys } from './helpers/policies.ts'
 
 function fileOf(policy: Policy, presetId?: string): Record<string, unknown> {
   return JSON.parse(exportPolicy(policy, presetId === undefined ? {} : { presetId }))
@@ -220,51 +125,7 @@ describe('importPolicy round-trip (SC-008)', () => {
   })
 
   it('round-trips a deterministic sweep of generated policies', () => {
-    let seed = 41
-    const next = (bound: number) => {
-      seed = (seed * 1_103_515_245 + 12_345) % 2_147_483_648
-      return seed % bound
-    }
-    const addresses: string[] = Object.values(PROGRAMS)
-    const address = () => addresses[next(addresses.length)] ?? WSOL_MINT
-    const selector = () => {
-      switch (next(5)) {
-        case 0:
-          return { match: 'all' as const }
-        case 1:
-          return { match: 'program' as const, programs: [address()] }
-        case 2:
-          return { match: 'signer' as const, signers: [address()] }
-        case 3:
-          return { match: 'account' as const, accounts: [WSOL_MINT] }
-        default:
-          return {
-            match: 'tokenDeltaAbove' as const,
-            mint: WSOL_MINT,
-            amount: String(next(1_000_000)),
-          }
-      }
-    }
-
-    for (let round = 0; round < 200; round += 1) {
-      const steps = Array.from({ length: 1 + next(12) }, (): Policy['steps'][number] => {
-        switch (next(3)) {
-          case 0:
-            return { kind: 'speedBump', delayMs: next(401), appliesTo: selector() }
-          case 1:
-            return { kind: 'batchAuction', windowMs: 50 + next(351), appliesTo: selector() }
-          default:
-            return {
-              kind: 'allowDeny',
-              rules: Array.from({ length: 1 + next(20) }, () => ({
-                effect: next(2) === 0 ? ('prioritise' as const) : ('deny' as const),
-                match: selector(),
-              })),
-            }
-        }
-      })
-      const policy: Policy = { schemaVersion: 1, name: `Generated ${round}`, steps }
-
+    for (const policy of generatedPolicies(200)) {
       const result = importPolicy(exportPolicy(policy))
       expect(result.ok && result.hash).toBe(policyHash(policy))
       expect(result.ok && canonicalize(result.policy)).toBe(canonicalize(policy))
@@ -343,6 +204,39 @@ describe('importPolicy refusals', () => {
 
     expect(error).toMatchObject({ code: 'not-canonical' })
     expect(error.message).toMatch(/note/)
+  })
+
+  it.each(['toString', 'constructor', '__proto__'])(
+    'refuses a dropped key named %s, which every parsed object already inherits',
+    (key) => {
+      // Built from text: an object literal would set the prototype instead of a key.
+      const policy = JSON.parse(
+        JSON.stringify(SPEED_BUMP).replace('"delayMs"', `"${key}":"x","delayMs"`),
+      )
+      // The hash as exported, and the hash recomputed to cover the key: in the first the
+      // key would vanish silently, since the rest of the policy still matches.
+      for (const hash of [policyHash(SPEED_BUMP), policyHash(policy)]) {
+        const error = errorOf(importObject({ ...fileOf(SPEED_BUMP), policy, hash }))
+
+        expect(error).toMatchObject({ code: 'not-canonical' })
+        expect(error.message).toContain(`policy.steps.0.${key}`)
+      }
+    },
+  )
+
+  it('refuses __proto__ at the top of the policy, and never reads a field through it', () => {
+    const { name, ...nameless } = SPEED_BUMP
+    const cases: Array<[string, string]> = [
+      [JSON.stringify(SPEED_BUMP).replace('{', '{"__proto__":"x",'), 'not-canonical'],
+      [
+        JSON.stringify(nameless).replace('{', `{"__proto__":{"name":${JSON.stringify(name)}},`),
+        'invalid-policy',
+      ],
+    ]
+    for (const [text, code] of cases) {
+      const policy = JSON.parse(text)
+      expect(errorOf(importObject({ ...fileOf(SPEED_BUMP), policy })).code).toBe(code)
+    }
   })
 
   it('refuses a dropped key whose value has no canonical form, instead of throwing', () => {
